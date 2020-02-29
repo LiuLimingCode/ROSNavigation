@@ -1,0 +1,16 @@
+#http://wiki.ros.org/costmap_2d
+
+    footprint: [[-0.305, -0.23], [-0.305, 0.23], [0.305, 0.23], [0.305, -0.23]]
+    footprint_padding: 0.01
+
+    robot_base_frame: base_footprint #The name of the frame for the base link of the robot.
+    transform_tolerance: 0.5         #Specifies the delay in transform (tf) data that is tolerable in seconds.
+
+    update_frequency: 10.0       #The frequency in Hz for the map to be updated.
+    publish_frequency: 10.0      #The frequency in Hz for the map to be publish display information.
+
+    #http://wiki.ros.org/costmap_2d/hydro/inflation
+    inflation_layer:
+        inflation_radius: 0.55       #The radius in meters to which the map inflates obstacle cost values.
+        cost_scaling_factor: 0.5    #A scaling factor to apply to cost values during inflation.
+

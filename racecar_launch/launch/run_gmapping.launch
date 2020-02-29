@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="scan_topic"/>
+  <arg name="base_frame"/>
+  <arg name="map_frame"/>
+  <arg name="odom_frame"/>
+
+  <include file="$(find racecar_launch)/launch/includes/gmapping.launch.xml" >
+    <arg name="scan_topic" default="$(arg scan_topic)"/>
+    <arg name="base_frame" default="$(arg base_frame)"/>
+    <arg name="map_frame" default="$(arg map_frame)"/>
+    <arg name="odom_frame" default="$(arg odom_frame)"/>
+  </include>
+
+</launch>

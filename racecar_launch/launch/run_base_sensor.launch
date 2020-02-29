@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<launch>
+<!-- 启动车的基本传感器和TF -->
+  <master auto="start"/>
+
+  <arg name="use_rviz" default="false" />
+
+  <!-- TF setting -->
+  <include file="$(find racecar_launch)/launch/includes/tf_static.launch.xml" />
+
+  <!-- ls01g 激光雷达传感器 -->
+  <include file="$(find ls01g)/launch/ls01g.launch"/>
+
+  <!-- IMU 姿态传感器 -->
+  <include file="$(find art_imu)/launch/imu.launch" />
+
+  <!-- Car Driver 车模电机舵机驱动 -->
+  <node pkg="art_driver" type="art_driver_node" name="art_driver_node"/>
+	
+  <!-- ODOMETRY 里程计 rf2o_laser_odometry算法  -->
+  <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml" />
+
+  <!-- IMU 激光雷达 ODOMETRY 融合滤波  robot_localization算法  -->
+  <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml" />
+
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/launch/racecar.rviz" if="$(arg use_rviz)"/>
+
+</launch>
+

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="odom_real_sub_topic"/>
+  <arg name="odom_rf2o_sub_topic"/>
+  <arg name="odom_real_pub_topic"/>
+  <arg name="odom_rf2o_pub_topic"/>
+  <arg name="odom_real_sub_frame"/>
+  <arg name="odom_rf2o_pub_frame"/>
+
+#在gazebo仿真中，gazebo会输出odom数据和tf坐标，此时，rf2o输出的odom数据只能放在gazebo的odom坐标系下。rf2o_tf_publisher即创建一个坐标系的变换，将gazebo下的坐标系转化为rf2o下的坐标系。
+
+  <node pkg="rf2o_tf_publisher" type="rf2o_tf_publisher" name="rf2o_tf_publisher">
+    <param name="odom_real_sub_topic" value="$(arg odom_real_sub_topic)"/>
+    <param name="odom_rf2o_sub_topic" value="$(arg odom_rf2o_sub_topic)"/>
+    <param name="odom_real_pub_topic" value="$(arg odom_real_pub_topic)"/>
+    <param name="odom_rf2o_pub_topic" value="$(arg odom_rf2o_pub_topic)"/>
+    <param name="odom_real_sub_frame" value="$(arg odom_real_sub_frame)"/>
+    <param name="odom_rf2o_pub_frame" value="$(arg odom_rf2o_pub_frame)"/>
+  </node>
+
+</launch>

@@ -1,0 +1,39 @@
+#http://wiki.ros.org/dwa_local_planner
+
+DWAPlannerROS:
+    acc_lim_x: 0.5      #The x acceleration limit of the robot in meters/sec^2
+    acc_lim_y: 0.0      #The y acceleration limit of the robot in meters/sec^2
+    acc_lim_th: 0.1     #The rotational acceleration limit of the robot in radians/sec^2
+    max_trans_vel: 0.5  #The absolute value of the maximum translational velocity for the robot in m/s
+    min_trans_vel: 0.1  #The absolute value of the minimum translational velocity for the robot in m/s
+    max_vel_x: 0.5      #The maximum x velocity for the robot in m/s.
+    min_vel_x: 0.0      #The minimum x velocity for the robot in m/s, negative for backwards motion.
+    max_vel_y: 0.0      #The maximum y velocity for the robot in m/s
+    min_vel_y: -0.0     #The minimum y velocity for the robot in m/s
+    max_rot_vel: 0.2    #The absolute value of the maximum rotational velocity for the robot in rad/s
+    min_rot_vel: 0.0    #The absolute value of the minimum rotational velocity for the robot in rad/s
+
+    yaw_goal_tolerance: 0.1        #The tolerance in radians for the controller in yaw/rotation when achieving its goal
+    xy_goal_tolerance: 0.2         #The tolerance in meters for the controller in the x & y distance when achieving a goal
+    latch_xy_goal_tolerance: true  #If goal tolerance is latched, if the robot ever reaches the goal xy location it will simply rotate in place, even if it ends up outside the goal tolerance while it is doing so.
+
+    sim_time: 1.5            #The amount of time to forward-simulate trajectories in seconds
+    sim_granularity: 0.025   #The step size, in meters, to take between points on a given trajectory
+    vx_samples: 20           #The number of samples to use when exploring the x velocity space
+    vy_samples: 0            #The number of samples to use when exploring the y velocity space
+    vth_samples: 10          #The number of samples to use when exploring the theta velocity space
+    controller_frequency: 20 #The frequency at which this controller will be called in Hz.
+
+    path_distance_bias: 20.0 #The weighting for how much the controller should stay close to the path it was given
+    goal_distance_bias: 30.0 #The weighting for how much the controller should attempt to reach its local goal, also controls speed
+    occdist_scale: 0.01      #The weighting for how much the controller should attempt to avoid obstacles
+    forward_point_distance: 0.5 #The distance from the center point of the robot to place an additional scoring point, in meters
+    stop_time_buffer: 0.2    #The amount of time that the robot must stop before a collision in order for a trajectory to be considered valid in seconds
+    scaling_speed: 0.5       #The absolute value of the velocity at which to start scaling the robot's footprint, in m/s
+    max_scaling_factor: 0.2  #The maximum factor to scale the robot's footprint by
+    publish_cost_grid: false #Whether or not to publish the cost grid that the planner will use when planning.
+
+    oscillation_reset_dist: 0.05 #How far the robot must travel in meters before oscillation flags are reset
+
+    prune_plan: true         #Defines whether or not to eat up the plan as the robot moves along the path. If set to true, points will fall off the end of the plan once the robot moves 1 meter past them.
+

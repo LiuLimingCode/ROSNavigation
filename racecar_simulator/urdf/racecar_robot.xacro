@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot name="racecar" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:arg name="robot_name" default="racecar"/>
+  <xacro:include filename="$(find racecar_simulator)/urdf/move_macro.xacro"/>
+  <xacro:include filename="$(find racecar_simulator)/urdf/laser_macro.xacro"/>
+  <xacro:include filename="$(find racecar_simulator)/urdf/imu_macro.xacro"/>
+  <link name="base_link"/>
+
+  <xacro:body_macro parent="base_link" />
+  <xacro:wheel_macro prefix="front_right_wheel" parent="base_link" xyz="0.1575 -0.14 0.0675"/>
+  <xacro:wheel_macro prefix="front_left_wheel" parent="base_link" xyz="0.1575 0.14 0.0675"/>
+  <xacro:wheel_macro prefix="rear_right_wheel" parent="base_link" xyz="-0.1575 -0.14 0.0675"/>
+  <xacro:wheel_macro prefix="rear_left_wheel" parent="base_link" xyz="-0.1575 0.14 0.0675"/>
+  <xacro:laser_macro prefix="laser" parent="base_link" xyz="0.07 0 0.2575"/>
+  <xacro:imu_macro prefix="imu" parent="base_link" xyz="0.16575 0 0.168" robot_name="$(arg robot_name)"/>
+
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>$(arg robot_name)</robotNamespace>
+      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+      <legacyModeNS>true</legacyModeNS>
+    </plugin>
+  </gazebo>
+</robot>

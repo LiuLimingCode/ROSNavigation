@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="model_file" default="$(find racecar_simulator)/urdf/racecar_robot.xacro" />
+  <arg name="robot_name" default="racecar"/>
+  <arg name="enable_odom_tf" default="false"/>
+  <arg name="odom_frame" default="odom"/>
+  <arg name="robot_namespace" default="$(arg robot_name)"/>
+
+  <group ns="$(arg robot_namespace)">
+
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model_file) --inorder robot_name:=$(arg robot_name)"/>
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model $(arg robot_name) -param robot_description"/>
+
+    <param name="/$(arg robot_name)/diff_drive_controller/enable_odom_tf" value="$(arg enable_odom_tf)"/>
+    <param name="/$(arg robot_name)/diff_drive_controller/base_frame_id" value="$(arg robot_name)/base_link"/>
+    <param name="/$(arg robot_name)/diff_drive_controller/odom_frame_id" value="$(arg robot_name)/$(arg odom_frame)"/>
+    <rosparam command="load" file="$(find racecar_simulator)/param/diff_drive_controller.yaml"/>
+    <rosparam command="load" file="$(find racecar_simulator)/param/joint_state_controller.yaml"/>
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="diff_drive_controller joint_state_controller"/>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+      <param name="tf_prefix" value="$(arg robot_name)"/>
+    </node>
+
+  </group>
+
+</launch>
+

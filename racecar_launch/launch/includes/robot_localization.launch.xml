@@ -1,0 +1,25 @@
+<launch>
+
+  <arg name="imu0_topic"/>
+  <arg name="odom0_topic"/>
+  <arg name="map_frame"/>
+  <arg name="odom_frame"/>
+  <arg name="base_link_frame"/>
+  <arg name="world_frame"/>
+
+  <arg name="param_file"/>
+
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
+
+    <param name="imu0" value="$(arg imu0_topic)"/>
+    <param name="odom0" value="$(arg odom0_topic)"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+    <param name="base_link_frame" value="$(arg base_link_frame)"/>
+    <param name="world_frame" value="$(arg world_frame)"/>
+
+    <rosparam command="load" file="$(arg param_file)"/>
+
+  </node>
+
+</launch>

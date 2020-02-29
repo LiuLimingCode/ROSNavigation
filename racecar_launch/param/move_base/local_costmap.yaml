@@ -1,0 +1,28 @@
+#http://wiki.ros.org/costmap_2d
+local_costmap:
+
+    global_frame: odom          #The global frame for the costmap to operate in.
+
+    rolling_window: true        #Use a rolling window version of the costmap. If static_map parameter is true, this must be false.
+    always_send_full_costmap: false #If true the full costmap is published to "~<name>/costmap" every update. If false only the part of the costmap that has changed is published on the "~<name>/costmap_updates" topic.
+
+    width: 10                   #The width of the map in meters.
+    height: 10                  #The height of the map in meters.
+    resolution: 0.05            #The resolution of the map in meters/cell.
+    origin_x: 0.0               #The x origin of the map in the global frame in meters.
+    origin_y: 0.0               #The y origin of the map in the global frame in meters.
+
+    plugins:
+        - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+        - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+    #http://wiki.ros.org/costmap_2d/hydro/obstacles
+    obstacles_layer:
+        observation_sources: laser_scan_sensor
+        laser_scan_sensor: {sensor_frame: laser, data_type: LaserScan, topic: scan, clearing: true, marking: true}
+        max_obstacle_height: 10    #The maximum height of any obstacle to be inserted into the costmap in meters.
+        obstacle_range: 10         #The default maximum meters from the robot at which an obstacle will be inserted into the cost map.
+        raytrace_range: 11         #The default range in meters at which to raytrace out obstacles from the map using sensor data.
+        track_unknown_space: false
+
+
