@@ -1,17 +1,23 @@
 <?xml version="1.0"?>
 
 <robot name="racecar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="robot_name" default="racecar"/>
+  <xacro:arg name="enable_odom_tf" default="true"/>
+  <xacro:arg name="odom_frame" default="odom"/>
+  <xacro:arg name="odom_topic" default="odom"/>
 
   <material name="white">
     <color rgba="1.0 1.0 1.0 1.0"/>
   </material>
 
+  <link name="base_link"/>
+
   <!-- Chassis -->
-  <link name="base_footprint">
+  <link name="body_link">
     <inertial>
-      <mass value="1.0"/>
+      <mass value="15.0"/>
       <origin xyz=" 0 0 0.1175"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+      <inertia ixx="0.13" ixy="0.0" ixz="0.0" iyy="0.33" iyz="0.0" izz="0.39"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0.1175"/>
@@ -27,16 +33,22 @@
       </geometry>
     </collision>
   </link>
-  <gazebo reference="base_footprint">
+  <joint name="body_joint" type="fixed">
+    <parent link="base_link"/>
+    <child  link="body_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <gazebo reference="body_link">
     <material value="Gazebo/White"/>
   </gazebo>
+
 
   <!-- wheel -->
   <link name="front_left_wheel_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+      <mass value="1.5"/>
+      <inertia ixx="0.005" ixy="0.0" ixz="0.0" iyy="0.005" iyz="0.0" izz="0.009"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -58,13 +70,13 @@
     <limit effort="200" velocity="200"/>
     <joint_properties damping="0.1"/>
     <origin rpy="${radians(-90)} 0 0" xyz="0.1575 0.14 0.0675"/>
-    <parent link="base_footprint"/>
+    <parent link="base_link"/>
     <child link="front_left_wheel_link"/>
   </joint>
   <transmission name="front_left_wheel_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="front_left_wheel_joint">
-        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </joint>
     <actuator name="$front_left_wheel_motor">
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
@@ -84,8 +96,8 @@
   <link name="rear_left_wheel_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+      <mass value="1.5"/>
+      <inertia ixx="0.005" ixy="0.0" ixz="0.0" iyy="0.005" iyz="0.0" izz="0.009"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -107,13 +119,13 @@
     <limit effort="200" velocity="200"/>
     <joint_properties damping="0.1"/>
     <origin rpy="${radians(-90)} 0 0" xyz="-0.1575 0.14 0.0675"/>
-    <parent link="base_footprint"/>
+    <parent link="base_link"/>
     <child link="rear_left_wheel_link"/>
   </joint>
   <transmission name="rear_left_wheel_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="rear_left_wheel_joint">
-        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </joint>
     <actuator name="rear_left_wheel_motor">
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
@@ -133,8 +145,8 @@
   <link name="front_right_wheel_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+      <mass value="1.5"/>
+      <inertia ixx="0.005" ixy="0.0" ixz="0.0" iyy="0.005" iyz="0.0" izz="0.009"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -156,13 +168,13 @@
     <limit effort="200" velocity="200"/>
     <joint_properties damping="0.1"/>
     <origin rpy="${radians(-90)} 0 0" xyz="0.1575 -0.14 0.0675"/>
-    <parent link="base_footprint"/>
+    <parent link="base_link"/>
     <child link="front_right_wheel_link"/>
   </joint>
   <transmission name="front_right_wheel_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="front_right_wheel_joint">
-        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </joint>
     <actuator name="front_right_wheel_motor">
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
@@ -182,8 +194,8 @@
   <link name="rear_right_wheel_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+      <mass value="1.5"/>
+      <inertia ixx="0.005" ixy="0.0" ixz="0.0" iyy="0.005" iyz="0.0" izz="0.009"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -205,13 +217,13 @@
     <limit effort="200" velocity="200"/>
     <joint_properties damping="0.1"/>
     <origin rpy="${radians(-90)} 0 0" xyz="-0.1575 -0.14 0.0675"/>
-    <parent link="base_footprint"/>
+    <parent link="base_link"/>
     <child link="rear_right_wheel_link"/>
   </joint>
   <transmission name="rear_right_wheel_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="rear_right_wheel_joint">
-        <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </joint>
     <actuator name="rear_right_wheel_motor">
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
@@ -229,7 +241,7 @@
   </gazebo>
 
   <!-- Laser -->
-  <link name="laser">
+  <link name="laser_link">
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -246,10 +258,10 @@
   </link>
   <joint name="laser_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.07 0 0.2575"/>
-    <parent link="base_footprint"/>
-    <child link="laser"/>
+    <parent link="base_link"/>
+    <child link="laser_link"/>
   </joint>
-  <gazebo reference="laser">
+  <gazebo reference="laser_link">
     <sensor type="ray" name="art_laser">
       <pose>0 0 0.0175 0 0 0</pose>
       <visualize>false</visualize>
@@ -275,7 +287,7 @@
         </noise>
       </ray>
       <plugin name="gazebo_laser_controller" filename="libgazebo_ros_laser.so">
-        <topicName>/scan</topicName>
+        <topicName>laser/scan</topicName>
         <frameName>laser</frameName>
       </plugin>
     </sensor>
@@ -283,7 +295,7 @@
   </gazebo>
 
   <!-- IMU -->
-  <link name="IMU_link">
+  <link name="imu_link">
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -300,25 +312,25 @@
   </link>
   <joint name="imu_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0.16575 0 0.168"/>
-    <parent link="base_footprint"/>
-    <child link="IMU_link"/>
+    <parent link="base_link"/>
+    <child link="imu_link"/>
   </joint>
-  <gazebo reference="IMU_link">
+  <gazebo reference="imu_link">
     <pose>0 0 0.01 0 0 0</pose>
     <gravity>true</gravity>
     <sensor type="imu" name="art_imu">
       <always_on>true</always_on>
       <update_rate>100</update_rate>
       <visualize>true</visualize>
-      <topic>__default_topic__</topic>
+      <topic>data</topic>
       <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-        <topicName>/imu_data</topicName>
-        <bodyName>IMU_link</bodyName>
+        <topicName>/imu/data</topicName>
+        <bodyName>imu_link</bodyName>
         <updateRateHZ>100.0</updateRateHZ>
         <gaussianNoise>0.0</gaussianNoise>
         <xyzOffset>0 0 0</xyzOffset>
         <rpyOffset>0 0 0</rpyOffset>
-        <frameName>IMU_link</frameName>
+        <frameName>$(arg robot_name)/imu_link</frameName>
       </plugin>
     </sensor>
     <material value="Gazebo/White"/>
@@ -326,35 +338,38 @@
 
   <!-- Plugin -->
   <gazebo>
-    <!--plugin filename="libgazebo_ros_skid_steer_drive.so" name="skid_steer_drive_controller">
+    <plugin filename="libgazebo_ros_skid_steer_drive.so" name="skid_steer_drive_controller">
       <updateRate>100.0</updateRate>
       <robotNamespace>$(arg robot_name)</robotNamespace>
       <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
       <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
       <leftRearJoint>rear_left_wheel_joint</leftRearJoint>
       <rightRearJoint>rear_right_wheel_joint</rightRearJoint>
-      <wheelSeparation>0.315</wheelSeparation>
+      <covariance_x>0.000100</covariance_x>
+      <covariance_y>0.000100</covariance_y>
+      <covariance_yaw>0.010000</covariance_yaw>
+      <wheelSeparation>0.28</wheelSeparation>
       <wheelDiameter>0.135</wheelDiameter>
-      <robotBaseFrame>racecar/base_link</robotBaseFrame>
+      <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
       <MaxForce>10.0</MaxForce>
       <torque>400</torque>
       <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
-      <broadcastTF>1</broadcastTF>
-    </plugin-->
+      <odometryTopic>$(arg odom_topic)</odometryTopic>
+      <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
+      <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
+    </plugin>
     <!--plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <odometryRate>20.0</odometryRate>
-      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <robotBaseFrame>base_link</robotBaseFrame>
     </plugin-->
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <!--plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
       <robotNamespace>$(arg robot_name)</robotNamespace>
       <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
       <legacyModeNS>true</legacyModeNS>
-    </plugin>
+    </plugin-->
   </gazebo>
 
 </robot>

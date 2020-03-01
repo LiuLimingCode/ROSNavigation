@@ -38,5 +38,12 @@
       <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
       <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
     </plugin>
+    <!--plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>$(arg robot_name)/odom</odometryFrame>
+      <odometryRate>100.0</odometryRate>
+      <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
+    </plugin-->
   </gazebo>
 </robot>

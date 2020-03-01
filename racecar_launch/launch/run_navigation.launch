@@ -6,6 +6,7 @@
   <arg name="scan_topic"/>
   <arg name="cmd_topic"/>
   <arg name="odom_topic"/>
+  <arg name="laser_frame"/>
   <arg name="base_frame"/>
   <arg name="map_frame"/>
   <arg name="odom_frame"/>
@@ -29,9 +30,15 @@
     <arg name="init_a" default="0"/>
   </include>
 
-  <include file="$(find racecar_launch)/launch/includes/move_base.launch.xml" >
+  <!--include file="$(find racecar_launch)/launch/includes/move_base.launch.xml" >
     <arg name="odom_topic" default="$(arg odom_topic)"/>
     <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-  </include>
+    <arg name="scan_topic" default="$(arg scan_topic)"/>
+    <arg name="map_topic" default="$(arg map_topic)"/>
+    <arg name="laser_frame" default="$(arg laser_frame)"/>
+    <arg name="map_frame" default="$(arg map_frame)"/>
+    <arg name="odom_frame" default="$(arg odom_frame)"/>
+    <arg name="base_frame" default="$(arg base_frame)"/>
+  </include-->
 
 </launch>

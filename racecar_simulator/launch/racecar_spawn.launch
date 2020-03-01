@@ -4,8 +4,8 @@
   <arg name="model_file" default="$(find racecar_simulator)/urdf/racecar_robot.xacro" />
   <arg name="robot_name" default="racecar"/>
   <arg name="enable_odom_tf" default="false"/>
-  <arg name="odom_frame" default="odom1"/>
-  <arg name="odom_topic" default="odom1"/>
+  <arg name="odom_frame" default="odom"/>
+  <arg name="odom_topic" default="odom"/>
   <arg name="robot_namespace" default="$(arg robot_name)"/>
 
   <group ns="$(arg robot_namespace)">
