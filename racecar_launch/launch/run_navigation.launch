@@ -2,18 +2,22 @@
 
 <launch>
 
+  <arg name="map_topic"/>
   <arg name="scan_topic"/>
   <arg name="cmd_topic"/>
+  <arg name="odom_topic"/>
   <arg name="base_frame"/>
   <arg name="map_frame"/>
   <arg name="odom_frame"/>
-
   <arg name="mapfile_name"/>
 
   <!-- Map server -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find racecar_launch)/map/$(arg mapfile_name).yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find racecar_launch)/map/$(arg mapfile_name).yaml">
+    <param name="frame_id" value="$(arg map_frame)"/>
+  </node>
 
-  <include file="$(find racecar_launch)/launch/includes/amcl.launch.xml" >
+  <include file="$(find racecar_launch)/launch/includes/amcl.launch.xml">
+    <arg name="map_topic" default="$(arg map_topic)"/>
     <arg name="scan_topic" default="$(arg scan_topic)"/>
     <arg name="base_frame" default="$(arg base_frame)"/>
     <arg name="map_frame" default="$(arg map_frame)"/>
@@ -26,7 +30,7 @@
   </include>
 
   <include file="$(find racecar_launch)/launch/includes/move_base.launch.xml" >
-    <arg name="odom_frame" default="$(arg odom_frame)"/>
+    <arg name="odom_topic" default="$(arg odom_topic)"/>
     <arg name="cmd_topic" default="$(arg cmd_topic)"/>
   </include>
 

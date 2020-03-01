@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <robot name="racecar" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:arg name="robot_name" default="racecar"/>
+  <xacro:arg name="enable_odom_tf" default="true"/>
+  <xacro:arg name="odom_frame" default="odom"/>
+  <xacro:arg name="odom_topic" default="odom"/>
   <xacro:include filename="$(find racecar_simulator)/urdf/move_macro.xacro"/>
   <xacro:include filename="$(find racecar_simulator)/urdf/laser_macro.xacro"/>
   <xacro:include filename="$(find racecar_simulator)/urdf/imu_macro.xacro"/>
@@ -15,10 +18,25 @@
   <xacro:imu_macro prefix="imu" parent="base_link" xyz="0.16575 0 0.168" robot_name="$(arg robot_name)"/>
 
   <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <plugin filename="libgazebo_ros_skid_steer_drive.so" name="skid_steer_drive_controller">
+      <updateRate>100.0</updateRate>
       <robotNamespace>$(arg robot_name)</robotNamespace>
-      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
-      <legacyModeNS>true</legacyModeNS>
+      <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
+      <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
+      <leftRearJoint>rear_left_wheel_joint</leftRearJoint>
+      <rightRearJoint>rear_right_wheel_joint</rightRearJoint>
+      <covariance_x>0.000100</covariance_x>
+      <covariance_y>0.000100</covariance_y>
+      <covariance_yaw>0.010000</covariance_yaw>
+      <wheelSeparation>0.28</wheelSeparation>
+      <wheelDiameter>0.135</wheelDiameter>
+      <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
+      <MaxForce>10.0</MaxForce>
+      <torque>400</torque>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>$(arg odom_topic)</odometryTopic>
+      <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
+      <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
     </plugin>
   </gazebo>
 </robot>

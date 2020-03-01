@@ -2,12 +2,12 @@
 
 <launch>
 
-  <arg name="odom_frame"/>
+  <arg name="odom_topic"/>
   <arg name="cmd_topic"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
 
-    <remap from="odom" to="$(arg odom_frame)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
     <remap from="cmd_vel" to="$(arg cmd_topic)"/>
 
     <!-- global planner -->

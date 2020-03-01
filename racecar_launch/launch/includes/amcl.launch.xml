@@ -2,6 +2,7 @@
 
 <launch>
 
+  <arg name="map_topic"/>
   <arg name="scan_topic"/>
   <arg name="base_frame"/>
   <arg name="map_frame"/>
@@ -16,6 +17,7 @@
 
   <node pkg="amcl" type="amcl" name="amcl" output="screen">
 
+    <remap from="map" to="$(arg map_topic)"/>
     <remap from="scan" to="$(arg scan_topic)"/>
     <param name="odom_frame_id" value="$(arg odom_frame)"/>   #Which frame to use for odometry. (default: "odom")
     <param name="base_frame_id" value="$(arg base_frame)"/>   #Which frame to use for the robot base (default: "base_link")

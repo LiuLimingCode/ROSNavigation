@@ -230,11 +230,6 @@
 
   <!-- Laser -->
   <link name="laser">
-   <inertial>
-      <mass value="1e-5" />
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
-    </inertial>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -273,11 +268,11 @@
           <max>8</max>
           <resolution>0.01</resolution>
         </range>
-        <!--noise>
+        <noise>
           <type>gaussian</type>
           <mean>0.0</mean>
           <stddev>0.001</stddev>
-        </noise-->
+        </noise>
       </ray>
       <plugin name="gazebo_laser_controller" filename="libgazebo_ros_laser.so">
         <topicName>/scan</topicName>
@@ -289,11 +284,6 @@
 
   <!-- IMU -->
   <link name="IMU_link">
-   <inertial>
-      <mass value="1e-5" />
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
-    </inertial>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>

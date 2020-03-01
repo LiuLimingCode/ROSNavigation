@@ -12,6 +12,9 @@ diff_drive_controller:
 #  base_frame_id: base_link  #Base frame_id, which is used to fill in the child_frame_id of the Odometry messages and TF.
 #  odom_frame_id: odom       #Name of frame to publish odometry in.
 
+  wheel_separation_multiplier: 2.265625 # default: 1.0
+  wheel_radius_multiplier    : 1.0 # default: 1.0
+
   wheel_separation : 0.28    #The distance of the left and right wheel(s).
   wheel_radius : 0.0675        #Radius of the wheels.
 

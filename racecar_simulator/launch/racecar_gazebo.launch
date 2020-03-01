@@ -5,6 +5,7 @@
   <arg name="robot_name" default="racecar"/>
   <arg name="enable_odom_tf" default="false"/>
   <arg name="odom_frame" default="odom"/>
+  <arg name="odom_topic" default="odom"/>
   <arg name="robot_namespace" default="$(arg robot_name)"/>
 
   <env name="GAZEBO_MODEL_PATH" value="$GAZEBO_MODEL_PATH:$(find racecar_simulator)/models"/>
@@ -23,6 +24,7 @@
       <arg name="robot_name" default="$(arg robot_name)"/>
       <arg name="enable_odom_tf" default="$(arg enable_odom_tf)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
+      <arg name="odom_topic" default="$(arg odom_topic)"/>
       <arg name="robot_namespace" default="$(arg robot_name)"/>
     </include>
 

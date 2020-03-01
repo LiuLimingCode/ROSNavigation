@@ -10,7 +10,6 @@
       <parent link="${parent}"/>
       <child  link="${prefix}_link"/>
       <axis xyz="0 0 1" />
-      <anchor xyz="0 0 0"/>
       <limit velocity="200" effort="200" />
       <dynamics damping="0.1"/>
     </joint>
@@ -29,7 +28,7 @@
     <link name="${prefix}_link">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
-        <mass value="0.1"/>
+        <mass value="1.5"/>
         <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
       </inertial>
       <visual>
@@ -64,7 +63,7 @@
 
     <link name="body_link">
       <inertial>
-        <mass value="1.0"/>
+        <mass value="15.0"/>
         <origin xyz=" 0 0 0.1175"/>
         <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
       </inertial>
