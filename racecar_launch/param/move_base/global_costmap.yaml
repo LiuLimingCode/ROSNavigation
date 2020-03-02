@@ -1,26 +1,28 @@
 #http://wiki.ros.org/costmap_2d
 global_costmap:
 
-    global_frame: racecar/map           #The global frame for the costmap to operate in.
+#    global_frame: racecar/map           #The global frame for the costmap to operate in.
 
-    rolling_window: true        #Use a rolling window version of the costmap. If static_map parameter is true, this must be false.
+    rolling_window: false        #Use a rolling window version of the costmap. If static_map parameter is true, this must be false.
     always_send_full_costmap: false #If true the full costmap is published to "~<name>/costmap" every update. If false only the part of the costmap that has changed is published on the "~<name>/costmap_updates" topic.
+    static_map: true
 
     width: 50                   #The width of the map in meters.
     height: 50                  #The height of the map in meters.
     resolution: 0.10            #The resolution of the map in meters/cell.
     origin_x: 0.0               #The x origin of the map in the global frame in meters.
     origin_y: 0.0               #The y origin of the map in the global frame in meters.
+
     
-    plugins:
-        - {name: static_layer,    type: "costmap_2d::StaticLayer"}
-        - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+#    plugins:
+#        - {name: static_layer,    type: "costmap_2d::StaticLayer"}
+#        - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
 
     #http://wiki.ros.org/costmap_2d/hydro/staticmap
-    static_layer:
-        map_topic: /racecar/map             #The topic that the costmap subscribes to for the static map.
-        first_map_only: false       #Only subscribe to the first message on the map topic, ignoring all subsequent messages
-        subscribe_to_updates: false #In addition to map_topic, also subscribe to map_topic + "_updates"
-        track_unknown_space: false  #If true, unknown values in the map messages are translated directly to the layer.
-        lethal_cost_threshold: 60   #The threshold value at which to consider a cost lethal when reading in a map from the map server.
+#    static_layer:
+#        map_topic: /racecar/map             #The topic that the costmap subscribes to for the static map.
+#        first_map_only: false       #Only subscribe to the first message on the map topic, ignoring all subsequent messages
+#        subscribe_to_updates: false #In addition to map_topic, also subscribe to map_topic + "_updates"
+#        track_unknown_space: false  #If true, unknown values in the map messages are translated directly to the layer.
+#        lethal_cost_threshold: 60   #The threshold value at which to consider a cost lethal when reading in a map from the map server.
 

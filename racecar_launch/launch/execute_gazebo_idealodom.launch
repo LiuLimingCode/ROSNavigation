@@ -69,7 +69,7 @@
         <arg name="mapfile_name" default="$(arg mapfile_name)"/>
       </include>
 
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <!--node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
       <rosparam file="$(find racecar_launch)/config/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
       <rosparam file="$(find racecar_launch)/config/move_base/costmap_common_params.yaml" command="load" ns="local_costmap" />
       <rosparam file="$(find racecar_launch)/config/move_base/local_costmap_params.yaml" command="load" />
@@ -86,7 +86,7 @@
       <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
       <remap from="cmd_vel" to="$(arg cmd_topic)"/>
       <remap from="odom" to="$(arg odom_topic)"/>
-    </node>
+    </node-->
 
     </group>
 
@@ -103,7 +103,7 @@
         <param name="map_frame"  value="$(arg map_frame)"/>
       </node>
 
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
       <rosparam file="$(find racecar_launch)/config/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
       <rosparam file="$(find racecar_launch)/config/move_base/costmap_common_params.yaml" command="load" ns="local_costmap" />
       <rosparam file="$(find racecar_launch)/config/move_base/local_costmap_params.yaml" command="load" />
@@ -127,13 +127,13 @@
 
   <!-- rviz -->
   <arg name="rviz_base" default="false"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_gazebo_odometry_base.rviz" if="$(arg rviz_base)" required="true">
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_gazebo_odometry_base.rviz" if="$(arg rviz_base)">
     <remap from="/move_base_simple/goal" to="/$(arg robot_name)/move_base_simple/goal"/>
     <remap from="/initialpose" to="/$(arg robot_name)/initialpose"/>
   </node>
 
   <arg name="rviz_full" default="false"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_gazebo_odometry_full.rviz" if="$(arg rviz_full)" required="true">
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_gazebo_odometry_full.rviz" if="$(arg rviz_full)">
     <remap from="/move_base_simple/goal" to="/$(arg robot_name)/move_base_simple/goal"/>
     <remap from="/initialpose" to="/$(arg robot_name)/initialpose"/>
   </node>
