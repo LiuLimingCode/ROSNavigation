@@ -2,117 +2,134 @@
 
 <launch>
 
-  <!-- topic and frame -->
-  <arg name="scan_topic" default="/scan"/>
-  <arg name="cmd_topic" default="/cmd_vel"/>
-  <arg name="imu_topic" default="/imu_data"/>
-  <arg name="odom_gazebo_topic" default="/odom"/>
-  <arg name="base_frame" default="base_footprint"/>
-  <arg name="map_frame" default="map"/>
-  <arg name="odom_gazebo_frame" default="odom"/>
-  <arg name="imu_frame" default="IMU_link"/>
-  <arg name="laser_frame" default="laser"/>
+  <arg name="robot_name" default="racecar"/>
 
-  <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
-  <arg name="odom_rf2o_frame" default="odom_rf2o"/>
+  <!-- topic and frame -->
+  <arg name="scan_topic" default="/$(arg robot_name)/laser/scan"/>
+  <arg name="cmd_topic" default="/$(arg robot_name)/cmd_vel"/>
+  <arg name="imu_topic" default="/$(arg robot_name)/imu/data"/>
+  <arg name="map_topic" default="/$(arg robot_name)/map"/>
+  <arg name="odom_topic" default="/$(arg robot_name)/odom_gazebo"/>
+  <arg name="odom_rf2o_topic" default="/$(arg robot_name)/odom_rf2o"/>
+  <arg name="odom_ekf_topic" default="/$(arg robot_name)/odom_ekf"/>
+  <arg name="base_frame" default="$(arg robot_name)/base_link"/>
+  <arg name="map_frame" default="$(arg robot_name)/map"/>
+  <arg name="odom_frame" default="$(arg robot_name)/odom"/>
+  <arg name="imu_frame" default="$(arg robot_name)/imu_link"/>
+  <arg name="laser_frame" default="$(arg robot_name)/laser_link"/>
+
+  <!-- launch option -->
+  <arg name="simulator" default="false"/>
+  <arg name="ekfodom" default="false"/>
+  <arg name="gmapping" default="false"/>
+  <arg name="savemap" default="false"/>
+  <arg name="navigation" default="false"/>
+  <arg name="lmnavigation" default="false"/>
+
 
   <!-- simulator -->
-  <arg name="simulator" default="false"/>
-
   <group if="$(arg simulator)">
-
-    <include file="$(find racecar_description)/launch/racecar_rviz.launch"/>
-
-    <arg name="inter_odom_rf2o_laser_topic" default="/rf2o_laser_odometry"/>
-    <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
-      <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
-      <arg name="rf2o_odom_topic" default="$(arg inter_odom_rf2o_laser_topic)"/>
-      <arg name="base_frame_id" default="$(arg base_frame)"/>
-      <arg name="odom_frame_id" default="$(arg odom_gazebo_topic)"/>
-      <arg name="publish_tf" default="false"/>
+    <include file="$(find racecar_simulator)/launch/racecar_gazebo.launch">
+      <arg name="robot_name" default="$(arg robot_name)"/>
+      <arg name="enable_odom_tf" default="false"/>
+      <arg name="odom_frame" default="odom"/><!---->
+      <arg name="odom_topic" default="odom_gazebo"/><!---->
+      <arg name="robot_namespace" default="$(arg robot_name)"/>
     </include>
-
-    <include file="$(find racecar_launch)/launch/includes/rf2o_tf_publisher.launch.xml">
-      <arg name="odom_real_sub_topic" default="$(arg odom_gazebo_topic)"/>
-      <arg name="odom_rf2o_sub_topic" default="$(arg inter_odom_rf2o_laser_topic)"/>
-      <arg name="odom_real_pub_topic" default="/odom_real"/>
-      <arg name="odom_rf2o_pub_topic" default="$(arg odom_rf2o_topic)"/>
-      <arg name="odom_real_sub_frame" default="$(arg odom_gazebo_frame)"/>
-      <arg name="odom_rf2o_pub_frame" default="$(arg odom_rf2o_frame)"/>
-    </include>
-
   </group>
 
 
-  <!-- gmapping -->
-  <arg name="gmapping" default="false"/>
+  <group ns="$(arg robot_name)">
 
-  <group if="$(arg gmapping)">
+    <!-- ekf_odom -->
+    <group if="$(arg ekfodom)">
+      <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml" if="$(arg simulator)">
+        <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
+        <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
+        <arg name="base_frame_id" default="$(arg base_frame)"/>
+        <arg name="odom_frame_id" default="$(arg odom_frame)"/>
+        <arg name="publish_tf" default="false"/>
+      </include>
 
-    <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
-      <arg name="imu0_topic" default="$(arg imu_topic)"/>
-      <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_rf2o_frame)"/>
-      <arg name="base_link_frame" default="$(arg base_frame)"/>
-      <arg name="world_frame" default="$(arg odom_rf2o_frame)"/>
-      <arg name="param_file" default="$(find racecar_launch)/param/ekf_params.yaml"/>
-    </include>
+      <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml" if="$(arg rviz_full)">
+        <arg name="odom_pub_topic" default="$(arg odom_ekf_topic)"/>
+        <arg name="imu0_topic" default="$(arg imu_topic)"/>
+        <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
+        <arg name="map_frame" default="$(arg map_frame)"/>
+        <arg name="odom_frame" default="$(arg odom_frame)"/>
+        <arg name="base_link_frame" default="$(arg base_frame)"/>
+        <arg name="world_frame" default="$(arg odom_frame)"/>
+        <arg name="publish_tf" default="true"/>
+        <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
+      </include>
+    </group>
 
-    <include file="$(find racecar_launch)/launch/run_gmapping.launch" if="$(arg gmapping)">
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="base_frame" default="$(arg base_frame)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_rf2o_frame)"/>
-    </include>
+
+    <!-- gmapping -->
+    <group if="$(arg gmapping)">
+      <include file="$(find racecar_launch)/launch/run_gmapping.launch">
+        <arg name="scan_topic" default="$(arg scan_topic)"/>
+        <arg name="base_frame" default="$(arg base_frame)"/>
+        <arg name="map_frame" default="$(arg map_frame)"/>
+        <arg name="odom_frame" default="$(arg odom_frame)"/>
+      </include>
+    </group>
+
+
+    <!-- savemap -->
+    <group if="$(arg savemap)">
+      <arg name="mapfile_name" default="racetrack"/>
+      <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg mapfile_name).rviz"/>
+    </group>
+
+
+    <!-- navigation -->
+    <group if="$(arg navigation)">
+      <arg name="mapfile_name" default="racetrack"/>
+      <include file="$(find racecar_launch)/launch/run_navigation.launch">
+        <arg name="map_topic" default="$(arg map_topic)"/>
+        <arg name="scan_topic" default="$(arg scan_topic)"/>
+        <arg name="cmd_topic" default="$(arg cmd_topic)"/>
+        <arg name="odom_topic" default="$(arg odom_ekf_topic)"/>
+        <arg name="laser_frame" default="$(arg laser_frame)"/>
+        <arg name="base_frame" default="$(arg base_frame)"/>
+        <arg name="map_frame" default="$(arg map_frame)"/>
+        <arg name="odom_frame" default="$(arg odom_frame)"/>
+        <arg name="mapfile_name" default="$(arg mapfile_name)"/>
+        <arg name="nav_mode" default="true"/>
+      </include>
+    </group>
+
+
+    <!-- slam and navigation -->
+    <group if="$(arg lmnavigation)">
+      <include file="$(find racecar_launch)/launch/run_navigation.launch">
+        <arg name="map_topic" default="$(arg map_topic)"/>
+        <arg name="scan_topic" default="$(arg scan_topic)"/>
+        <arg name="cmd_topic" default="$(arg cmd_topic)"/>
+        <arg name="odom_topic" default="$(arg odom_ekf_topic)"/>
+        <arg name="laser_frame" default="$(arg laser_frame)"/>
+        <arg name="base_frame" default="$(arg base_frame)"/>
+        <arg name="map_frame" default="$(arg map_frame)"/>
+        <arg name="odom_frame" default="$(arg odom_frame)"/>
+        <arg name="mapfile_name" default="$(arg mapfile_name)"/>
+        <arg name="lmn_mode" default="true"/>
+      </include>
+    </group>
 
   </group>
-
-
-  <!-- savemap -->
-  <arg name="savemap" default="false"/>
-
-  <group if="$(arg savemap)">
-
-    <arg name="mapfile_name" default="racetrack"/>
-    <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg mapfile_name).rviz"/>
-
-  </group>
-
-
-  <!-- navigation -->
-  <arg name="navigation" default="false"/>
-
-  <group if="$(arg navigation)">
-
-    <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
-      <arg name="imu0_topic" default="$(arg imu_topic)"/>
-      <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_rf2o_frame)"/>
-      <arg name="base_link_frame" default="$(arg base_frame)"/>
-      <arg name="world_frame" default="$(arg odom_rf2o_frame)"/>
-      <arg name="param_file" default="$(find racecar_launch)/param/ekf_params.yaml"/>
-    </include>
-
-    <arg name="mapfile_name" default="racetrack"/>
-    <include file="$(find racecar_launch)/launch/run_navigation.launch" if="$(arg navigation)">
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="base_frame" default="/$(arg base_frame)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_rf2o_frame)"/>
-      <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-      <arg name="mapfile_name" default="$(arg mapfile_name)"/>
-    </include>
-
-  </group>
-
 
   <!-- rviz -->
   <arg name="rviz_base" default="false"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_rf2o_odometry_base.rviz" if="$(arg rviz_base)"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_rf2o_odometry_base.rviz" if="$(arg rviz_base)">
+    <remap from="/move_base_simple/goal" to="/$(arg robot_name)/move_base_simple/goal"/>
+    <remap from="/initialpose" to="/$(arg robot_name)/initialpose"/>
+  </node>
 
   <arg name="rviz_full" default="false"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_rf2o_odometry_full.rviz" if="$(arg rviz_full)"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_rf2o_odometry_full.rviz" if="$(arg rviz_full)">
+    <remap from="/move_base_simple/goal" to="/$(arg robot_name)/move_base_simple/goal"/>
+    <remap from="/initialpose" to="/$(arg robot_name)/initialpose"/>
+  </node>
 
 </launch>

@@ -34,8 +34,8 @@
             <horizontal>
               <samples>360</samples>
               <resolution>1</resolution>
-              <min_angle>${radians(-180)}</min_angle>
-              <max_angle>${radians( 180)}</max_angle>
+              <min_angle>${radians(0)}</min_angle>
+              <max_angle>${radians(360)}</max_angle>
             </horizontal>
           </scan>
           <range>
