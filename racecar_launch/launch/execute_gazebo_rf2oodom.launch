@@ -51,7 +51,8 @@
         <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
         <arg name="base_frame_id" default="$(arg base_frame)"/>
         <arg name="odom_frame_id" default="$(arg odom_frame)"/>
-        <arg name="publish_tf" default="false"/>
+        <arg name="publish_tf" default="true"/>
+        <arg name="init_pose_from_topic" default="/$(arg robot_name)/initialpose"/>
       </include>
 
       <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
@@ -62,16 +63,16 @@
         <arg name="odom_frame" default="$(arg odom_frame)"/>
         <arg name="base_link_frame" default="$(arg base_frame)"/>
         <arg name="world_frame" default="$(arg odom_frame)"/>
-        <arg name="publish_tf" default="true"/>
+        <arg name="publish_tf" default="false"/>
         <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
       </include>
 
       <node pkg="odometry_to_path" type="odometry_to_path" name="odometry_to_path_gazebo">
         <param name="odom_sub_topic" value="$(arg odom_gazebo_topic)"/>
         <param name="path_pub_topic" value="$(arg path_gazebo_topic)"/>
-        <param name="odom_buffer_num" value="300"/>
+        <param name="odom_buffer_num" value="1"/>
       </node>
-      <node pkg="odometry_to_path" type="odometry_to_path" name="odometry_to_path_rf2o">
+      <!--node pkg="odometry_to_path" type="odometry_to_path" name="odometry_to_path_rf2o">
         <param name="odom_sub_topic" value="$(arg odom_rf2o_topic)"/>
         <param name="path_pub_topic" value="$(arg path_rf2o_topic)"/>
         <param name="odom_buffer_num" value="300"/>
@@ -80,7 +81,7 @@
         <param name="odom_sub_topic" value="$(arg odom_ekf_topic)"/>
         <param name="path_pub_topic" value="$(arg path_ekf_topic)"/>
         <param name="odom_buffer_num" value="300"/>
-      </node>
+      </node-->
     </group>
 
 

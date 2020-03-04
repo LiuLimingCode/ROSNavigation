@@ -46,6 +46,21 @@ CLaserOdometry2D::CLaserOdometry2D()
     odom_pub = pn.advertise<nav_msgs::Odometry>(odom_topic, 5);
     laser_sub = n.subscribe<sensor_msgs::LaserScan>(laser_scan_topic,1,&CLaserOdometry2D::LaserCallBack,this);
 
+    //init pose??
+    if (init_pose_from_topic != "")
+    {
+      initPose_sub = n.subscribe<geometry_msgs::PoseWithCovarianceStamped>(init_pose_from_topic,2,&CLaserOdometry2D::initPoseCallBack,this);
+    }
+
+    first_init = true;
+    init_pose.pose.pose.position.x = 0;
+    init_pose.pose.pose.position.y = 0;
+    init_pose.pose.pose.position.z = 0;
+    init_pose.pose.pose.orientation.w = 1;
+    init_pose.pose.pose.orientation.x = 0;
+    init_pose.pose.pose.orientation.y = 0;
+    init_pose.pose.pose.orientation.z = 0;
+
     //Init variables
     module_initialized = false;
     first_laser_scan = true;
@@ -77,6 +92,20 @@ void CLaserOdometry2D::Init()
     ctf_levels = 5;                     // Coarse-to-Fine levels
     iter_irls = 5;                      //Num iterations to solve iterative reweighted least squares
 
+
+    mrpt::poses::CPose3D robot_initial_pose;
+
+    tf::Transform initTransform(tf::Quaternion(init_pose.pose.pose.orientation.x, init_pose.pose.pose.orientation.y, init_pose.pose.pose.orientation.z, init_pose.pose.pose.orientation.w), tf::Vector3(init_pose.pose.pose.position.x, init_pose.pose.pose.position.y, init_pose.pose.pose.position.z));
+   
+    robot_initial_pose.x() = -initTransform.getOrigin()[0];
+    robot_initial_pose.y() = -initTransform.getOrigin()[1];
+    robot_initial_pose.z() = 0;
+    mrpt::math::CMatrixDouble33 R1;
+    for(int r = 0; r < 3; r++)
+        for(int c = 0; c < 3; c++)
+            R1(r,c) = initTransform.getBasis()[r][c];
+    robot_initial_pose.setRotationMatrix(R1);
+
     //Set laser pose on the robot (through tF)
     // This allow estimation of the odometry with respect to the robot base reference system.
     mrpt::poses::CPose3D LaserPoseOnTheRobot;
@@ -103,10 +132,9 @@ void CLaserOdometry2D::Init()
             R(r,c) = basis[r][c];
     LaserPoseOnTheRobot.setRotationMatrix(R);
 
-
     //Set the initial pose
-    laser_pose = LaserPoseOnTheRobot;
-    laser_oldpose = LaserPoseOnTheRobot;
+    laser_pose = robot_initial_pose + LaserPoseOnTheRobot;
+    laser_oldpose = laser_pose;
 
     // Init module
     //-------------
@@ -1087,6 +1115,13 @@ void CLaserOdometry2D::LaserCallBack(const sensor_msgs::LaserScan::ConstPtr& new
             range_wf(i) = new_scan->ranges[i];
         new_scan_available = true;
     }
+}
+
+void CLaserOdometry2D::initPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& new_initPose)
+{
+    init_pose = *new_initPose;
+    GT_pose_initialized = true;
+    Init();
 }
 
 //-----------------------------------------------------------------------------------

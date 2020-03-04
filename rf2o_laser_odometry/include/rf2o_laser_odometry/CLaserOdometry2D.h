@@ -22,6 +22,7 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 // MRPT related headers
 #include <mrpt/version.h>
@@ -53,8 +54,6 @@
 #include <fstream>
 #include <numeric>
 
-
-
 class CLaserOdometry2D
 {
 public:
@@ -76,10 +75,10 @@ public:
 protected:
     ros::NodeHandle             n;
     sensor_msgs::LaserScan      last_scan;
-    bool                        module_initialized,first_laser_scan,new_scan_available, GT_pose_initialized, verbose;
+    bool                        module_initialized,first_laser_scan,new_scan_available, GT_pose_initialized, verbose, first_init;
     tf::TransformListener       tf_listener;          //Do not put inside the callback
     tf::TransformBroadcaster    odom_broadcaster;
-    nav_msgs::Odometry          initial_robot_pose;
+    geometry_msgs::PoseWithCovarianceStamped          init_pose;
 
     //Subscriptions & Publishers
     ros::Subscriber laser_sub, initPose_sub;
@@ -87,7 +86,7 @@ protected:
 
     //CallBacks
     void LaserCallBack(const sensor_msgs::LaserScan::ConstPtr& new_scan);
-    void initPoseCallBack(const nav_msgs::Odometry::ConstPtr& new_initPose);
+    void initPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& new_initPose);
 
     // Internal Data
 	std::vector<Eigen::MatrixXf> range;
