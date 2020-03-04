@@ -9,9 +9,12 @@
   <arg name="cmd_topic" default="/$(arg robot_name)/cmd_vel"/>
   <arg name="imu_topic" default="/$(arg robot_name)/imu/data"/>
   <arg name="map_topic" default="/$(arg robot_name)/map"/>
-  <arg name="odom_topic" default="/$(arg robot_name)/odom_gazebo"/>
+  <arg name="odom_gazebo_topic" default="/$(arg robot_name)/odom_gazebo"/>
   <arg name="odom_rf2o_topic" default="/$(arg robot_name)/odom_rf2o"/>
   <arg name="odom_ekf_topic" default="/$(arg robot_name)/odom_ekf"/>
+  <arg name="path_gazebo_topic" default="/$(arg robot_name)/path_gazebo"/>
+  <arg name="path_rf2o_topic" default="/$(arg robot_name)/path_rf2o"/>
+  <arg name="path_ekf_topic" default="/$(arg robot_name)/path_ekf"/>
   <arg name="base_frame" default="$(arg robot_name)/base_link"/>
   <arg name="map_frame" default="$(arg robot_name)/map"/>
   <arg name="odom_frame" default="$(arg robot_name)/odom"/>
@@ -43,7 +46,7 @@
 
     <!-- ekf_odom -->
     <group if="$(arg ekfodom)">
-      <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml" if="$(arg simulator)">
+      <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
         <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
         <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
         <arg name="base_frame_id" default="$(arg base_frame)"/>
@@ -51,7 +54,7 @@
         <arg name="publish_tf" default="false"/>
       </include>
 
-      <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml" if="$(arg rviz_full)">
+      <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
         <arg name="odom_pub_topic" default="$(arg odom_ekf_topic)"/>
         <arg name="imu0_topic" default="$(arg imu_topic)"/>
         <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
@@ -62,6 +65,22 @@
         <arg name="publish_tf" default="true"/>
         <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
       </include>
+
+      <node pkg="odometry_to_path" type="odometry_to_path" name="odometry_to_path_gazebo">
+        <param name="odom_sub_topic" value="$(arg odom_gazebo_topic)"/>
+        <param name="path_pub_topic" value="$(arg path_gazebo_topic)"/>
+        <param name="odom_buffer_num" value="300"/>
+      </node>
+      <node pkg="odometry_to_path" type="odometry_to_path" name="odometry_to_path_rf2o">
+        <param name="odom_sub_topic" value="$(arg odom_rf2o_topic)"/>
+        <param name="path_pub_topic" value="$(arg path_rf2o_topic)"/>
+        <param name="odom_buffer_num" value="300"/>
+      </node>
+      <node pkg="odometry_to_path" type="odometry_to_path" name="odometry_to_path_ekf">
+        <param name="odom_sub_topic" value="$(arg odom_ekf_topic)"/>
+        <param name="path_pub_topic" value="$(arg path_ekf_topic)"/>
+        <param name="odom_buffer_num" value="300"/>
+      </node>
     </group>
 
 

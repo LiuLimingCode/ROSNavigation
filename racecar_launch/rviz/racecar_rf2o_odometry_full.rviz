@@ -173,9 +173,9 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 200
-      Name: OdometryReal
+      Name: OdomRealRed
       Position Tolerance: 0.100000001
       Shape:
         Alpha: 0.800000012
@@ -189,7 +189,7 @@ Visualization Manager:
         Value: Arrow
       Topic: /racecar/odom_gazebo
       Unreliable: false
-      Value: true
+      Value: false
     - Angle Tolerance: 0.100000001
       Class: rviz/Odometry
       Covariance:
@@ -207,9 +207,9 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 200
-      Name: OdometryEKF
+      Name: OdomEKFGreen
       Position Tolerance: 0.100000001
       Shape:
         Alpha: 0.800000012
@@ -223,7 +223,7 @@ Visualization Manager:
         Value: Arrow
       Topic: /racecar/odom_ekf
       Unreliable: false
-      Value: true
+      Value: false
     - Angle Tolerance: 0.100000001
       Class: rviz/Odometry
       Covariance:
@@ -241,9 +241,9 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 200
-      Name: OdometryRf2o
+      Name: OdomRf2oBlue
       Position Tolerance: 0.100000001
       Shape:
         Alpha: 0.800000012
@@ -256,6 +256,75 @@ Visualization Manager:
         Shaft Radius: 0.0500000007
         Value: Arrow
       Topic: /racecar/odom_rf2o
+      Unreliable: false
+      Value: false
+    - Alpha: 0.800000012
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 0; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PathRealRed
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /racecar/path_gazebo
+      Unreliable: false
+      Value: true
+    - Alpha: 0.800000012
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 255; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PathEKFGreen
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /racecar/path_ekf
+      Unreliable: false
+      Value: true
+    - Alpha: 0.800000012
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 0; 255
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PathRf2oBlue
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /racecar/path_rf2o
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -484,7 +553,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.23818398
+      Distance: 10.3339777
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
