@@ -28,11 +28,11 @@ static int g_start_scan = NO_SCAN;
 static int RestartGetData(void)
 {
 	int wRet;
-	char wificmd0[] =
+	unsigned char wificmd0[] =
 	{ 0xa5, 0x3A, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
-	char wificmd1[] =
+	unsigned char wificmd1[] =
 	{ 0xa5, 0x2C, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
-	char wificmd2[] =
+	unsigned char wificmd2[] =
 	{ 0xa5, 0x20, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
 
 	ALOGI("--------start scan----------\n");
@@ -547,13 +547,13 @@ int io_driver::StartScan(void)
 
 	static int scanflags = 0;
 	int wRet;
-	char wificmd0[] =
+	unsigned char wificmd0[] =
 	{ 0xa5, 0x3A, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
-	char wificmd1[] =
+	unsigned char wificmd1[] =
 	{ 0xa5, 0x2C, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
-	char wificmd2[] =
+	unsigned char wificmd2[] =
 	{ 0xa5, 0x20, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
-	char wificmd3[] =
+	unsigned char wificmd3[] =
 	{ 0xa5, 0x50, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
 
 	g_start_scan = START_SCAN;
@@ -609,7 +609,7 @@ int io_driver::GetScanData(double *angle, double *distance, int len, double *spe
 
 int io_driver::Reset(void)
 {
-	char buf[] =
+	unsigned char buf[] =
 	{ 0xa5, 0x40, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
 
 	return write(m_dFd, buf, 7);
@@ -618,9 +618,9 @@ int io_driver::Reset(void)
 int io_driver::StopScan(Command cmd)
 {
 	//unsigned char buf[] = {LSLIDAR_CMD_BYTE, LSLIDAR_CMD_STOPSCAN, LSLIDAR_CMD_STOPSCAN_END};
-	char stop_scan[] =
+	unsigned char stop_scan[] =
 	{ 0xa5, 0x21, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
-	char stop_motor[] =
+	unsigned char stop_motor[] =
 	{ 0xa5, 0x25, 0xe1, 0xaa, 0xbb, 0xcc, 0xdd };
 
 	g_start_scan = STOP_SCAN;

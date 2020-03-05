@@ -3,6 +3,7 @@ project(art_driver)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
+SET(CMAKE_EXE_LINKER_FLAGS " -no-pie")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)

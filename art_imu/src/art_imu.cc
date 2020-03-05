@@ -42,12 +42,12 @@ static const uint8_t mode[6] = {0xA5, 0x5A, 0x04, 0x01, 0x05, 0xAA};
 static uint8_t data_raw[200];
 static std::vector<uint8_t> buffer_;
 static std::deque<uint8_t> queue_;
-static std::string name, frame_id;
+static std::string name, frame_id, imu_topic_id, mag_topic_id;
 static sensor_msgs::Imu msg;
 static sensor_msgs::MagneticField msg_mag;
 static sensor_msgs::NavSatFix msg_gps;
 static int fd_ = -1;
-static ros::Publisher pub, pub_mag, pub_gps;
+static ros::Publisher pub, pub_mag;//, pub_gps;
 static uint8_t tmp[81];
 
 static float d2f_acc(uint8_t a[2])
@@ -271,6 +271,10 @@ int main(int argc, char** argv)
   
     n.param("frame_id", frame_id, string("IMU_link"));
 
+    n.param("imu_topic_id", imu_topic_id, string("imu"));
+
+    n.param("mag_topic_id", mag_topic_id, string("mag"));
+
     double delay;
     n.param("delay", delay, 0.0);
 
@@ -317,9 +321,9 @@ int main(int argc, char** argv)
     int kk = 0;
     double vyaw_sum = 0;
     double vyaw_bias = 0;
-    pub = n.advertise<sensor_msgs::Imu>("/imu_data", 1);
-    pub_mag = n.advertise<sensor_msgs::MagneticField>("mag", 1);
-    pub_gps = n.advertise<sensor_msgs::NavSatFix>("gps", 1);
+    pub = n.advertise<sensor_msgs::Imu>(imu_topic_id, 1);
+    pub_mag = n.advertise<sensor_msgs::MagneticField>(mag_topic_id, 1);
+//    pub_gps = n.advertise<sensor_msgs::NavSatFix>("gps", 1);
 
 
 	if(model == "art_imu_02a")
