@@ -2,7 +2,7 @@
 
 <launch>
 
-  <arg name="use_rviz" default="false"/>
+  <arg name="use_rviz" default="true"/>
 
   <param name="robot_description"
     command="$(find xacro)/xacro --inorder '$(find racecar_simulator)/urdf/racecar_robot.xacro'"/>

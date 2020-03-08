@@ -9,7 +9,7 @@ controller_patience: 3.0  #How long the controller will wait in seconds without 
 conservative_reset_dist: 3.0    #The distance away from the robot in meters beyond which obstacles will be cleared from the costmap when attempting to clear space in the map.
 
 recovery_behavior_enabled: true #Whether or not to enable the move_base recovery behaviors to attempt to clear out space.
-clearing_rotation_allowed: true #Determines whether or not the robot will attempt an in-place rotation when attempting to clear out space.
+clearing_rotation_allowed: false #Determines whether or not the robot will attempt an in-place rotation when attempting to clear out space.
 
 shutdown_costmaps: false  #Determines whether or not to shutdown the costmaps of the node when move_base is in an inactive state
 

@@ -13,8 +13,8 @@
 #    obstacles_layer:
     observation_sources: laser_scan_sensor
     laser_scan_sensor:
-#            sensor_frame: racecar/laser_link
-#            topic: /racecar/laser/scan
+#        sensor_frame: racecar/laser_link
+#        topic: /racecar/laser/scan
         data_type: LaserScan
         clearing: true
         marking: true

@@ -1,3 +1,4 @@
+ 
 #http://wiki.ros.org/costmap_2d
 local_costmap:
 
@@ -16,7 +17,3 @@ local_costmap:
 #    plugins:
 #        - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
 #        - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
-
-
-
-

@@ -26,6 +26,13 @@
     </transmission>
 
     <link name="${prefix}_link">
+      <!-- libgazebo_ros_planar_move.so -->
+      <!--inertial> 
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1.5"/>
+      <inertia ixx="0.005" ixy="0.0" ixz="0.0" iyy="0.005" iyz="0.0" izz="0.009"/>
+      </inertial-->
+      <!--libgazebo_ros_skid_steer_drive.so -->
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <mass value="0.1"/>
@@ -51,6 +58,7 @@
       <mu2 value="2.5" />
       <kp value="50000" />
       <kd value="10" />
+      <minDepth>0.00</minDepth>
     </gazebo>
   </xacro:macro>
 
@@ -62,6 +70,13 @@
     </joint>
 
     <link name="body_link">
+      <!-- libgazebo_ros_planar_move.so -->
+      <!--inertial>
+      <mass value="15.0"/>
+      <origin xyz=" 0 0 0.1175"/>
+      <inertia ixx="0.13" ixy="0.0" ixz="0.0" iyy="0.33" iyz="0.0" izz="0.39"/>
+      </inertial-->
+      <!--libgazebo_ros_skid_steer_drive.so -->
       <inertial>
         <mass value="1.0"/>
         <origin xyz=" 0 0 0.1175"/>

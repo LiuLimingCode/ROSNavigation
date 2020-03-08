@@ -3,18 +3,20 @@
 <launch>
 
   <arg name="robot_name" default="racecar"/>
+  <arg name="robot_namespace" default="racecar"/>
+  <arg name="use_namespace" default="true"/>
 
   <!-- topic and frame -->
-  <arg name="scan_topic" default="/$(arg robot_name)/laser/scan"/>
-  <arg name="cmd_topic" default="/$(arg robot_name)/cmd_vel"/>
-  <arg name="imu_topic" default="/$(arg robot_name)/imu/data"/>
-  <arg name="map_topic" default="/$(arg robot_name)/map"/>
-  <arg name="odom_topic" default="/$(arg robot_name)/odom"/>
-  <arg name="base_frame" default="$(arg robot_name)/base_link"/>
-  <arg name="map_frame" default="$(arg robot_name)/map"/>
-  <arg name="odom_frame" default="$(arg robot_name)/odom"/>
-  <arg name="imu_frame" default="$(arg robot_name)/imu_link"/>
-  <arg name="laser_frame" default="$(arg robot_name)/laser_link"/>
+  <arg name="scan_topic" default="/$(arg robot_namespace)/laser/scan"/>
+  <arg name="cmd_topic" default="/$(arg robot_namespace)/cmd_vel"/>
+  <arg name="imu_topic" default="/$(arg robot_namespace)/imu/data"/>
+  <arg name="map_topic" default="/$(arg robot_namespace)/map"/>
+  <arg name="odom_topic" default="/$(arg robot_namespace)/odom"/>
+  <arg name="base_frame" default="$(arg robot_namespace)/base_link"/>
+  <arg name="map_frame" default="$(arg robot_namespace)/map"/>
+  <arg name="odom_frame" default="$(arg robot_namespace)/odom"/>
+  <arg name="imu_frame" default="$(arg robot_namespace)/imu_link"/>
+  <arg name="laser_frame" default="$(arg robot_namespace)/laser_link"/>
 
   <!-- launch option -->
   <arg name="simulator" default="false"/>
@@ -23,6 +25,7 @@
   <arg name="navigation" default="false"/>
   <arg name="lmnavigation" default="false"/>
 
+
   <!-- simulator -->
   <group if="$(arg simulator)">
     <include file="$(find racecar_simulator)/launch/racecar_gazebo.launch">
@@ -30,12 +33,13 @@
       <arg name="enable_odom_tf" default="true"/>
       <arg name="odom_frame" default="odom"/><!---->
       <arg name="odom_topic" default="odom"/><!---->
-      <arg name="robot_namespace" default="$(arg robot_name)"/>
+      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
+      <arg name="use_namespace" default="$(arg use_namespace)"/>
     </include>
   </group>
 
 
-  <group ns="$(arg robot_name)">
+  <group ns="$(arg robot_namespace)">
 
     <!-- gmapping -->
     <group if="$(arg gmapping)">
@@ -94,14 +98,14 @@
   <!-- rviz -->
   <arg name="rviz_base" default="false"/>
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_gazebo_odometry_base.rviz" if="$(arg rviz_base)">
-    <remap from="/move_base_simple/goal" to="/$(arg robot_name)/move_base_simple/goal"/>
-    <remap from="/initialpose" to="/$(arg robot_name)/initialpose"/>
+    <remap from="/move_base_simple/goal" to="/$(arg robot_namespace)/move_base_simple/goal"/>
+    <remap from="/initialpose" to="/$(arg robot_namespace)/initialpose"/>
   </node>
 
   <arg name="rviz_full" default="false"/>
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_gazebo_odometry_full.rviz" if="$(arg rviz_full)">
-    <remap from="/move_base_simple/goal" to="/$(arg robot_name)/move_base_simple/goal"/>
-    <remap from="/initialpose" to="/$(arg robot_name)/initialpose"/>
+    <remap from="/move_base_simple/goal" to="/$(arg robot_namespace)/move_base_simple/goal"/>
+    <remap from="/initialpose" to="/$(arg robot_namespace)/initialpose"/>
   </node>
 
 </launch>
