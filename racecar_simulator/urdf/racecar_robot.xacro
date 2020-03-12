@@ -4,6 +4,7 @@
   <xacro:arg name="enable_odom_tf" default="true"/>
   <xacro:arg name="odom_frame" default="odom"/>
   <xacro:arg name="odom_topic" default="odom"/>
+  <xacro:arg name="cmd_topic" default="cmd_vel"/>
   <xacro:include filename="$(find racecar_simulator)/urdf/move_macro.xacro"/>
   <xacro:include filename="$(find racecar_simulator)/urdf/laser_macro.xacro"/>
   <xacro:include filename="$(find racecar_simulator)/urdf/imu_macro.xacro"/>
@@ -18,7 +19,7 @@
   <xacro:imu_macro prefix="imu" parent="base_link" xyz="0.16575 0 0.168" robot_name="$(arg robot_name)"/>
 
   <gazebo>
-    <plugin filename="libgazebo_ros_skid_steer_drive.so" name="skid_steer_drive_controller">
+    <!--plugin filename="libgazebo_ros_skid_steer_drive.so" name="skid_steer_drive_controller">
       <updateRate>100.0</updateRate>
       <robotNamespace>$(arg robot_name)</robotNamespace>
       <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
@@ -33,17 +34,23 @@
       <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
       <MaxForce>10.0</MaxForce>
       <torque>400</torque>
-      <commandTopic>cmd_vel</commandTopic>
+      <commandTopic>$(arg cmd_topic)</commandTopic>
       <odometryTopic>$(arg odom_topic)</odometryTopic>
       <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
       <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
-    </plugin>
-    <!--plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
-      <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>$(arg robot_name)/odom</odometryFrame>
+    </plugin-->
+    <plugin name="object_controller" filename="libgazebo_ros_planar_move_drive.so">
+      <commandTopic>$(arg cmd_topic)</commandTopic>
+      <odometryTopic>$(arg odom_topic)</odometryTopic>
+      <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
       <odometryRate>100.0</odometryRate>
       <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
+      <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
+    </plugin>
+    <!--plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>$(arg robot_name)</robotNamespace>
+      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+      <legacyModeNS>true</legacyModeNS>
     </plugin-->
   </gazebo>
 </robot>

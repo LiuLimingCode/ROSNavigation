@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 
 <robot name="rrbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="robot_name" default="racecar"/>
+  <xacro:arg name="enable_odom_tf" default="true"/>
+  <xacro:arg name="odom_frame" default="odom"/>
+  <xacro:arg name="odom_topic" default="odom"/>
+  <xacro:arg name="cmd_topic" default="cmd_vel"/>
 
   <material name="white">
     <color rgba="1.0 1.0 1.0 1.0"/>
@@ -298,27 +303,31 @@
   <gazebo>
     <!--plugin filename="libgazebo_ros_skid_steer_drive.so" name="skid_steer_drive_controller">
       <updateRate>100.0</updateRate>
-      <robotNamespace></robotNamespace>
+      <robotNamespace>$(arg robot_name)</robotNamespace>
       <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
       <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
       <leftRearJoint>rear_left_wheel_joint</leftRearJoint>
       <rightRearJoint>rear_right_wheel_joint</rightRearJoint>
-      <wheelSeparation>0.34</wheelSeparation>
+      <covariance_x>0.000100</covariance_x>
+      <covariance_y>0.000100</covariance_y>
+      <covariance_yaw>0.010000</covariance_yaw>
+      <wheelSeparation>0.28</wheelSeparation>
       <wheelDiameter>0.135</wheelDiameter>
-      <robotBaseFrame>base_link</robotBaseFrame>
+      <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
       <MaxForce>10.0</MaxForce>
       <torque>400</torque>
-      <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
-      <broadcastTF>1</broadcastTF>
+      <commandTopic>$(arg cmd_topic)</commandTopic>
+      <odometryTopic>$(arg odom_topic)</odometryTopic>
+      <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
+      <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
     </plugin-->
-    <plugin name="object_controller" filename="libgazebo_ros_planar_move.so">
-      <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
+    <plugin name="object_controller" filename="libgazebo_ros_planar_move_drive.so">
+      <commandTopic>$(arg cmd_topic)</commandTopic>
+      <odometryTopic>$(arg odom_topic)</odometryTopic>
+      <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
       <odometryRate>100.0</odometryRate>
-      <robotBaseFrame>base_link</robotBaseFrame>
+      <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
+      <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
     </plugin>
   </gazebo>
 

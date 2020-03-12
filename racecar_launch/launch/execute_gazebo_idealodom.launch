@@ -33,6 +33,7 @@
       <arg name="enable_odom_tf" default="true"/>
       <arg name="odom_frame" default="odom"/><!---->
       <arg name="odom_topic" default="odom"/><!---->
+      <arg name="cmd_topic" default="cmd_vel"/><!---->
       <arg name="robot_namespace" default="$(arg robot_namespace)"/>
       <arg name="use_namespace" default="$(arg use_namespace)"/>
     </include>

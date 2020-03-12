@@ -13,10 +13,22 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   urdf
+  nav_msgs
+  tf
+  tf2_ros
+  gazebo_dev
 )
 
+include (FindPkgConfig)
+if (PKG_CONFIG_FOUND)
+  pkg_check_modules(XML libxml-2.0)
+else()
+  message(FATAL_ERROR "pkg-config is required; please install it")
+endif()
+
+
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -98,6 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 ###################################
 ## catkin specific configuration ##
 ###################################
+
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 ## INCLUDE_DIRS: uncomment this if your package contains header files
@@ -105,11 +118,29 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES racecar_simulator
-#  CATKIN_DEPENDS geometry_msgs robot_state_publisher sensor_msgs std_msgs urdf
+  INCLUDE_DIRS include
+  LIBRARIES racecar_simulator gazebo_ros_planar_move_drive
+  CATKIN_DEPENDS geometry_msgs robot_state_publisher sensor_msgs std_msgs urdf nav_msgs tf tf2_ros gazebo_dev
 #  DEPENDS system_lib
 )
+
+include_directories(
+  include
+  ${Boost_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+)
+
+link_directories(
+  ${catkin_LIBRARY_DIRS}
+)
+
+if (NOT GAZEBO_VERSION VERSION_LESS 6.0)
+  catkin_package(INCLUDE_DIRS include LIBRARIES gazebo_ros_elevator)
+endif()
+
+if (NOT GAZEBO_VERSION VERSION_LESS 7.3)
+  catkin_package(INCLUDE_DIRS include LIBRARIES gazebo_ros_harness)
+endif()
 
 ###########
 ## Build ##
@@ -117,10 +148,6 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -152,12 +179,27 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_library(gazebo_ros_planar_move_drive src/gazebo_ros_planar_move_drive.cpp)
+target_link_libraries(gazebo_ros_planar_move_drive ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 #############
 ## Install ##
 #############
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+
+install(TARGETS
+  gazebo_ros_planar_move_drive
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  )
+
+install(DIRECTORY include/
+   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+)
+
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination

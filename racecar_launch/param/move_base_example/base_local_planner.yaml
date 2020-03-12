@@ -28,6 +28,10 @@ TrajectoryPlannerROS:
 #    controller_frequency: 20.0 #The frequency at which this controller will be called in Hz.
 
     #Trajectory Scoring Parameters
+    #cost = 
+    #  pdist_scale * (distance to path from the endpoint of the trajectory in map cells or meters depending on the meter_scoring parameter) 
+    #  + gdist_scale * (distance to local goal from the endpoint of the trajectory in map cells or meters depending on the meter_scoring parameter) 
+    #  + occdist_scale * (maximum obstacle cost along the trajectory in obstacle cost (0-254))
     meter_scoring: true    #Whether the gdist_scale and pdist_scale parameters should assume that goal_distance and path_distance are expressed in units of meters or cells.
     pdist_scale: 0.6       #The weighting for how much the controller should stay close to the path it was given, maximal possible value is 5.0
     gdist_scale: 0.8       #The weighting for how much the controller should attempt to reach its local goal, also controls speed, maximal possible value is 5.0

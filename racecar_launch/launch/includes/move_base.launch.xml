@@ -27,8 +27,8 @@
     <!--param name="base_local_planner" value="eband_local_planner/EBandPlannerROS"/-->  
     <!--param name="base_local_planner" value="teb_local_planner/TEBPlannerROS"/-->  
 
-    <rosparam file="$(find racecar_launch)/param/move_base/NavfnROS.yaml" command="load"/>
-    <rosparam file="$(find racecar_launch)/param/move_base/move_base.yaml" command="load"/>
+    <!--rosparam file="$(find racecar_launch)/param/move_base/NavfnROS.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch)/param/move_base/move_base.yaml" command="load"/-->
     <!--rosparam file="$(find racecar_launch)/param/move_base/dwa_local_planner.yaml" command="load"/--> 
     <rosparam file="$(find racecar_launch)/param/move_base/base_local_planner.yaml" command="load"/> 
     <rosparam file="$(find racecar_launch)/param/move_base/common_costmap.yaml" command="load" ns="global_costmap"/> 
