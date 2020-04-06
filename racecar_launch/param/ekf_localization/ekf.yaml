@@ -5,7 +5,7 @@ two_d_mode: true
 transform_time_offset: 0.0001
 transform_timeout: 0.025
 print_diagnostics: true
-debug: true
+debug: false
 
 # Defaults to "robot_localization_debug.txt" if unspecified. Please specify the full path.
 debug_out_file: /home/llm/myracecar/src/racecar_launch/param/ekf_localization/ekf_debug.txt
@@ -118,7 +118,7 @@ process_noise_covariance: [0.01, 0,    0,    0,    0,    0,    0,     0,     0, 
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.01, 0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.015]
 
-dynamic_process_noise_covariance: true
+#dynamic_process_noise_covariance: true
 
 # [ADVANCED] This represents the initial value for the state estimate error covariance matrix. Setting a diagonal
 # value (variance) to a large value will result in rapid convergence for initial measurements of the variable in
