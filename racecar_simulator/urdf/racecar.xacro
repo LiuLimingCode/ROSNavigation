@@ -324,9 +324,9 @@
     <plugin name="object_controller" filename="libgazebo_ros_planar_move_drive.so">
       <commandTopic>$(arg cmd_topic)</commandTopic>
       <odometryTopic>$(arg odom_topic)</odometryTopic>
-      <odometryFrame>$(arg robot_name)/$(arg odom_frame)</odometryFrame>
+      <odometryFrame>$(arg odom_frame)</odometryFrame>
       <odometryRate>100.0</odometryRate>
-      <robotBaseFrame>$(arg robot_name)/base_link</robotBaseFrame>
+      <robotBaseFrame>base_link</robotBaseFrame>
       <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
     </plugin>
   </gazebo>

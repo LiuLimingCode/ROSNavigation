@@ -26,5 +26,5 @@
     #http://wiki.ros.org/costmap_2d/hydro/inflation
 #    inflation_layer:
     inflation_radius: 0.55       #The radius in meters to which the map inflates obstacle cost values.
-    cost_scaling_factor: 0.5     #A scaling factor to apply to cost values during inflation.
+    cost_scaling_factor: 5.5     #A scaling factor to apply to cost values during inflation.
 

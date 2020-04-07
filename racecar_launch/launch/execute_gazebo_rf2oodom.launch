@@ -7,21 +7,21 @@
   <arg name="use_namespace" default="true"/>
 
   <!-- topic and frame -->
-  <arg name="scan_topic" default="/$(arg robot_name)/laser/scan"/>
-  <arg name="cmd_topic" default="/$(arg robot_name)/cmd_vel"/>
-  <arg name="imu_topic" default="/$(arg robot_name)/imu/data"/>
-  <arg name="map_topic" default="/$(arg robot_name)/map"/>
-  <arg name="odom_gazebo_topic" default="/$(arg robot_name)/odom_gazebo"/>
-  <arg name="odom_rf2o_topic" default="/$(arg robot_name)/odom_rf2o"/>
-  <arg name="odom_ekf_topic" default="/$(arg robot_name)/odom_ekf"/>
-  <arg name="path_gazebo_topic" default="/$(arg robot_name)/path_gazebo"/>
-  <arg name="path_rf2o_topic" default="/$(arg robot_name)/path_rf2o"/>
-  <arg name="path_ekf_topic" default="/$(arg robot_name)/path_ekf"/>
-  <arg name="base_frame" default="$(arg robot_name)/base_link"/>
-  <arg name="map_frame" default="$(arg robot_name)/map"/>
-  <arg name="odom_frame" default="$(arg robot_name)/odom"/>
-  <arg name="imu_frame" default="$(arg robot_name)/imu_link"/>
-  <arg name="laser_frame" default="$(arg robot_name)/laser_link"/>
+  <arg name="scan_topic" default="/$(arg robot_namespace)/laser/scan"/>
+  <arg name="cmd_topic" default="/$(arg robot_namespace)/cmd_vel"/>
+  <arg name="imu_topic" default="/$(arg robot_namespace)/imu/data"/>
+  <arg name="map_topic" default="/$(arg robot_namespace)/map"/>
+  <arg name="odom_gazebo_topic" default="/$(arg robot_namespace)/odom_gazebo"/>
+  <arg name="odom_rf2o_topic" default="/$(arg robot_namespace)/odom_rf2o"/>
+  <arg name="odom_ekf_topic" default="/$(arg robot_namespace)/odom_ekf"/>
+  <arg name="path_gazebo_topic" default="/$(arg robot_namespace)/path_gazebo"/>
+  <arg name="path_rf2o_topic" default="/$(arg robot_namespace)/path_rf2o"/>
+  <arg name="path_ekf_topic" default="/$(arg robot_namespace)/path_ekf"/>
+  <arg name="base_frame" default="$(arg robot_namespace)/base_link"/>
+  <arg name="map_frame" default="$(arg robot_namespace)/map"/>
+  <arg name="odom_frame" default="$(arg robot_namespace)/odom"/>
+  <arg name="imu_frame" default="$(arg robot_namespace)/imu_link"/>
+  <arg name="laser_frame" default="$(arg robot_namespace)/laser_link"/>
 
   <!-- launch option -->
   <arg name="simulator" default="false"/>
@@ -103,7 +103,7 @@
     <!-- savemap -->
     <group if="$(arg savemap)">
       <arg name="mapfile_name" default="racetrack"/>
-      <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg mapfile_name).rviz"/>
+      <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg mapfile_name)"/>
     </group>
 
 

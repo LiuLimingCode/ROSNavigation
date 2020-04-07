@@ -8,7 +8,6 @@ std::string odom_sub_topic;
 std::string path_pub_topic;
 int odom_buffer_num;
 double update_frequncy;
-ros::Subscriber odomSubscriber;
 ros::Publisher pathPublisher;
 std::vector<geometry_msgs::PoseStamped> posesStamped;
 
@@ -44,7 +43,7 @@ int main(int argc, char** argv)
 	node.param<int>("odom_buffer_num", odom_buffer_num, 600);
 	node.param<double>("update_frequncy", update_frequncy, 10.0);
 
-	odomSubscriber = node.subscribe(odom_sub_topic, 1, &odomCallBack);
+	ros::Subscriber odomSubscriber = node.subscribe(odom_sub_topic, 1, &odomCallBack);
 	pathPublisher = node.advertise<nav_msgs::Path>(path_pub_topic, 10);
 
 	ros::Rate rate(update_frequncy);

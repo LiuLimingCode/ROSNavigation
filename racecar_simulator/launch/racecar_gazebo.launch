@@ -14,7 +14,7 @@
   <env name="GAZEBO_RESOURCE_PATH" value="$GAZEBO_RESOURCE_PATH:$(find racecar_simulator)/models"/>
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-      <arg name="world_name" value="$(find racecar_simulator)/worlds/racecar.world"/>
+      <arg name="world_name" value="$(find racecar_simulator)/worlds/world_building.world"/>
       <arg name="paused" default="false"/>
       <arg name="use_sim_time" default="true"/>
       <arg name="gui" default="true"/>

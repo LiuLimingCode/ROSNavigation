@@ -56,7 +56,7 @@
     <!-- savemap -->
     <group if="$(arg savemap)">
       <arg name="mapfile_name" default="racetrack"/>
-      <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg mapfile_name).rviz"/>
+      <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg mapfile_name)"/>
     </group>
 
 

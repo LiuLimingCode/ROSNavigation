@@ -5,7 +5,7 @@ two_d_mode: true
 transform_time_offset: 0.0001
 transform_timeout: 0.025
 print_diagnostics: true
-debug: false
+debug: true
 
 # Defaults to "robot_localization_debug.txt" if unspecified. Please specify the full path.
 debug_out_file: /home/llm/myracecar/src/racecar_launch/param/ekf_localization/ekf_debug.txt
@@ -35,11 +35,11 @@ publish_acceleration: true
 # do not provide some of the state variables estimated by the filter. For example, a TwistWithCovarianceStamped message
 # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
 # if unspecified, effectively making this parameter required for each sensor.
-odom0_config: [false, false, false,
-               false, false, false,
-               true, true, false,
-               false, false, false,
-               false, false, false]
+odom0_config: [false, false, false,  #x, y, z
+               false, false, false,  #roll, pitch, yaw
+               true , true , false,  #vx, vy, vz
+               false, false, false,  #vroll, vpitch, vyaw
+               false, false, false]  #ax, ay, az
 
 # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
 # the size of the subscription queue so that more measurements are fused.
@@ -76,11 +76,11 @@ odom0_pose_rejection_threshold: 8
 odom0_twist_rejection_threshold: 0.75
 
 #imu0: /imu_data
-imu0_config: [false, false, false,
-              false, false, true,
-              false, false, false,
-              false,  false,  false,
-              false,  false,  false]
+imu0_config: [false, false, false,  #x, y, z
+              false, false, true ,  #roll, pitch, yaw
+              false, false, false,  #vx, vy, vz
+              false, false, true ,  #vroll, vpitch, vyaw
+              false, false, false]  #ax, ay, az
 imu0_nodelay: false
 imu0_differential: false
 imu0_relative: true
@@ -94,7 +94,7 @@ imu0_linear_acceleration_rejection_threshold: 0.8  #
 imu0_remove_gravitational_acceleration: true
 
 
-# [ADVANCED] The process noise covariance matrix can be dgit@192.168.1.102:zhangnan/art_racecar.gitifficult to tune, and can vary for each application, so it is
+# [ADVANCED] The process noise covariance matrix can be ditifficult to tune, and can vary for each application, so it is
 # exposed as a configuration parameter. This matrix represents the noise we add to the total error after each
 # prediction step. The better the omnidirectional motion model matches your system, the smaller these values can be.
 # However, if users find that a given variable is slow to converge, one approach is to increase the
@@ -102,21 +102,21 @@ imu0_remove_gravitational_acceleration: true
 # to be larger, which will cause the filter to trust the incoming measurement more during correction. The values are
 # ordered as x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az. Defaults to the matrix below if
 # unspecified.
-process_noise_covariance: [0.01, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0.01, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0.01, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0.5,  0,     0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0.5,   0,     0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0.025, 0,    0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0.01, 0,    0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.01, 0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.08, 0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.05, 0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.01, 0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.015]
+process_noise_covariance: [0.01, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #x
+                           0,    0.01, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #y
+                           0,    0,    0.01, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #z
+                           0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #roll
+                           0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #pitch
+                           0,    0,    0,    0,    0,    0.5 , 0,     0,     0,    0,    0,    0,    0,    0,    0,     #yaw
+                           0,    0,    0,    0,    0,    0,    0.4,   0,     0,    0,    0,    0,    0,    0,    0,     #vx
+                           0,    0,    0,    0,    0,    0,    0,     0.025, 0,    0,    0,    0,    0,    0,    0,     #vy
+                           0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,     #vz
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0.01, 0,    0,    0,    0,    0,     #vroll
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.01, 0,    0,    0,    0,     #vpitch
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.5,  0,    0,    0,     #vyaw
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.05, 0,    0,     #ax
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.05, 0,     #ay
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.015] #az
 
 #dynamic_process_noise_covariance: true
 

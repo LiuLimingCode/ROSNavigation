@@ -2,6 +2,8 @@
 
 TrajectoryPlannerROS:
 
+    odom_topic: /racecar/odom_gazebo
+
     #Robot Configuration Parameters
     acc_lim_x: 2.5      #The x acceleration limit of the robot in meters/sec^2
     acc_lim_y: 2.5      #The y acceleration limit of the robot in meters/sec^2
@@ -41,7 +43,6 @@ TrajectoryPlannerROS:
     heading_scoring_timestep: 0.8 #How far to look ahead in time in seconds along the simulated trajectory when using heading scoring
     dwa: true              #Whether to use the Dynamic Window Approach (DWA)_ or whether to use Trajectory Rollout
     publish_cost_grid_pcL: #Whether or not to publish the cost grid that the planner will use when planning.
-#    global_frame_id: odom  #The frame to set for the cost_cloud. Should be set to the same frame as the local costmap's global frame.
 
     #Oscillation Prevention Parameters
     oscillation_reset_dist: 0.05 #How far the robot must travel in meters before oscillation flags are reset

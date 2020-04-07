@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot name="racecar" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="imu_macro" params="parent prefix xyz robot_name">
+  <xacro:macro name="imu_macro" params="parent prefix xyz robot_namespace">
     <joint name="imu_joint" type="fixed">
       <parent link="${parent}"/>
       <child  link="${prefix}_link"/>
@@ -34,11 +34,11 @@
         <plugin name="gazebo_ros_imu_controller" filename="libgazebo_ros_imu_sensor.so">
           <topicName>${prefix}/data</topicName>
           <bodyName>${prefix}_link</bodyName>
-          <updateRateHZ>10.0</updateRateHZ>
+          <updateRateHZ>100.0</updateRateHZ>
           <gaussianNoise>0.0</gaussianNoise>
           <xyzOffset>0 0 0</xyzOffset>
           <rpyOffset>0 0 0</rpyOffset>
-          <frameName>${robot_name}/${prefix}_link</frameName>
+          <frameName>${robot_namespace}/${prefix}_link</frameName>
         </plugin>
         <pose>0 0 0 0 0 0</pose>
       </sensor>
