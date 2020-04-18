@@ -1,14 +1,14 @@
-#ROS机器人导航仿真
+# ROS机器人导航仿真
 
---
+---
 
-###描述
+### 描述
 
 本工程包含机器人3D仿真模型、仿真软件设置、ROS功能包设置等，能够完成Gazebo软件仿真下的定位、建图、导航功能。
 
 ![](doc/gazebo.png)
 
-###前置技术
+### 前置技术
 
 在学习本工程之前，您应该掌握一下技能：
 
@@ -18,7 +18,7 @@
 
 - 科学上网软件
 
-###安装
+### 安装
 
 - 1 安装ubuntu操作系统
 
@@ -38,7 +38,7 @@
 官方教程：http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 或者使用本工程的bash文件`bash update_gazebo7.bash`（版本为gazebo7，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本`sudo apt-get install gazebo7`）
 
-###使用
+### 使用
 
 - 1 使用`catkin_make`正确编译本工程
 
@@ -56,8 +56,12 @@
 
 
     roslaunch racecar_launch execute_gazebo_simple.launch navigation:=true mapfile_name:=building rviz_full:=true
+    
+- 4 执行结果如下
 
-###如何学习
+![](rviz.png)
+
+### 如何学习
 
 - 通用
 
