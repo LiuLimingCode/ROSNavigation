@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: data_recorder
-Description: Description of data_recorder
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -ldata_recorder
-Requires: geometry_msgs sensor_msgs nav_msgs roscpp rospy std_msgs

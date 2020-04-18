@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC -g  -shared -Wl,-soname,libgtest.so -o libgtest.so CMakeFiles/gtest.dir/src/gtest-all.cc.o  -L/home/llm/myracecar/src/examination/data_recorder/build/gtest/gtest/src -lpthread -Wl,-rpath,/home/llm/myracecar/src/examination/data_recorder/build/gtest/gtest/src 

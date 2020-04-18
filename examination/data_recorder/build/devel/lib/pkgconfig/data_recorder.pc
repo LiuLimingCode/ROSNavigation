@@ -1,8 +1,0 @@
-prefix=/home/llm/myracecar/src/examination/data_recorder/build/devel
-
-Name: data_recorder
-Description: Description of data_recorder
-Version: 0.0.0
-Cflags: -I/home/llm/myracecar/src/examination/data_recorder/include
-Libs: -L${prefix}/lib -ldata_recorder
-Requires: geometry_msgs sensor_msgs nav_msgs roscpp rospy std_msgs
