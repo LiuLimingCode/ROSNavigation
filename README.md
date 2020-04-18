@@ -27,6 +27,7 @@
 - 2 在ubuntu上安装ROS
 
 官方教程：http://wiki.ros.org/ROS/Installation
+
 或者使用本工程的bash文件`bash install_ros.bash`（版本为kinetic，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本）
 
 - 3 安装本工程使用的ROS功能包
@@ -36,6 +37,7 @@
 - 4 更新gazebo（可选）
 
 官方教程：http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install
+
 或者使用本工程的bash文件`bash update_gazebo7.bash`（版本为gazebo7，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本`sudo apt-get install gazebo7`）
 
 ### 使用
@@ -66,13 +68,17 @@
 - 通用
 
 http://www.baidu.com
+
 http://www.google.com  
+
 下载别人开源的工程，通过依样画葫芦学习。
 
 - ROS
 
 基本使用方法：http://www.wmcollege.club/front/couinfo/197
+
 官网：http://wiki.ros.org/  在官网页面的右上角，可以搜索ROS的相关问题以及ROS功能包（搜索需要科学上网）。如果已知功能包的名称，可以在官网地址后加上功能包名称直接访问，如http://wiki.ros.org/move_base
+
 ROS导航官方教程：http://wiki.ros.org/navigation/Tutorials
 
 - Gazebo
