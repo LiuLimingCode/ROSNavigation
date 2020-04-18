@@ -14,6 +14,7 @@
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
 
     <remap from="/cmd_vel" to="$(arg cmd_topic)"/>
+    <!--remap from="/odom" to="$(arg odom_topic)"/-->
 
     <!-- global planner -->
     <!--param name="base_global_planner" value="global_planner/GlobalPlanner"/-->

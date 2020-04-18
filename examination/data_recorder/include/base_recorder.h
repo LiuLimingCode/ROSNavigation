@@ -16,7 +16,7 @@ protected:
 	std::string topicType;
 	std::string topicTitle;
 	ros::Subscriber subscriber;
-	bool flagDataReceived;
+	bool flagDataReceived = false;
 
 };
 

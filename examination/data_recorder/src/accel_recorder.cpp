@@ -35,7 +35,7 @@ std::string AccelRecorder::printfData(void)
 	return(str);
 }
 
-AccelRecorder::AccelRecorder(ros::NodeHandle& node, std::string topicName, std::string topicType,std::string topicTitle)
+AccelRecorder::AccelRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle)
 {
 	this->topicName = topicName;
 	this->topicType = topicType;

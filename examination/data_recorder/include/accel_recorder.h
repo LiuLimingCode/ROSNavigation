@@ -8,11 +8,16 @@
 #include <geometry_msgs/AccelWithCovariance.h>
 #include <geometry_msgs/AccelWithCovarianceStamped.h>
 
+#define STRING_ACCEL                      (std::string("Accel"))
+#define STRING_ACCELSTAMPED               (std::string("AccelStamped"))
+#define STRING_ACCELWITHCOVARIANCE        (std::string("AccelWithCovariance"))
+#define STRING_ACCELWITHCOVARIANCESTAMPED (std::string("AccelWithCovarianceStamped"))
+
 class AccelRecorder : public BaseRecorder
 {
 
 public:
-	AccelRecorder(ros::NodeHandle& node, std::string topicName, std::string topicType,std::string topicTitle);
+	AccelRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle);
 	~AccelRecorder() = default;
 
 	std::string printfDataTitle(void);

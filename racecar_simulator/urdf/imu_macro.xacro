@@ -34,7 +34,7 @@
         <plugin name="gazebo_ros_imu_controller" filename="libgazebo_ros_imu_sensor.so">
           <topicName>${prefix}/data</topicName>
           <bodyName>${prefix}_link</bodyName>
-          <updateRateHZ>100.0</updateRateHZ>
+          <updateRateHZ>10.0</updateRateHZ>
           <gaussianNoise>0.0</gaussianNoise>
           <xyzOffset>0 0 0</xyzOffset>
           <rpyOffset>0 0 0</rpyOffset>

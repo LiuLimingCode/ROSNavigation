@@ -42,7 +42,7 @@ std::string ImuRecorder::printfData(void)
 	return(str);
 }
 
-ImuRecorder::ImuRecorder(ros::NodeHandle& node, std::string topicName, std::string topicType,std::string topicTitle)
+ImuRecorder::ImuRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle)
 {
 	this->topicName = topicName;
 	this->topicType = topicType;

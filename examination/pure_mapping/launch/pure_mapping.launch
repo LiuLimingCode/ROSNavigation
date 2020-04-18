@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="scan_topic"/>
+  <arg name="base_frame"/>
+  <arg name="map_frame"/>
+  <arg name="odom_frame"/>
+
+  <node pkg="pure_mapping" type="pure_mapping" name="pure_mapping" output="screen">
+
+    <remap from="scan" to="$(arg scan_topic)"/>
+
+    <param name="base_frame" value="$(arg base_frame)"/> #The frame attached to the mobile base. (default: "base_link")
+    <param name="map_frame" value="$(arg map_frame)"/>   #The frame attached to the map. (default: "map")
+    <param name="odom_frame" value="$(arg odom_frame)"/> #The frame attached to the odometry system. (default: "odom")
+
+    <param name="map_update_interval" value="5"/> #How long (in seconds) between updates to the map. (default: 5)
+    <param name="maxUrange" value="16.0"/>          #The maximum usable range of the laser. A beam is cropped to this value.
+
+    <param name="xmin" value="-100.0"/>             #Initial map size (in metres) (default: -100.0)
+    <param name="ymin" value="-100.0"/>             #Initial map size (in metres) (default: -100.0)
+    <param name="xmax" value="100.0"/>              #Initial map size (in metres) (default: 100.0)
+    <param name="ymax" value="100.0"/>              #Initial map size (in metres) (default: 100.0)
+    <param name="delta" value="0.05"/>              #Resolution of the map (in metres per occupancy grid block) (default: 0.05)
+
+  </node>
+
+</launch>

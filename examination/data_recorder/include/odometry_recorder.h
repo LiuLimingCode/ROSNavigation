@@ -5,11 +5,13 @@
 #include "base_recorder.h"
 #include <nav_msgs/Odometry.h>
 
+#define STRING_ODOMETRY                   (std::string("Odometry"))
+
 class OdometryRecorder : public BaseRecorder
 {
 
 public:
-	OdometryRecorder(ros::NodeHandle& node, std::string topicName, std::string topicType,std::string topicTitle);
+	OdometryRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle);
 	~OdometryRecorder() = default;
 
 	std::string printfDataTitle(void);

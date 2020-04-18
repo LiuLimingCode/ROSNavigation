@@ -48,7 +48,7 @@ std::string OdometryRecorder::printfData(void)
 	return(str);
 }
 
-OdometryRecorder::OdometryRecorder(ros::NodeHandle& node, std::string topicName, std::string topicType,std::string topicTitle)
+OdometryRecorder::OdometryRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle)
 {
 	this->topicName = topicName;
 	this->topicType = topicType;

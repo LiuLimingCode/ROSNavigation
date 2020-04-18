@@ -14,6 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  tf
+  tf2_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,7 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES data_recorder
-  CATKIN_DEPENDS geometry_msgs sensor_msgs nav_msgs roscpp rospy std_msgs
+  CATKIN_DEPENDS geometry_msgs sensor_msgs nav_msgs roscpp rospy std_msgs tf tf2_msgs
   DEPENDS system_lib
 )
 
@@ -153,7 +155,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_library(${PROJECT_NAME} src/odometry_recorder.cpp src/imu_recorder.cpp src/accel_recorder.cpp)
+add_library(${PROJECT_NAME} src/odometry_recorder.cpp src/imu_recorder.cpp src/accel_recorder.cpp src/tf_recorder.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_executable(data_recorder_node src/data_recorder_node.cpp)

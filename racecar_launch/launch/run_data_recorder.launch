@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg="data_recorder" type="data_recorder_node" name="data_recorder_node" clear_params="true" output="screen">
+    <param name="save_path" value="/home/llm/myracecar/_data/ekf_data.txt"/>
+    <param name="record_topic0" value="/racecar/odom_gazebo"/>
+    <param name="record_type0" value="Odometry"/>
+    <param name="record_title0" value="real"/>
+
+    <param name="record_topic1" value="/racecar/odom_rf2o"/>
+    <param name="record_type1" value="Odometry"/>
+    <param name="record_title1" value="rf2o"/>
+
+    <param name="record_topic2" value="/racecar/odom_ekf"/>
+    <param name="record_type2" value="Odometry"/>
+    <param name="record_title2" value="ekf"/>
+
+    <param name="record_topic3" value="/tf"/>
+    <param name="record_type3" value="TF"/>
+    <param name="record_title3" value="map->odom"/>
+    <param name="target_frame3" value="racecar/map"/>
+    <param name="source_frame3" value="racecar/odom"/>
+  </node>
+
+</launch>
+
+

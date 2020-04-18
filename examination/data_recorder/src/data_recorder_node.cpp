@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "base_recorder.h"
+#include "tf_recorder.h"
 #include "imu_recorder.h"
 #include "accel_recorder.h"
 #include "odometry_recorder.h"
@@ -9,13 +10,8 @@
 #define RECORDTOPIC  (std::string("record_topic"))
 #define RECORDTPYE   (std::string("record_type"))
 #define RECORDTITLE  (std::string("record_title"))
-
-#define STRING_IMU                        (std::string("IMU"))
-#define STRING_ODOMETRY                   (std::string("Odometry"))
-#define STRING_ACCEL                      (std::string("Accel"))
-#define STRING_ACCELSTAMPED               (std::string("AccelStamped"))
-#define STRING_ACCELWITHCOVARIANCE        (std::string("AccelWithCovariance"))
-#define STRING_ACCELWITHCOVARIANCESTAMPED (std::string("AccelWithCovarianceStamped"))
+#define TARGETFRAME  (std::string("target_frame"))
+#define SOURCEFRAME  (std::string("source_frame"))
 
 std::vector<BaseRecorder*> recorderList;
 std::string filePath;
@@ -29,6 +25,7 @@ int main(int argc, char** argv)
 
 	//read params and subscribe to topics
 	node.param<std::string>("save_path", filePath, "dataRecorded.txt");
+	recorderList.clear();
 	for(int index = 0; node.hasParam(RECORDTOPIC + std::to_string(index)) && node.hasParam(RECORDTPYE + std::to_string(index)); ++index)
 	{
 		std::string recordTopic;
@@ -49,6 +46,21 @@ int main(int argc, char** argv)
 		else if(recordType == STRING_ACCEL || recordType == STRING_ACCELSTAMPED || recordType == STRING_ACCELWITHCOVARIANCE || recordType == STRING_ACCELWITHCOVARIANCESTAMPED)
 		{
 			recorderList.push_back(new AccelRecorder(node, recordTopic, recordType, recordTitle));
+		}
+		else if(recordType == STRING_TF)
+		{
+			if(node.hasParam(TARGETFRAME + std::to_string(index)) && node.hasParam(SOURCEFRAME + std::to_string(index)))
+			{
+				std::string targetFrame;
+				std::string sourceFrame;
+				node.getParam(TARGETFRAME + std::to_string(index), targetFrame);
+				node.getParam(SOURCEFRAME + std::to_string(index), sourceFrame);
+				recorderList.push_back(new TFRecorder(node, recordTopic, recordType, recordTitle, targetFrame, sourceFrame));
+			}
+			else
+			{
+				ROS_ERROR_STREAM("the TF recorder didn't have target_frame or source_frame param!");
+			}
 		}
 	}
 
@@ -95,7 +107,7 @@ int main(int argc, char** argv)
 					dataStr += recorderList[index]->printfData();
 				}
 				recordFile << ros::Time::now() << "\t" << dataStr << "\n";
-				ROS_INFO_STREAM("looped " << ++loopTimes << "times");
+				ROS_INFO_STREAM("looped " << ++loopTimes << " times");
 			}
 
 			loopRate.sleep();

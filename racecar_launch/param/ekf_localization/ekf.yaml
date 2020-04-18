@@ -38,7 +38,7 @@ publish_acceleration: true
 odom0_config: [false, false, false,  #x, y, z
                false, false, false,  #roll, pitch, yaw
                true , true , false,  #vx, vy, vz
-               false, false, false,  #vroll, vpitch, vyaw
+               false, false, true ,  #vroll, vpitch, vyaw
                false, false, false]  #ax, ay, az
 
 # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
@@ -107,8 +107,8 @@ process_noise_covariance: [0.01, 0,    0,    0,    0,    0,    0,     0,     0, 
                            0,    0,    0.01, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #z
                            0,    0,    0,    0.03, 0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #roll
                            0,    0,    0,    0,    0.03, 0,    0,     0,     0,    0,    0,    0,    0,    0,    0,     #pitch
-                           0,    0,    0,    0,    0,    0.5 , 0,     0,     0,    0,    0,    0,    0,    0,    0,     #yaw
-                           0,    0,    0,    0,    0,    0,    0.4,   0,     0,    0,    0,    0,    0,    0,    0,     #vx
+                           0,    0,    0,    0,    0,    0.5,  0,     0,     0,    0,    0,    0,    0,    0,    0,     #yaw
+                           0,    0,    0,    0,    0,    0,    0.7,   0,     0,    0,    0,    0,    0,    0,    0,     #vx
                            0,    0,    0,    0,    0,    0,    0,     0.025, 0,    0,    0,    0,    0,    0,    0,     #vy
                            0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,     #vz
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0.01, 0,    0,    0,    0,    0,     #vroll
