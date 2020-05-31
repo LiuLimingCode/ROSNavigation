@@ -38,8 +38,6 @@
 
 官方教程：http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 
-或者使用本工程的bash文件`bash update_gazebo7.bash`（版本为gazebo7，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本`sudo apt-get install gazebo7`）
-
 ### 使用
 
 - 1 使用`catkin_make`正确编译本工程
@@ -48,11 +46,6 @@
 
 
     roslaunch racecar_launch execute_gazebo_simple.launch simulator:=true
-
-- 2.2 如果在真实机器人上运行，执行（未测试）
-
-
-    roslaunch racecar_launch execute_gazebo_simple.launch reality:=true
 
 - 3 执行定位、导航功能包
 
