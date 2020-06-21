@@ -6,12 +6,15 @@
 #include "imu_recorder.h"
 #include "accel_recorder.h"
 #include "odometry_recorder.h"
+#include "std_msgs_recorder.h"
 
 #define RECORDTOPIC  (std::string("record_topic"))
 #define RECORDTPYE   (std::string("record_type"))
 #define RECORDTITLE  (std::string("record_title"))
 #define TARGETFRAME  (std::string("target_frame"))
 #define SOURCEFRAME  (std::string("source_frame"))
+
+using namespace DataRecorder;
 
 std::vector<BaseRecorder*> recorderList;
 std::string filePath;
@@ -37,15 +40,91 @@ int main(int argc, char** argv)
 		ROS_INFO_STREAM("subscribed to " << recordTopic << ",data type is " << recordType << ",data title is " << recordTitle);
 		if(recordType == STRING_ODOMETRY)
 		{
-			recorderList.push_back(new OdometryRecorder(node, recordTopic, recordType, recordTitle));
+			recorderList.push_back(new OdometryRecorder(node, recordTopic, recordTitle));
 		}
 		else if(recordType == STRING_IMU)
 		{
-			recorderList.push_back(new ImuRecorder(node, recordTopic, recordType, recordTitle));
+			recorderList.push_back(new ImuRecorder(node, recordTopic, recordTitle));
 		}
-		else if(recordType == STRING_ACCEL || recordType == STRING_ACCELSTAMPED || recordType == STRING_ACCELWITHCOVARIANCE || recordType == STRING_ACCELWITHCOVARIANCESTAMPED)
+		else if(recordType == STRING_ACCEL)
 		{
-			recorderList.push_back(new AccelRecorder(node, recordTopic, recordType, recordTitle));
+			recorderList.push_back(new AccelRecorder<geometry_msgs::Accel>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_ACCELSTAMPED)
+		{
+			recorderList.push_back(new AccelRecorder<geometry_msgs::AccelStamped>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_ACCELWITHCOVARIANCE)
+		{
+			recorderList.push_back(new AccelRecorder<geometry_msgs::AccelWithCovariance>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_ACCELWITHCOVARIANCESTAMPED)
+		{
+			recorderList.push_back(new AccelRecorder<geometry_msgs::AccelWithCovarianceStamped>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_BOOL)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Bool>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_BYTE)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Byte>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_CHAR)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Char>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_DURATION)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Duration>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_FLOAT32)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Float32>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_FLOAT64)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Float64>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_INT16)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Int16>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_INT32)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Int32>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_INT64)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Int64>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_INT8)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Int8>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_STRING)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::String>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_TIME)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::Time>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_UINT16)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::UInt16>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_UINT32)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::UInt32>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_UINT64)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::UInt64>(node, recordTopic, recordTitle));
+		}
+		else if(recordType == STRING_UINT8)
+		{
+			recorderList.push_back(new StdMsgsRecorder<std_msgs::UInt8>(node, recordTopic, recordTitle));
 		}
 		else if(recordType == STRING_TF)
 		{
@@ -55,13 +134,14 @@ int main(int argc, char** argv)
 				std::string sourceFrame;
 				node.getParam(TARGETFRAME + std::to_string(index), targetFrame);
 				node.getParam(SOURCEFRAME + std::to_string(index), sourceFrame);
-				recorderList.push_back(new TFRecorder(node, recordTopic, recordType, recordTitle, targetFrame, sourceFrame));
+				recorderList.push_back(new TFRecorder(node, recordTopic, recordTitle, targetFrame, sourceFrame));
 			}
 			else
 			{
 				ROS_ERROR_STREAM("the TF recorder didn't have target_frame or source_frame param!");
 			}
 		}
+		
 	}
 
 	ROS_INFO_STREAM("subscribe to " << recorderList.size() << " topics");

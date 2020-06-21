@@ -3,13 +3,10 @@
 <launch>
 
   <node pkg="data_recorder" type="data_recorder_node" name="data_recorder_node" clear_params="true" output="screen">
-    <param name="save_path" value="/home/llm/myracecar/_data/odom.txt"/>
-    <param name="record_topic0" value="/racecar/odom_gazebo"/>
-    <param name="record_type0" value="Odometry"/>
-    <param name="record_title0" value="real"/>
-    <param name="record_topic1" value="/racecar/odom_rf2o"/>
-    <param name="record_type1" value="Odometry"/>
-    <param name="record_title1" value="rf2o">
+    <param name="save_path" value="/home/llm/myracecar/_data/test.txt"/>
+    <param name="record_topic0" value="/accel"/>
+    <param name="record_type0" value="Accel"/>
+    <param name="record_title0" value="accel"/>
   </node>
 
 </launch>

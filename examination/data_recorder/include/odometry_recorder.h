@@ -7,21 +7,25 @@
 
 #define STRING_ODOMETRY                   (std::string("Odometry"))
 
-class OdometryRecorder : public BaseRecorder
-{
+namespace DataRecorder {
 
-public:
-	OdometryRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle);
-	~OdometryRecorder() = default;
+	class OdometryRecorder : public BaseRecorder
+	{
 
-	std::string printfDataTitle(void);
-	std::string printfData(void);
+	public:
+		OdometryRecorder(ros::NodeHandle& node, std::string& topicName,std::string& topicTitle);
+		~OdometryRecorder() = default;
 
-	void DataCallBack(const nav_msgs::Odometry::ConstPtr& data);
-	
-protected:
-	nav_msgs::Odometry dataReceived;
+		std::string printfDataTitle(void);
+		std::string printfData(void);
 
-};
+		void DataCallBack(const nav_msgs::Odometry::ConstPtr& data);
+		
+	protected:
+		nav_msgs::Odometry dataReceived;
+
+	};
+
+} // namespace DataRecorder
 
 #endif

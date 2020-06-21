@@ -8,25 +8,28 @@
 
 #define STRING_TF                   (std::string("TF"))
 
-class TFRecorder : public BaseRecorder
-{
+namespace DataRecorder {
 
-public:
-	TFRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle, std::string& targetFrame, std::string& sourceFrame);
-	~TFRecorder() = default;
+	class TFRecorder : public BaseRecorder
+	{
 
-	std::string printfDataTitle(void);
-	std::string printfData(void);
+	public:
+		TFRecorder(ros::NodeHandle& node, std::string& topicName,std::string& topicTitle, std::string& targetFrame, std::string& sourceFrame);
+		~TFRecorder() = default;
 
-    void DataCallBack(const tf2_msgs::TFMessage::ConstPtr& data);
-	
-protected:
-    std::string targetFrame;
-    std::string sourceFrame;
-    tf::TransformListener listener;
-	tf::StampedTransform dataReceived;
-    
+		std::string printfDataTitle(void);
+		std::string printfData(void);
 
-};
+		void DataCallBack(const tf2_msgs::TFMessage::ConstPtr& data);
+		
+	protected:
+		std::string targetFrame;
+		std::string sourceFrame;
+		tf::TransformListener listener;
+		tf::StampedTransform dataReceived;
+		
+	};
+
+} // namespace DataRecorder
 
 #endif

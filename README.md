@@ -78,4 +78,8 @@ ROS导航官方教程：http://wiki.ros.org/navigation/Tutorials
 
 官网教程：http://gazebosim.org/tutorials （可以重点学习Get Started、Build a Robot、Model Editor、Build a World、Sensors、Connect to ROS章节）
 
+- 传感器数据处理算法原理以及在本设计上的应用
+
+见《基于多传感器融合的室内移动机器人定位系统.pdf》
+
 

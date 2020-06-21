@@ -7,21 +7,25 @@
 
 #define STRING_IMU                        (std::string("Imu"))
 
-class ImuRecorder : public BaseRecorder
-{
+namespace DataRecorder {
 
-public:
-	ImuRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle);
-	~ImuRecorder() = default;
+	class ImuRecorder : public BaseRecorder
+	{
 
-	std::string printfDataTitle(void);
-	std::string printfData(void);
+	public:
+		ImuRecorder(ros::NodeHandle& node, std::string& topicName,std::string& topicTitle);
+		~ImuRecorder() = default;
 
-	void DataCallBack(const sensor_msgs::Imu::ConstPtr& data);
-	
-protected:
-	sensor_msgs::Imu dataReceived;
+		std::string printfDataTitle(void);
+		std::string printfData(void);
 
-};
+		void DataCallBack(const sensor_msgs::Imu::ConstPtr& data);
+		
+	protected:
+		sensor_msgs::Imu dataReceived;
+
+	};
+
+} // namespace DataRecorder
 
 #endif

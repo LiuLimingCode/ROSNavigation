@@ -155,7 +155,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-add_library(${PROJECT_NAME} src/odometry_recorder.cpp src/imu_recorder.cpp src/accel_recorder.cpp src/tf_recorder.cpp)
+add_library(${PROJECT_NAME} src/std_msgs_recorder.cpp src/odometry_recorder.cpp src/imu_recorder.cpp src/accel_recorder.cpp src/tf_recorder.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_executable(data_recorder_node src/data_recorder_node.cpp)

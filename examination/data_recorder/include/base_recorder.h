@@ -3,21 +3,36 @@
 
 #include <ros/ros.h>
 
-class BaseRecorder
-{
+namespace DataRecorder {
 
-public:
-	virtual std::string printfDataTitle(void) = 0;
-	virtual std::string printfData(void) = 0;
-	bool isDataReceived() const { return(flagDataReceived); }
+	class BaseRecorder
+	{
 
-protected:
-	std::string topicName;
-	std::string topicType;
-	std::string topicTitle;
-	ros::Subscriber subscriber;
-	bool flagDataReceived = false;
+	public:
+		virtual std::string printfDataTitle(void) = 0;
+		virtual std::string printfData(void) = 0;
+		bool isDataReceived() const { return(flagDataReceived); }
 
-};
+	protected:
+		std::string topicName;
+		std::string topicTitle;
+		ros::Subscriber subscriber;
+		bool flagDataReceived = false;
+
+	};
+
+	template<class T, class U>
+	struct IsSameType
+	{
+		enum {result=false};
+	};
+
+	template<class T>
+	struct IsSameType<T, T>
+	{
+		enum {result=true};
+	};
+
+} // namespace DataRecorder
 
 #endif

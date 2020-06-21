@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg="data_recorder" type="data_recorder_node" name="data_recorder_node" clear_params="true" output="screen">
+    <param name="save_path" value="/home/llm/myracecar/_data/test.txt"/>
+
+    <param name="record_topic0" value="/accel"/>
+    <param name="record_type0" value="Accel"/>
+    <param name="record_title0" value="accel"/>
+
+    <param name="record_topic1" value="/tf"/>
+    <param name="record_type1" value="TF"/>
+    <param name="record_title1" value="tf"/>
+    <param name="source_frame1" value="base_link"/>
+    <param name="target_frame1" value="odom"/>
+  </node>
+
+</launch>
+
+<!-- record_type -->
+<!-- nav_msgs:: Accel AccelStamped AccelWithCovariance AccelWithCovarianceStamped Imu Odometry -->
+<!-- tf2_msgs:: TFMessage -->
+<!-- std_msgs:: Bool Byte Char Duration Float32 Float64 Int16 Int32 Int64 Int8 String Time UInt16 UInt32 UInt64 UInt8 -->
+

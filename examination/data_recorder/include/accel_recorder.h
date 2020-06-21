@@ -13,24 +13,26 @@
 #define STRING_ACCELWITHCOVARIANCE        (std::string("AccelWithCovariance"))
 #define STRING_ACCELWITHCOVARIANCESTAMPED (std::string("AccelWithCovarianceStamped"))
 
-class AccelRecorder : public BaseRecorder
-{
+namespace DataRecorder {
 
-public:
-	AccelRecorder(ros::NodeHandle& node, std::string& topicName, std::string& topicType,std::string& topicTitle);
-	~AccelRecorder() = default;
+	template<typename T>
+	class AccelRecorder : public BaseRecorder
+	{
 
-	std::string printfDataTitle(void);
-	std::string printfData(void);
+	public:
+		AccelRecorder(ros::NodeHandle& node, std::string& topicName,std::string& topicTitle);
+		~AccelRecorder() = default;
 
-	void DataAccelCallBack(const geometry_msgs::Accel::ConstPtr& data);
-	void DataAccelStampedCallBack(const geometry_msgs::AccelStamped::ConstPtr& data);
-	void DataAccelWithCovarianceCallBack(const geometry_msgs::AccelWithCovariance::ConstPtr& data);
-	void DataAccelWithCovarianceStampedCallBack(const geometry_msgs::AccelWithCovarianceStamped::ConstPtr& data);
+		std::string printfDataTitle(void);
+		std::string printfData(void);
 
-	
-protected:
-	geometry_msgs::Accel dataReceived;
-};
+		void DataCallBack(const boost::shared_ptr<T const> & data);
+
+		
+	protected:
+		geometry_msgs::Accel dataReceived;
+	};
+
+} // namespace DataRecorder
 
 #endif

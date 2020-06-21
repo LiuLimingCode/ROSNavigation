@@ -2,6 +2,8 @@
 
 <launch>
 
+  <!--param name="use_sim_time" value="true"/-->
+
   <arg name="robot_name" default="racecar"/>
   <arg name="robot_namespace" default="racecar"/>
   <arg name="use_namespace" default="true"/>
