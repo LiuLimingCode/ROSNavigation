@@ -2,13 +2,13 @@
 
 ---
 
-### 描述
+## 描述
 
 本工程包含机器人3D仿真模型、仿真软件设置、ROS功能包设置等，能够完成Gazebo软件仿真下的定位、建图、导航功能。
 
 ![](doc/gazebo.png)
 
-### 前置技术
+## 前置技术
 
 在学习本工程之前，您应该掌握一下技能：
 
@@ -18,7 +18,7 @@
 
 - 科学上网软件
 
-### 安装
+## 安装
 
 - 1 安装ubuntu操作系统
 
@@ -38,31 +38,31 @@
 
 官方教程：http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 
-### 使用
+## 使用
 
 - 1 使用`catkin_make`正确编译本工程
 
-- 2.1 如果仿真，执行以下指令来打开Gazebo仿真环境
+- 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch/map/building.yaml,修改该文件第一行image:的文件地址)
 
 
-    roslaunch racecar_launch execute_gazebo_simple.launch simulator:=true
+    roslaunch racecar_launch run_all.launch simulator:=true world_name:=building
 
 - 3 执行定位、导航功能包
 
 
-    roslaunch racecar_launch execute_gazebo_simple.launch navigation:=true mapfile_name:=building rviz_full:=true
+    roslaunch racecar_launch run_all.launch navigation:=true world_name:=building rviz_full:=true
     
 - 4 执行结果如下
 
 ![](doc/rviz.png)
 
-### 如何学习
+## 如何学习
 
 - 通用
 
 http://www.baidu.com
 
-http://www.google.com  
+http://www.google.com
 
 下载别人开源的工程，通过依样画葫芦学习。
 
@@ -77,9 +77,5 @@ ROS导航官方教程：http://wiki.ros.org/navigation/Tutorials
 - Gazebo
 
 官网教程：http://gazebosim.org/tutorials （可以重点学习Get Started、Build a Robot、Model Editor、Build a World、Sensors、Connect to ROS章节）
-
-- 传感器数据处理算法原理以及在本设计上的应用
-
-见《基于多传感器融合的室内移动机器人定位系统.pdf》
 
 

@@ -2,8 +2,6 @@
 
 TrajectoryPlannerROS:
 
-#    odom_topic: /racecar/odom_gazebo  #注意在base_local_planner的程序中，默认只使用的odom作为topic，且无法修改，除非更改程序
-
     #Robot Configuration Parameters
     acc_lim_x: 2.5      #The x acceleration limit of the robot in meters/sec^2
     acc_lim_y: 0.0      #The y acceleration limit of the robot in meters/sec^2

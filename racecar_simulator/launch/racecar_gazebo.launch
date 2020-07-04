@@ -2,19 +2,17 @@
 
 <launch>
 
-  <arg name="robot_name" default="racecar"/>
   <arg name="enable_odom_tf" default="false"/>
   <arg name="odom_frame" default="odom"/>
   <arg name="odom_topic" default="odom"/>
   <arg name="cmd_topic" default="cmd_vel"/>
-  <arg name="use_namespace" default="false"/>
-  <arg name="robot_namespace" default="/"/> <!-- if use_namespace = false, please make sure robot_namespace = / -->
+  <arg name="world_name" default=""/>
 
   <env name="GAZEBO_MODEL_PATH" value="$GAZEBO_MODEL_PATH:$(find racecar_simulator)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="$GAZEBO_RESOURCE_PATH:$(find racecar_simulator)/models"/>
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-      <arg name="world_name" value="$(find racecar_simulator)/worlds/world_building.world"/>
+      <arg name="world_name" value="$(find racecar_simulator)/worlds/world_$(arg world_name).world"/>
       <arg name="paused" default="false"/>
       <arg name="use_sim_time" default="true"/>
       <arg name="gui" default="true"/>
@@ -23,13 +21,10 @@
     </include>
 
     <include file="$(find racecar_simulator)/launch/racecar_spawn.launch">
-      <arg name="robot_name" default="$(arg robot_name)"/>
       <arg name="enable_odom_tf" default="$(arg enable_odom_tf)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="odom_topic" default="$(arg odom_topic)"/>
       <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-      <arg name="use_namespace" default="$(arg use_namespace)"/>
-      <arg name="robot_namespace" default="$(arg robot_namespace)"/>
     </include>
 
 </launch>

@@ -57,25 +57,25 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        racecar/base_link:
+        base_link:
           Value: true
-        racecar/body_link:
+        body_link:
           Value: true
-        racecar/front_left_wheel_link:
+        front_left_wheel_link:
           Value: true
-        racecar/front_right_wheel_link:
+        front_right_wheel_link:
           Value: true
-        racecar/imu_link:
+        imu_link:
           Value: true
-        racecar/laser_link:
+        laser_link:
           Value: true
-        racecar/map:
+        map:
           Value: true
-        racecar/odom:
+        odom:
           Value: true
-        racecar/rear_left_wheel_link:
+        rear_left_wheel_link:
           Value: true
-        racecar/rear_right_wheel_link:
+        rear_right_wheel_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -83,23 +83,23 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        racecar/map:
+        map:
           {}
-        racecar/odom:
-          racecar/base_link:
-            racecar/body_link:
+        odom:
+          base_link:
+            body_link:
               {}
-            racecar/front_left_wheel_link:
+            front_left_wheel_link:
               {}
-            racecar/front_right_wheel_link:
+            front_right_wheel_link:
               {}
-            racecar/imu_link:
+            imu_link:
               {}
-            racecar/laser_link:
+            laser_link:
               {}
-            racecar/rear_left_wheel_link:
+            rear_left_wheel_link:
               {}
-            racecar/rear_right_wheel_link:
+            rear_right_wheel_link:
               {}
       Update Interval: 0
       Value: true
@@ -128,7 +128,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Flat Squares
-      Topic: /racecar/laser/scan
+      Topic: /laser/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -152,7 +152,7 @@ Visualization Manager:
       Class: rviz_imu_plugin/Imu
       Enabled: true
       Name: Imu
-      Topic: /racecar/imu/data
+      Topic: /imu/data
       Unreliable: false
       Value: true
       fixed_frame_orientation: true
@@ -187,7 +187,7 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.0500000007
         Value: Arrow
-      Topic: /racecar/odom_gazebo
+      Topic: /odom_gazebo
       Unreliable: false
       Value: false
     - Angle Tolerance: 0.100000001
@@ -221,7 +221,7 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.0500000007
         Value: Arrow
-      Topic: /racecar/odom_ekf
+      Topic: /odom_ekf
       Unreliable: false
       Value: false
     - Angle Tolerance: 0.100000001
@@ -255,7 +255,7 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.0500000007
         Value: Arrow
-      Topic: /racecar/odom_rf2o
+      Topic: /odom_rf2o
       Unreliable: false
       Value: false
     - Alpha: 0.800000012
@@ -278,7 +278,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /racecar/path_gazebo
+      Topic: /path_gazebo
       Unreliable: false
       Value: true
     - Alpha: 0.800000012
@@ -301,7 +301,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /racecar/path_ekf
+      Topic: /path_ekf
       Unreliable: false
       Value: true
     - Alpha: 0.800000012
@@ -324,7 +324,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /racecar/path_rf2o
+      Topic: /path_rf2o
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -377,8 +377,7 @@ Visualization Manager:
           Show Trail: false
           Value: true
       Name: RobotModel
-      Robot Description: /racecar/robot_description
-      TF Prefix: racecar
+      Robot Description: /robot_description
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -388,7 +387,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /racecar/map
+      Topic: /map
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -405,7 +404,7 @@ Visualization Manager:
       Shaft Length: 0.230000004
       Shaft Radius: 0.00999999978
       Shape: Arrow (Flat)
-      Topic: /racecar/particlecloud
+      Topic: /particlecloud
       Unreliable: false
       Value: true
     - Alpha: 0.699999988
@@ -414,7 +413,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: local_costmap
-      Topic: /racecar/move_base/local_costmap/costmap
+      Topic: /move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -424,7 +423,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: global_costmap
-      Topic: /racecar/move_base/global_costmap/costmap
+      Topic: /move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -433,7 +432,7 @@ Visualization Manager:
       Color: 25; 255; 0
       Enabled: false
       Name: local_footprint
-      Topic: /racecar/move_base/local_costmap/footprint
+      Topic: /move_base/local_costmap/footprint
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -441,7 +440,7 @@ Visualization Manager:
       Color: 25; 255; 0
       Enabled: true
       Name: global_footprint
-      Topic: /racecar/move_base/global_costmap/footprint
+      Topic: /move_base/global_costmap/footprint
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -464,7 +463,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /racecar/move_base/NavfnROS/plan
+      Topic: /move_base/NavfnROS/plan
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -487,7 +486,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /racecar/move_base/DWAPlannerROS/global_plan
+      Topic: /move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -510,7 +509,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /racecar/move_base/DWAPlannerROS/local_plan
+      Topic: /move_base/DWAPlannerROS/local_plan
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -525,14 +524,14 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.0500000007
       Shape: Arrow
-      Topic: /racecar/move_base/current_goal
+      Topic: /move_base/current_goal
       Unreliable: false
       Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: racecar/odom
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:

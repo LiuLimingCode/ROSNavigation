@@ -14,7 +14,7 @@
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" clear_params="true">
 
     <remap from="/cmd_vel" to="$(arg cmd_topic)"/>
-    <!--remap from="/odom" to="$(arg odom_topic)"/-->
+    <remap from="/odom" to="$(arg odom_topic)"/>
 
     <!-- global planner -->
     <!--param name="base_global_planner" value="global_planner/GlobalPlanner"/-->
@@ -35,9 +35,6 @@
     <rosparam file="$(find racecar_launch)/param/move_base/common_costmap.yaml" command="load" ns="local_costmap"/> 
     <rosparam file="$(find racecar_launch)/param/move_base/local_costmap.yaml" command="load"/>
     <rosparam file="$(find racecar_launch)/param/move_base/global_costmap.yaml" command="load"/>
-
-    <param name="TrajectoryPlannerROS/odom_topic" value="$(arg odom_topic)"/>
-    <param name="DWAPlannerROS/odom_topic" value="$(arg odom_topic)"/>
 
     <param name="global_costmap/laser_scan_sensor/sensor_frame" value="$(arg laser_frame)"/>
     <param name="global_costmap/laser_scan_sensor/topic" value="$(arg scan_topic)"/>

@@ -40,7 +40,7 @@
     <arg name="base_frame_id" default="$(arg base_frame)"/>
     <arg name="odom_frame_id" default="$(arg odom_frame)"/>
     <arg name="publish_tf" default="false"/>
-    <arg name="init_pose_from_topic" default="/$(arg robot_namespace)/initialpose"/>
+    <arg name="init_pose_from_topic" default="/initialpose"/>
   </include>
 
   <!-- IMU 激光雷达 ODOMETRY 融合滤波  robot_localization算法  -->
@@ -71,6 +71,8 @@
     <!-- remap from="/odometry/filtered" to="odom" / --> 
     <remap from="/move_base_node/NavfnROS/plan" to="/move_base/NavfnROS/plan" /> 
   </node>
+
+  <include file="$(find racecar_simulator)/launch/racecar_spawn.launch"/>
 
 </launch>
 

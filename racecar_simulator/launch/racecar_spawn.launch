@@ -1,31 +1,21 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="robot_name" default="racecar"/>
   <arg name="enable_odom_tf" default="false"/>
   <arg name="odom_frame" default="odom"/>
   <arg name="odom_topic" default="odom"/>
   <arg name="cmd_topic" default="cmd_vel"/>
-  <arg name="use_namespace" default="true"/>
-  <arg name="robot_namespace" default="racecar"/>
 
-  <arg name="model_file" default="$(find racecar_simulator)/urdf/racecar_robot.xacro" if="$(arg use_namespace)"/>
-  <arg name="model_file" default="$(find racecar_simulator)/urdf/racecar.xacro" unless="$(arg use_namespace)"/>
+  <arg name="model_file" default="$(find racecar_simulator)/urdf/racecar_robot.xacro"/>
 
-  <group ns="$(arg robot_namespace)">
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model_file) --inorder  enable_odom_tf:=$(arg enable_odom_tf) odom_frame:=$(arg odom_frame) odom_topic:=$(arg odom_topic) cmd_topic:=$(arg cmd_topic)"/>
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model racecar -param robot_description"/>
 
-    <param name="robot_description" command="$(find xacro)/xacro $(arg model_file) --inorder robot_namespace:=$(arg robot_namespace) enable_odom_tf:=$(arg enable_odom_tf) odom_frame:=$(arg odom_frame) odom_topic:=$(arg odom_topic) cmd_topic:=$(arg cmd_topic)"/>
-    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model $(arg robot_name) -param robot_description"/>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="false"/>
+  </node>
 
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-      <param name="use_gui" value="false"/>
-    </node>
-
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
-      <param name="tf_prefix" value="$(arg robot_namespace)" if="$(arg use_namespace)"/>
-    </node>
-
-  </group>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
 </launch>
 
