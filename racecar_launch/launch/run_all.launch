@@ -30,7 +30,7 @@
   <!-- simulator -->
   <group if="$(arg simulator)">
     <arg name="world_name" default="building"/>
-    <include file="$(find racecar_simulator)/launch/racecar_gazebo.launch">
+    <include file="$(find racecar_gazebo)/launch/racecar_gazebo.launch">
       <arg name="enable_odom_tf" default="false"/>
       <arg name="odom_topic" default="$(arg odom_gazebo_topic)"/> <!-- odom_gazebo_topic -->
       <arg name="odom_frame" default="$(arg odom_frame)"/>

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<robot name="racecar" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="enable_odom_tf" default="true"/>
+  <xacro:arg name="odom_frame" default="odom"/>
+  <xacro:arg name="odom_topic" default="odom"/>
+  <xacro:arg name="cmd_topic" default="cmd_vel"/>
+  <xacro:include filename="$(find racecar_description)/urdf/move_macro.xacro"/>
+  <xacro:include filename="$(find racecar_description)/urdf/laser_macro.xacro"/>
+  <xacro:include filename="$(find racecar_description)/urdf/imu_macro.xacro"/>
+  <link name="base_link"/>
+
+  <xacro:body_macro prefix="chassis" parent="base_link"/>
+  <xacro:rear_wheel_macro prefix="right_rear_wheel" parent="base_link" xyz="-0.1575 -0.14 0.0675"/>
+  <xacro:rear_wheel_macro prefix="left_rear_wheel" parent="base_link" xyz="-0.1575 0.14 0.0675"/>
+  <xacro:steering_hinge_macro prefix="right_steering_hinge" parent="base_link" xyz="0.1575 -0.14 0.0675"/>
+  <xacro:steering_hinge_macro prefix="left_steering_hinge" parent="base_link" xyz="0.1575 0.14 0.0675"/>
+  <xacro:front_wheel_macro prefix="right_front_wheel" parent="right_steering_hinge" xyz="0 0 0"/>
+  <xacro:front_wheel_macro prefix="left_front_wheel" parent="left_steering_hinge" xyz="0 0 0"/>
+  <xacro:laser_macro prefix="laser" parent="base_link" xyz="0.07 0 0.2575"/>
+  <xacro:imu_macro prefix="imu" parent="base_link" xyz="0.16575 0 0.168"/>
+
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/racecar</robotNamespace>
+       <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+      <legacyModeNS>true</legacyModeNS>
+    </plugin>
+    <!--plugin name="object_controller" filename="libgazebo_ros_planar_move_drive.so">
+      <commandTopic>$(arg cmd_topic)</commandTopic>
+      <odometryTopic>$(arg odom_topic)</odometryTopic>
+      <odometryFrame>$(arg odom_frame)</odometryFrame>
+      <odometryRate>100.0</odometryRate>
+      <robotBaseFrame>base_link</robotBaseFrame>
+      <broadcastTF>$(arg enable_odom_tf)</broadcastTF>
+    </plugin-->
+  </gazebo>
+</robot>
