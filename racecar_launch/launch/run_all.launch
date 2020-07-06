@@ -11,7 +11,7 @@
   <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
   <arg name="odom_ekf_topic" default="/odom_ekf"/>
   <arg name="odom_topic" default="/odom"/>
-  <arg name="base_frame" default="base_link"/>
+  <arg name="base_frame" default="base_footprint"/>
   <arg name="map_frame" default="map"/>
   <arg name="odom_frame" default="odom"/>
   <arg name="imu_frame" default="imu_link"/>
@@ -35,12 +35,13 @@
       <arg name="odom_topic" default="$(arg odom_gazebo_topic)"/> <!-- odom_gazebo_topic -->
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="cmd_topic" default="$(arg cmd_topic)"/>
+      <arg name="base_frame" default="$(arg base_frame)"/>
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
 
-    <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
+    <!--include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
       <arg name="publish_tf" default="false"/>
-      <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/> <!-- odom_rf2o_topic -->
+      <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
       <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
       <arg name="base_frame_id" default="$(arg base_frame)"/>
       <arg name="odom_frame_id" default="$(arg odom_frame)"/>
@@ -49,7 +50,7 @@
 
     <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
       <arg name="publish_tf" default="true"/>
-      <arg name="odom_pub_topic" default="$(arg odom_topic)"/> <!-- odom_ekf_topic -->
+      <arg name="odom_pub_topic" default="$(arg odom_topic)"/>
       <arg name="imu0_topic" default="$(arg imu_topic)"/>
       <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
       <arg name="map_frame" default="$(arg map_frame)"/>
@@ -57,7 +58,7 @@
       <arg name="base_link_frame" default="$(arg base_frame)"/>
       <arg name="world_frame" default="$(arg odom_frame)"/>
       <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
-    </include>
+    </include-->
   </group>
 
 

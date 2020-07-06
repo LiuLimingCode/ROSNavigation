@@ -16,8 +16,6 @@ import math
 import tf2_ros
 
 class OdometryNode:
-    # Set publishers
-    pub_odom = rospy.Publisher('/vesc/odom', Odometry, queue_size=1)
 
     def __init__(self):
         # init internals
@@ -25,13 +23,19 @@ class OdometryNode:
         self.last_received_twist = Twist()
         self.last_recieved_stamp = None
 
-        # Set the update rate
-        rospy.Timer(rospy.Duration(.05), self.timer_callback) # 20hz
+        self.update_rate = rospy.get_param("update_rate", 20)
+        self.publish_tf = rospy.get_param("publish_tf", False)
+        self.odom_topic = rospy.get_param("odom_topic", "odom")
+        self.base_frame = rospy.get_param("base_frame", "base_link")
+        self.odom_frame = rospy.get_param("odom_frame", "odom")
 
-        self.tf_pub = tf2_ros.TransformBroadcaster()
+        # Set the update rate
+        rospy.Timer(rospy.Duration(1.0 / self.update_rate), self.timer_callback)
 
         # Set subscribers
         rospy.Subscriber('/gazebo/link_states', LinkStates, self.sub_robot_pose_update)
+        self.odomPublisher = rospy.Publisher(self.odom_topic, Odometry, queue_size=1)
+        self.tfBroadcaster = tf2_ros.TransformBroadcaster()
 
     def sub_robot_pose_update(self, msg):
         # Find the index of the racecar
@@ -52,24 +56,25 @@ class OdometryNode:
 
         cmd = Odometry()
         cmd.header.stamp = self.last_recieved_stamp
-        cmd.header.frame_id = 'map'
-        cmd.child_frame_id = 'base_link' # This used to be odom
+        cmd.header.frame_id = self.odom_frame
+        cmd.child_frame_id = self.base_frame
         cmd.pose.pose = self.last_received_pose
         cmd.twist.twist = self.last_received_twist
-        self.pub_odom.publish(cmd)
+        self.odomPublisher.publish(cmd)
 
-        tf = TransformStamped(
-            header=Header(
-                frame_id=cmd.header.frame_id,
-                stamp=cmd.header.stamp
-            ),
-            child_frame_id=cmd.child_frame_id,
-            transform=Transform(
-                translation=cmd.pose.pose.position,
-                rotation=cmd.pose.pose.orientation
+        if self.publish_tf:
+            tf = TransformStamped(
+                header=Header(
+                    frame_id=cmd.header.frame_id,
+                    stamp=cmd.header.stamp
+                ),
+                child_frame_id=cmd.child_frame_id,
+                transform=Transform(
+                    translation=cmd.pose.pose.position,
+                    rotation=cmd.pose.pose.orientation
+                )
             )
-        )
-        self.tf_pub.sendTransform(tf)
+            self.tfBroadcaster.sendTransform(tf)
 
 # Start the node
 if __name__ == '__main__':

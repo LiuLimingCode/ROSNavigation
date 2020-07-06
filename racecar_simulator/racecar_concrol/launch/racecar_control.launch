@@ -2,20 +2,20 @@
 
 <launch>
 
+  <arg name="publish_tf" default="false"/>
+  <arg name="odom_topic" default="/odom_ideal"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="odom_frame" default="odom_ideal"/>
+
   <!-- Load joint controller configurations from YAML file to parameter server -->
   <rosparam file="$(find racecar_control)/config/racecar_control.yaml" command="load"/>
 
   <!-- load the controllers -->
   <node name="controller_manager" pkg="controller_manager" type="spawner" respawn="false"
-        output="screen" ns="/racecar" args="left_rear_wheel_velocity_controller right_rear_wheel_velocity_controller
-                                            left_front_wheel_velocity_controller right_front_wheel_velocity_controller
-                                            left_steering_hinge_position_controller right_steering_hinge_position_controller
-                                            joint_state_controller"/>
-
-  <!-- convert joint states to TF transforms for rviz, etc -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen">
-    <remap from="/joint_states" to="/racecar/joint_states" />
-  </node>
+        output="screen" ns="/racecar"  args="left_rear_wheel_velocity_controller right_rear_wheel_velocity_controller
+                               left_front_wheel_velocity_controller right_front_wheel_velocity_controller
+                               left_steering_hinge_position_controller right_steering_hinge_position_controller
+                               joint_state_controller"/>
 
   <!-- servo node -->
   <node pkg="racecar_control" type="servo_commands.py" name="servo_commands" output="screen">
@@ -23,6 +23,12 @@
   </node>
 
   <!-- Allow for Gazebo to broadcast odom -->
-  <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py"/>
+  <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
+    <param name="update_rate" value="20"/>
+    <param name="publish_tf" value="$(arg publish_tf)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+  </node>
 
 </launch>
