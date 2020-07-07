@@ -23,11 +23,11 @@ class OdometryNode:
         self.last_received_twist = Twist()
         self.last_recieved_stamp = None
 
-        self.update_rate = rospy.get_param("update_rate", 20)
-        self.publish_tf = rospy.get_param("publish_tf", False)
-        self.odom_topic = rospy.get_param("odom_topic", "odom")
-        self.base_frame = rospy.get_param("base_frame", "base_link")
-        self.odom_frame = rospy.get_param("odom_frame", "odom")
+        self.update_rate = rospy.get_param("~update_rate", 20)
+        self.publish_tf = rospy.get_param("~publish_tf", False)
+        self.odom_topic = rospy.get_param("~odom_topic", "odom")
+        self.base_frame = rospy.get_param("~base_frame", "base_link")
+        self.odom_frame = rospy.get_param("~odom_frame", "odom")
 
         # Set the update rate
         rospy.Timer(rospy.Duration(1.0 / self.update_rate), self.timer_callback)

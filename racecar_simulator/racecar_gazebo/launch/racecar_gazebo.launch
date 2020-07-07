@@ -12,6 +12,7 @@
   <env name="GAZEBO_MODEL_PATH" value="$GAZEBO_MODEL_PATH:$(find racecar_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="$GAZEBO_RESOURCE_PATH:$(find racecar_gazebo)/models"/>
 
+  <!-- 启动gazebo，加载.world文件 -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find racecar_gazebo)/worlds/world_$(arg world_name).world"/>
     <arg name="paused" default="false"/>
@@ -21,15 +22,22 @@
     <arg name="debug" default="false"/>
   </include>
 
+  <!-- 加载机器人.urdf文件，启动robot_state_publisher节点发布机器人的tf信息 -->
   <include file="$(find racecar_gazebo)/launch/racecar_spawn.launch"/>
 
   <!-- ros_control racecar launch file -->
-  <include file="$(find racecar_control)/launch/racecar_control.launch">
-    <arg name="publish_tf" default="$(arg enable_odom_tf)"/>
-    <arg name="odom_frame" default="$(arg odom_frame)"/>
-    <arg name="odom_topic" default="$(arg odom_topic)"/>
-    <arg name="base_frame" default="$(arg base_frame)"/>
-  </include>
+  <!-- 加载gazebo中的机器人joint控制节点 -->
+  <include file="$(find racecar_control)/launch/racecar_control.launch"/>
+
+  <!-- Allow for Gazebo to broadcast odom -->
+  <!-- 从gazebo中得到机器人的准确定位数据，用作参考 -->
+  <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
+    <param name="update_rate" value="20"/>
+    <param name="publish_tf" value="$(arg enable_odom_tf)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+  </node>
 
   <!-- Spawn the MUXs -->
   <arg name="racecar_version" default="racecar-v2" />
@@ -40,7 +48,10 @@
           args="/vesc/odom /pf/pose/odom" />
     
   <!--Launch the simulation joystick control-->
-  <rosparam command="load" file="$(find racecar_gazebo)/config/keyboard_teleop.yaml" />
-  <node pkg="racecar_gazebo" type="keyboard_teleop.py" name="keyboard_teleop" />
+  <!-- 使用键盘发布/vesc/low_level/ackermann_cmd_mux/input/teleop -->
+  <node pkg="racecar_gazebo" type="keyboard_teleop.py" name="keyboard_teleop">
+    <param name="speed" value="0.5"/>
+    <param name="max_steering_angle" value="0.34"/>
+  </node>
 
 </launch>
