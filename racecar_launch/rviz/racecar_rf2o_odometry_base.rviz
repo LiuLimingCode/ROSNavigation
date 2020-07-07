@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
-        - /Imu1/Status1
         - /OdometryReal1/Shape1
         - /OdometryReal1/Covariance1/Position1
         - /OdometryRf2o1/Shape1
@@ -89,6 +88,8 @@ Visualization Manager:
           Value: true
         lidar_platform_link:
           Value: false
+        odom:
+          Value: true
         platform_link:
           Value: false
         right_battery:
@@ -142,6 +143,8 @@ Visualization Manager:
                 right_front_axle_carrier:
                   right_front_wheel:
                     {}
+        odom:
+          {}
       Update Interval: 0
       Value: true
     - Alpha: 1

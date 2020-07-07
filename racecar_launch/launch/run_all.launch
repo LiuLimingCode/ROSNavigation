@@ -3,13 +3,10 @@
 <launch>
 
   <!-- topic and frame -->
-  <arg name="scan_topic" default="/laser/scan"/>
+  <arg name="scan_topic" default="/scan"/>
   <arg name="cmd_topic" default="/cmd_vel"/>
-  <arg name="imu_topic" default="/imu/data"/>
+  <arg name="imu_topic" default="/imu_data"/>
   <arg name="map_topic" default="/map"/>
-  <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
-  <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
-  <arg name="odom_ekf_topic" default="/odom_ekf"/>
   <arg name="odom_topic" default="/odom"/>
   <arg name="base_frame" default="base_footprint"/>
   <arg name="map_frame" default="map"/>
@@ -30,35 +27,33 @@
   <!-- simulator -->
   <group if="$(arg simulator)">
     <arg name="world_name" default="building"/>
-    <include file="$(find racecar_gazebo)/launch/racecar_gazebo.launch">
-      <arg name="enable_odom_tf" default="false"/>
-      <arg name="odom_topic" default="$(arg odom_gazebo_topic)"/> <!-- odom_gazebo_topic -->
-      <arg name="odom_frame" default="$(arg odom_frame)"/>
+
+    <arg name="use_gazebo_odom" default="true"/>
+    <arg name="use_rf2o_odom" default="false"/>
+    <arg name="use_ekf_odom" default="false"/>
+
+    <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
+    <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
+    <arg name="odom_ekf_topic" default="/odom_ekf"/>
+
+    <include file="$(find racecar_launch)/launch/run_simulator.launch">
+      <arg name="use_gazebo_odom" default="$(arg use_gazebo_odom)"/>
+      <arg name="use_rf2o_odom" default="$(arg use_rf2o_odom)"/>
+      <arg name="use_ekf_odom" default="$(arg use_ekf_odom)"/>
+
+      <arg name="odom_gazebo_topic" default="$(arg odom_gazebo_topic)"/>
+      <arg name="odom_rf2o_topic" default="$(arg odom_rf2o_topic)"/>
+      <arg name="odom_ekf_topic" default="$(arg odom_ekf_topic)"/>
+
+      <arg name="scan_topic" default="$(arg scan_topic)"/>
       <arg name="cmd_topic" default="$(arg cmd_topic)"/>
+      <arg name="imu_topic" default="$(arg imu_topic)"/>
       <arg name="base_frame" default="$(arg base_frame)"/>
-      <arg name="world_name" default="$(arg world_name)"/>
-    </include>
-
-    <!--include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
-      <arg name="publish_tf" default="false"/>
-      <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
-      <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
-      <arg name="base_frame_id" default="$(arg base_frame)"/>
-      <arg name="odom_frame_id" default="$(arg odom_frame)"/>
-      <arg name="init_pose_from_topic" default="/initialpose"/>
-    </include>
-
-    <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
-      <arg name="publish_tf" default="true"/>
-      <arg name="odom_pub_topic" default="$(arg odom_topic)"/>
-      <arg name="imu0_topic" default="$(arg imu_topic)"/>
-      <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
       <arg name="map_frame" default="$(arg map_frame)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
-      <arg name="base_link_frame" default="$(arg base_frame)"/>
-      <arg name="world_frame" default="$(arg odom_frame)"/>
-      <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
-    </include-->
+      <arg name="odom_topic" default="$(arg odom_topic)"/>
+      <arg name="world_name" default="$(arg world_name)"/>
+    </include>
   </group>
 
 

@@ -9,9 +9,7 @@ class ServoCommandNode:
 
     def __init__(self):
 
-        self.wheel_radius = 0.05
-        if rospy.has_param("~wheel_radius"):
-            self.wheel_radius = rospy.get_param("~wheel_radius")
+        self.wheel_radius = rospy.get_param("~wheel_radius", 0.05)
         ackermann_output_topic = rospy.get_param("~ackermann_output_topic", "ackermann_cmd_mux/output")
         left_rear_wheel_command_topic = rospy.get_param("~left_rear_wheel_command_topic", "left_rear_wheel_velocity_controller/command")
         right_rear_wheel_command_topic = rospy.get_param("~right_rear_wheel_command_topic", "right_rear_wheel_velocity_controller/command")

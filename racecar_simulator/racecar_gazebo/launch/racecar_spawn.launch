@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
+  <arg name="x_pos" default="0"/>
+  <arg name="y_pos" default="0"/>
+  <arg name="z_pos" default="0"/>
+
   <arg name="model_file" default="$(find racecar_description)/urdf/racecar.urdf.xacro"/>
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model_file)"/>
-  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" output="screen" args="-urdf -model racecar -param robot_description"/>
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" output="screen" args="-urdf -model racecar -param robot_description -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos)"/>
 
   <!-- convert joint states to TF transforms for rviz, etc -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>

@@ -16,16 +16,19 @@
   <arg name="base_frame"/>
   <arg name="map_frame"/>
   <arg name="odom_frame"/>
+  <arg name="odom_topic"/>
+  <arg name="world_name"/>
 
-  <include file="$(find racecar_simulator)/launch/racecar_gazebo.launch">
+  <include file="$(find racecar_gazebo)/launch/racecar_gazebo.launch">
     <arg name="enable_odom_tf" default="$(arg use_gazebo_odom)"/>
     <arg name="odom_frame" default="$(arg odom_frame)"/>
     <arg name="odom_topic" default="$(arg odom_gazebo_topic)"/>
     <arg name="cmd_topic" default="$(arg cmd_topic)"/>
+    <arg name="base_frame" default="$(arg base_frame)"/>
     <arg name="world_name" default="$(arg world_name)"/>
   </include>
 
-  <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
+  <!--include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
     <arg name="publish_tf" default="$(arg use_rf2o_odom)"/>
     <arg name="odom_frame_id" default="$(arg odom_frame)"/>
     <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
@@ -44,7 +47,14 @@
     <arg name="base_link_frame" default="$(arg base_frame)"/>
     <arg name="world_frame" default="$(arg odom_frame)"/>
     <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
-  </include>
+  </include-->
+
+  <node name="odom_gazebo_relay" pkg="topic_tools" type="relay" if="$(arg use_gazebo_odom)"
+        args="$(arg odom_gazebo_topic) $(arg odom_topic)"/>
+  <!--node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)"
+        args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
+  <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)"
+        args="$(arg odom_ekf_topic) $(arg odom_topic)"/-->
 
 </launch>
 

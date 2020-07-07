@@ -8,7 +8,7 @@ Winter Guerra
 
 import rospy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose, Twist, Transform, TransformStamped
+from geometry_msgs.msg import Pose, Twist, Transform, TransformStamped, Point
 from gazebo_msgs.msg import LinkStates
 from std_msgs.msg import Header
 import numpy as np
@@ -23,6 +23,9 @@ class OdometryNode:
         self.last_received_twist = Twist()
         self.last_recieved_stamp = None
 
+        self.x_pos = rospy.get_param("~x_pos", 0.0)
+        self.y_pos = rospy.get_param("~y_pos", 0.0)
+        self.z_pos = rospy.get_param("~z_pos", 0.0)
         self.object_name = rospy.get_param("~object_name", "robot")
         self.update_rate = rospy.get_param("~update_rate", 20)
         self.publish_tf = rospy.get_param("~publish_tf", False)
@@ -61,6 +64,9 @@ class OdometryNode:
         cmd.child_frame_id = self.base_frame
         cmd.pose.pose = self.last_received_pose
         cmd.twist.twist = self.last_received_twist
+        cmd.pose.pose.position.x -= self.x_pos
+        cmd.pose.pose.position.y -= self.y_pos
+        cmd.pose.pose.position.z -= self.z_pos
         self.odomPublisher.publish(cmd)
 
         if self.publish_tf:
