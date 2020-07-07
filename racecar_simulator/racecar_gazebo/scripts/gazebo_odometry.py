@@ -23,6 +23,7 @@ class OdometryNode:
         self.last_received_twist = Twist()
         self.last_recieved_stamp = None
 
+        self.object_name = rospy.get_param("~object_name", "robot")
         self.update_rate = rospy.get_param("~update_rate", 20)
         self.publish_tf = rospy.get_param("~publish_tf", False)
         self.odom_topic = rospy.get_param("~odom_topic", "odom")
@@ -40,7 +41,7 @@ class OdometryNode:
     def sub_robot_pose_update(self, msg):
         # Find the index of the racecar
         try:
-            arrayIndex = msg.name.index('racecar::base_link')
+            arrayIndex = msg.name.index(self.object_name + '::' + self.base_frame)
         except ValueError as e:
             # Wait for Gazebo to startup
             pass

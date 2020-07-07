@@ -9,6 +9,9 @@ class ServoCommandNode:
 
     def __init__(self):
 
+        self.wheel_radius = 0.05
+        if rospy.has_param("~wheel_radius"):
+            self.wheel_radius = rospy.get_param("~wheel_radius")
         ackermann_output_topic = rospy.get_param("~ackermann_output_topic", "ackermann_cmd_mux/output")
         left_rear_wheel_command_topic = rospy.get_param("~left_rear_wheel_command_topic", "left_rear_wheel_velocity_controller/command")
         right_rear_wheel_command_topic = rospy.get_param("~right_rear_wheel_command_topic", "right_rear_wheel_velocity_controller/command")
@@ -32,7 +35,7 @@ class ServoCommandNode:
         # Velocity is in terms of radians per second.
         # Want to go 1 m/s with a wheel of radius 0.05m. This translates to 19.97 radians per second, roughly 20.
         # However, at a multiplication factor of 20 speed is half of what it should be, so doubled to 40.
-        throttle = data.drive.speed * 40.0
+        throttle = data.drive.speed * 0.05 * 19.97 / self.wheel_radius
         steer = data.drive.steering_angle
 
         self.pub_vel_left_rear_wheel.publish(throttle)

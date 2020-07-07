@@ -32,6 +32,7 @@
   <!-- Allow for Gazebo to broadcast odom -->
   <!-- 从gazebo中得到机器人的准确定位数据，用作参考 -->
   <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
+    <param name="object_name" value="racecar"/>
     <param name="update_rate" value="20"/>
     <param name="publish_tf" value="$(arg enable_odom_tf)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
@@ -50,7 +51,7 @@
   <!--Launch the simulation joystick control-->
   <!-- 使用键盘发布/vesc/low_level/ackermann_cmd_mux/input/teleop -->
   <node pkg="racecar_gazebo" type="keyboard_teleop.py" name="keyboard_teleop">
-    <param name="speed" value="0.5"/>
+    <param name="speed" value="1"/>
     <param name="max_steering_angle" value="0.34"/>
   </node>
 
