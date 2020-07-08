@@ -2,6 +2,9 @@
 
 <launch>
 
+  <arg name="origin_x" default="-0.5"/>
+  <arg name="origin_y" default="0.0"/>
+
   <!-- topic and frame -->
   <arg name="scan_topic" default="/scan"/>
   <arg name="cmd_topic" default="/cmd_vel"/>
@@ -35,6 +38,9 @@
     <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
     <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
     <arg name="odom_ekf_topic" default="/odom_ekf"/>
+    <arg name="path_gazebo_topic" default="/path_gazebo"/>
+    <arg name="path_rf2o_topic" default="/path_rf2o"/>
+    <arg name="path_ekf_topic" default="/path_ekf"/>
 
     <include file="$(find racecar_launch)/launch/run_simulator.launch">
       <arg name="use_gazebo_odom" default="$(arg use_gazebo_odom)"/>
@@ -54,6 +60,30 @@
       <arg name="odom_topic" default="$(arg odom_topic)"/>
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
+
+    <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+      <arg name="node_name" default="odom_gazebo_to_path_node"/>
+      <arg name="update_frequncy" default="10.0"/>
+      <arg name="odom_buffer_num" default="2000"/>
+      <arg name="odom_sub_topic" default="$(arg odom_gazebo_topic)"/>
+      <arg name="path_pub_topic" default="$(arg path_gazebo_topic)"/>
+    </include>
+
+    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+      <arg name="node_name" default="odom_rf2o_to_path_node"/>
+      <arg name="update_frequncy" default="10.0"/>
+      <arg name="odom_buffer_num" default="2000"/>
+      <arg name="odom_sub_topic" default="$(arg odom_rf2o_topic)"/>
+      <arg name="path_pub_topic" default="$(arg path_rf2o_topic)"/>
+    </include>
+
+    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+      <arg name="node_name" default="odom_ekf_to_path_node"/>
+      <arg name="update_frequncy" default="10.0"/>
+      <arg name="odom_buffer_num" default="2000"/>
+      <arg name="odom_sub_topic" default="$(arg odom_ekf_topic)"/>
+      <arg name="path_pub_topic" default="$(arg path_ekf_topic)"/>
+    </include-->
   </group>
 
 
@@ -113,6 +143,8 @@
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="mapfile_name" default="$(arg world_name)"/>
       <arg name="amcl_mode" default="true"/>
+      <arg name="origin_x" default="$(arg origin_x)"/>
+      <arg name="origin_y" default="$(arg origin_y)"/>
     </include>
   </group>
 

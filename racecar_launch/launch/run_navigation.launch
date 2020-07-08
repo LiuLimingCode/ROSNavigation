@@ -12,6 +12,9 @@
   <arg name="odom_frame"/>
   <arg name="mapfile_name"/>
 
+  <arg name="origin_x" default="0.0"/>
+  <arg name="origin_y" default="0.0"/>
+
   <arg name="amcl_mode" default="false"/>
   <arg name="slam_mode" default="false"/>
 
@@ -28,8 +31,8 @@
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="use_map_topic" default="true"/>
       <arg name="first_map_only" default="true"/>
-      <arg name="init_x" default="0"/>
-      <arg name="init_y" default="0"/>
+      <arg name="init_x" default="$(arg origin_x)"/>
+      <arg name="init_y" default="$(arg origin_y)"/>
       <arg name="init_a" default="0"/>
     </include>
   </group>
@@ -50,15 +53,23 @@
     </node>
   </group>
 
-    <include file="$(find racecar_launch)/launch/includes/move_base.launch.xml" >
-      <arg name="odom_topic" default="$(arg odom_topic)"/>
-      <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="map_topic" default="$(arg map_topic)"/>
-      <arg name="laser_frame" default="$(arg laser_frame)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_frame)"/>
-      <arg name="base_frame" default="$(arg base_frame)"/>
-    </include>
+  <node name="path_pursuit_node" pkg="racecar_gazebo" type="path_pursuit.py" output="screen">
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="global_plan_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
+    <param name="ackermann_cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/navigation"/>
+  </node>
+
+  <include file="$(find racecar_launch)/launch/includes/move_base.launch.xml" >
+    <arg name="odom_topic" default="$(arg odom_topic)"/>
+    <arg name="cmd_topic" default="$(arg cmd_topic)"/>
+    <arg name="scan_topic" default="$(arg scan_topic)"/>
+    <arg name="map_topic" default="$(arg map_topic)"/>
+    <arg name="laser_frame" default="$(arg laser_frame)"/>
+    <arg name="map_frame" default="$(arg map_frame)"/>
+    <arg name="odom_frame" default="$(arg odom_frame)"/>
+    <arg name="base_frame" default="$(arg base_frame)"/>
+    <arg name="origin_x" default="$(arg origin_x)"/>
+    <arg name="origin_y" default="$(arg origin_y)"/>
+  </include>
 
 </launch>

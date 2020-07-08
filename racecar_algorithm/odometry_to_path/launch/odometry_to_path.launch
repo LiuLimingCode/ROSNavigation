@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="node_name" default="odometry_to_path_node"/>
+  <arg name="update_frequncy" default="10.0"/>
+  <arg name="odom_buffer_num" default="2000"/>
+  <arg name="odom_sub_topic"/>
+  <arg name="path_pub_topic"/>
+
+
+  <node pkg="odometry_to_path" type="odometry_to_path" name="$(arg node_name)" clear_params="true">
+    <param name="update_frequncy" value="$(arg update_frequncy)"/>
+    <param name="odom_buffer_num" value="$(arg odom_buffer_num)"/>
+    <param name="odom_sub_topic" value="$(arg odom_sub_topic)"/>
+    <param name="path_pub_topic" value="$(arg path_pub_topic)"/>
+  </node>
+
+</launch>
+
+

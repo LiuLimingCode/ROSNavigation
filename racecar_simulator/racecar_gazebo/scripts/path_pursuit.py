@@ -13,12 +13,17 @@ import os
 
 class following_path:
     def __init__(self):
-        self.current_pose = rospy.Subscriber('/pf/pose/odom', Odometry, self.callback_read_current_position, queue_size=1)
+        
+        self.odom_topic = rospy.get_param("~odom_topic", "odom")
+        self.global_plan_topic = rospy.get_param("~global_plan_topic", "/move_base/TebLocalPlannerROS/global_plan")
+        self.ackermann_cmd_topic = rospy.get_param("~ackermann_cmd_topic", "/vesc/low_level/ackermann_cmd_mux/input/navigation")
+
+        self.current_pose = rospy.Subscriber(self.odom_topic, Odometry, self.callback_read_current_position, queue_size=1)
         self.Pose = []
-        self.path_pose = rospy.Subscriber('/move_base/TebLocalPlannerROS/global_plan', Path, self.callback_read_path, queue_size=1)
+        self.path_pose = rospy.Subscriber(self.global_plan_topic, Path, self.callback_read_path, queue_size=1)
         self.path_info = []
         self.Goal = []
-        self.navigation_input = rospy.Publisher('/vesc/low_level/ackermann_cmd_mux/input/navigation', AckermannDriveStamped, queue_size=1)
+        self.navigation_input = rospy.Publisher(self.ackermann_cmd_topic, AckermannDriveStamped, queue_size=1)
         self.reach_goal = False
         self.MAX_VELOCITY = 0.5
         self.MIN_VELOCITY = 0

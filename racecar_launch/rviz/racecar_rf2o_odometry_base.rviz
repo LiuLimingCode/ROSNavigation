@@ -7,9 +7,11 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
-        - /OdometryReal1/Shape1
-        - /OdometryReal1/Covariance1/Position1
-        - /OdometryRf2o1/Shape1
+        - /OdomRealRed1/Shape1
+        - /OdomRealRed1/Covariance1/Position1
+        - /OdomRf2oBlue1/Shape1
+        - /OdomEkfGreen1/Shape1
+        - /PathEkfGreen1
       Splitter Ratio: 0.674351573
     Tree Height: 463
   - Class: rviz/Selection
@@ -217,9 +219,9 @@ Visualization Manager:
           Scale: 0.00999999978
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 100
-      Name: OdometryReal
+      Name: OdomRealRed
       Position Tolerance: 0.100000001
       Shape:
         Alpha: 0.800000012
@@ -228,12 +230,12 @@ Visualization Manager:
         Color: 255; 25; 0
         Head Length: 0.300000012
         Head Radius: 0.100000001
-        Shaft Length: 1
+        Shaft Length: 0.800000012
         Shaft Radius: 0.0500000007
         Value: Arrow
       Topic: /odom_gazebo
       Unreliable: false
-      Value: true
+      Value: false
     - Angle Tolerance: 0.100000001
       Class: rviz/Odometry
       Covariance:
@@ -251,9 +253,9 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 100
-      Name: OdometryRf2o
+      Name: OdomRf2oBlue
       Position Tolerance: 0.100000001
       Shape:
         Alpha: 0.800000012
@@ -262,10 +264,113 @@ Visualization Manager:
         Color: 0; 0; 255
         Head Length: 0.300000012
         Head Radius: 0.100000001
-        Shaft Length: 1
+        Shaft Length: 0.800000012
         Shaft Radius: 0.0500000007
         Value: Arrow
       Topic: /odom_rf2o
+      Unreliable: false
+      Value: false
+    - Angle Tolerance: 0.100000001
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.300000012
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: false
+      Enabled: false
+      Keep: 100
+      Name: OdomEkfGreen
+      Position Tolerance: 0.100000001
+      Shape:
+        Alpha: 0.800000012
+        Axes Length: 1
+        Axes Radius: 0.100000001
+        Color: 0; 255; 0
+        Head Length: 0.300000012
+        Head Radius: 0.100000001
+        Shaft Length: 0.800000012
+        Shaft Radius: 0.0500000007
+        Value: Arrow
+      Topic: /odom_ekf
+      Unreliable: false
+      Value: false
+    - Alpha: 0.800000012
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 0; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PathRealRed
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /path_gazebo
+      Unreliable: false
+      Value: true
+    - Alpha: 0.800000012
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 0; 255
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PathRf2oBlue
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /path_rf2o
+      Unreliable: false
+      Value: true
+    - Alpha: 0.800000012
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 255; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PathEkfGreen
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /path_ekf
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -410,7 +515,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.64535809
+      Distance: 7.57923031
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -425,10 +530,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.699796617
+      Pitch: 0.614796817
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.49727178
+      Yaw: 2.46227217
     Saved: ~
 Window Geometry:
   Displays:
