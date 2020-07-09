@@ -37,7 +37,7 @@
 
   <!-- ros_control racecar launch file -->
   <!-- 加载gazebo中的机器人joint控制节点 -->
-  <include file="$(find racecar_control)/launch/racecar_control.launch"/>
+  <include file="$(find racecar_gazebo)/launch/gazebo_control.launch"/>
 
   <!-- Allow for Gazebo to broadcast odom -->
   <!-- 从gazebo中得到机器人的准确定位数据，用作参考 -->
@@ -59,7 +59,7 @@
 
   <!--Launch the simulation joystick control-->
   <!-- 使用键盘发布/vesc/low_level/ackermann_cmd_mux/input/teleop -->
-  <node pkg="racecar_gazebo" type="keyboard_teleop.py" name="keyboard_teleop">
+  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
     <param name="speed" value="1"/>
     <param name="max_steering_angle" value="0.785398163"/>
   </node>

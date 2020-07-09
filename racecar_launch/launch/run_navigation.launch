@@ -53,7 +53,7 @@
     </node>
   </group>
 
-  <node name="path_pursuit_node" pkg="racecar_gazebo" type="path_pursuit.py" output="screen">
+  <node name="path_pursuit_node" pkg="racecar_control" type="path_pursuit.py" output="screen">
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="global_plan_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
     <param name="ackermann_cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/navigation"/>
