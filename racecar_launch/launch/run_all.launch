@@ -2,8 +2,8 @@
 
 <launch>
 
-  <arg name="origin_x" default="-0.5"/>
-  <arg name="origin_y" default="0.0"/>
+  <arg name="origin_x" default="0"/>
+  <arg name="origin_y" default="0"/>
 
   <!-- topic and frame -->
   <arg name="scan_topic" default="/scan"/>
@@ -43,6 +43,9 @@
     <arg name="path_ekf_topic" default="/path_ekf"/>
 
     <include file="$(find racecar_launch)/launch/run_simulator.launch">
+      <arg name="origin_x" default="$(arg origin_x)"/>
+      <arg name="origin_y" default="$(arg origin_y)"/>
+
       <arg name="use_gazebo_odom" default="$(arg use_gazebo_odom)"/>
       <arg name="use_rf2o_odom" default="$(arg use_rf2o_odom)"/>
       <arg name="use_ekf_odom" default="$(arg use_ekf_odom)"/>
@@ -61,7 +64,7 @@
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
 
-    <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
       <arg name="node_name" default="odom_gazebo_to_path_node"/>
       <arg name="update_frequncy" default="10.0"/>
       <arg name="odom_buffer_num" default="2000"/>
@@ -83,7 +86,7 @@
       <arg name="odom_buffer_num" default="2000"/>
       <arg name="odom_sub_topic" default="$(arg odom_ekf_topic)"/>
       <arg name="path_pub_topic" default="$(arg path_ekf_topic)"/>
-    </include-->
+    </include>
   </group>
 
 

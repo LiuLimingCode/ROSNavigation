@@ -12,7 +12,7 @@
 * Maintainer: Javier G. Monroy
 * MAPIR group: http://mapir.isa.uma.es/
 ******************************************************************************************** */
-//#define rplidar
+#define rplidar
 #include "rf2o_laser_odometry/CLaserOdometry2D.h"
 using namespace mrpt;
 using namespace mrpt::math;

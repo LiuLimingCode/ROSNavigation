@@ -47,15 +47,25 @@ class OdometryNode:
             arrayIndex = msg.name.index(self.object_name + '::' + self.base_frame)
         except ValueError as e:
             # Wait for Gazebo to startup
-            pass
+            self.last_recieved_stamp = None
         else:
             # Extract our current position information
-            self.last_received_pose = msg.pose[arrayIndex]
+            temp_pose = msg.pose[arrayIndex]
+            temp_pose.position.x -= self.x_pos
+            temp_pose.position.y -= self.y_pos
+            temp_pose.position.z -= self.z_pos
+
+            self.flag_reading = True
+            self.last_received_pose = temp_pose
             self.last_received_twist = msg.twist[arrayIndex]
-        self.last_recieved_stamp = rospy.Time.now()
+            self.last_recieved_stamp = rospy.Time.now()
+            self.flag_reading = False
 
     def timer_callback(self, event):
         if self.last_recieved_stamp is None:
+            return
+
+        if self.flag_reading is True:
             return
 
         cmd = Odometry()
@@ -64,9 +74,6 @@ class OdometryNode:
         cmd.child_frame_id = self.base_frame
         cmd.pose.pose = self.last_received_pose
         cmd.twist.twist = self.last_received_twist
-        cmd.pose.pose.position.x -= self.x_pos
-        cmd.pose.pose.position.y -= self.y_pos
-        cmd.pose.pose.position.z -= self.z_pos
         self.odomPublisher.publish(cmd)
 
         if self.publish_tf:

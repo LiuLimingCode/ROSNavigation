@@ -3,10 +3,11 @@
 import rospy
 from nav_msgs.msg import Path, Odometry
 from ackermann_msgs.msg import AckermannDriveStamped
-from geometry_msgs.msg import PoseStamped, PoseArray
+from geometry_msgs.msg import PoseStamped, PoseArray, PoseWithCovariance
 import math
 import numpy as np
 from numpy import linalg as LA
+from tf import TransformListener
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import csv
 import os
@@ -33,12 +34,14 @@ class following_path:
         self.acceleration = 0.0
         self.LOOKAHEAD_DISTANCE = 0.4
         self.Low_Speed_Mode = False
+        self.tf_listener = TransformListener()
         
     def callback_read_path(self, data):
         # Organize the pose message and only ask for (x,y) and orientation
         # Read the Real time pose message and load them into path_info
         self.path_info = []
         path_array = data.poses
+        self.path_frame = data.header.frame_id
         for path_pose in path_array:
             path_x = path_pose.pose.position.x
             path_y = path_pose.pose.position.y
@@ -67,13 +70,19 @@ class following_path:
             path_points_y = [float(point[1]) for point in self.path_info]
             path_points_w = [float(point[2]) for point in self.path_info]
 
+            pose_stamped = PoseStamped()
+            pose_stamped.pose = data.pose.pose
+            pose_stamped.header = data.header
+            transformed_data = self.tf_listener.transformPose(self.path_frame, pose_stamped)
+
             # Read the current pose of the car from particle filter
-            x = data.pose.pose.position.x
-            y = data.pose.pose.position.y
-            qx = data.pose.pose.orientation.x
-            qy = data.pose.pose.orientation.y
-            qz = data.pose.pose.orientation.z
-            qw = data.pose.pose.orientation.w
+            x = transformed_data.pose.position.x
+            y = transformed_data.pose.position.y
+            qx = transformed_data.pose.orientation.x
+            qy = transformed_data.pose.orientation.y
+            qz = transformed_data.pose.orientation.z
+            qw = transformed_data.pose.orientation.w
+
 
             # Convert the quaternion angle to eular angle
             quaternion = (qx,qy,qz,qw)

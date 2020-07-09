@@ -61,7 +61,7 @@
   <!-- 使用键盘发布/vesc/low_level/ackermann_cmd_mux/input/teleop -->
   <node pkg="racecar_gazebo" type="keyboard_teleop.py" name="keyboard_teleop">
     <param name="speed" value="1"/>
-    <param name="max_steering_angle" value="0.34"/>
+    <param name="max_steering_angle" value="0.785398163"/>
   </node>
 
 </launch>
