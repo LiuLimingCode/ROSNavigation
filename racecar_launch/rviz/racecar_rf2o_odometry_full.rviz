@@ -52,100 +52,19 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_footprint:
-          Value: false
-        base_link:
-          Value: true
-        camera_link:
-          Value: false
-        chassis:
-          Value: false
-        imu_link:
-          Value: false
-        laser_link:
-          Value: false
-        left_battery:
-          Value: false
-        left_battery_offset:
-          Value: false
-        left_front_axle_carrier:
-          Value: false
-        left_front_wheel:
-          Value: true
-        left_rear_axle_carrier:
-          Value: false
-        left_rear_wheel:
-          Value: true
-        left_steering_link:
-          Value: true
-        lidar_platform_link:
-          Value: false
-        map:
-          Value: true
-        odom:
-          Value: true
-        platform_link:
-          Value: false
-        right_battery:
-          Value: false
-        right_battery_offset:
-          Value: false
-        right_front_axle_carrier:
-          Value: false
-        right_front_wheel:
-          Value: true
-        right_rear_axle_carrier:
-          Value: false
-        right_rear_wheel:
-          Value: true
-        right_steering_link:
-          Value: true
       Marker Scale: 0.800000012
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          {}
-        odom:
-          base_footprint:
-            base_link:
-              chassis:
-                left_battery_offset:
-                  left_battery:
-                    {}
-                left_rear_axle_carrier:
-                  left_rear_wheel:
-                    {}
-                left_steering_link:
-                  left_front_axle_carrier:
-                    left_front_wheel:
-                      {}
-                platform_link:
-                  camera_link:
-                    {}
-                  imu_link:
-                    {}
-                  lidar_platform_link:
-                    laser_link:
-                      {}
-                right_battery_offset:
-                  right_battery:
-                    {}
-                right_rear_axle_carrier:
-                  right_rear_wheel:
-                    {}
-                right_steering_link:
-                  right_front_axle_carrier:
-                    right_front_wheel:
-                      {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -193,11 +112,11 @@ Visualization Manager:
         y_scale: 1
         z_scale: 1
       Class: rviz_imu_plugin/Imu
-      Enabled: true
+      Enabled: false
       Name: Imu
       Topic: /imu_data
       Unreliable: false
-      Value: true
+      Value: false
       fixed_frame_orientation: true
     - Angle Tolerance: 0.100000001
       Class: rviz/Odometry
@@ -659,25 +578,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.93781471
+      Distance: 11.2115946
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.00837326
-        Y: -1.12181723
-        Z: 1.29182625
+        X: 1.97285354
+        Y: 0.149439245
+        Z: 1.75104427
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.889797807
+      Pitch: 0.964797735
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.34226871
+      Yaw: 3.15226912
     Saved: ~
 Window Geometry:
   Displays:
