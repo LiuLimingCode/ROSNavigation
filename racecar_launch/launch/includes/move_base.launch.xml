@@ -63,7 +63,7 @@
     <param name="local_costmap/origin_x" value="$(arg origin_x)"/>
     <param name="local_costmap/origin_y" value="$(arg origin_y)"/>
 
-    <!--param name="base_global_planner" value="global_planner/GlobalPlanner" /-->
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" />
     <param name="planner_frequency" value="0.01" />
     <param name="planner_patience" value="5.0" />
     <!--param name="use_dijkstra" value="false" /-->

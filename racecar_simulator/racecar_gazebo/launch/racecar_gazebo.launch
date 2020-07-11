@@ -53,15 +53,12 @@
     <param name="odom_frame" value="$(arg odom_frame)"/>
   </node>
 
-  <!-- Spawn the MUXs -->
-  <arg name="racecar_version" default="racecar-v2" />
-  <include file="$(find racecar)/launch/mux.launch" ns="vesc"/>
-
   <!--Launch the simulation joystick control-->
-  <!-- 使用键盘发布/vesc/low_level/ackermann_cmd_mux/input/teleop -->
+  <!-- 使用键盘发布cmd数据 -->
   <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
     <param name="speed" value="1"/>
     <param name="max_steering_angle" value="0.785398163"/>
+    <param name="ackermann_cmd_topic" value="/cmd_ackermann"/>
   </node>
 
 </launch>

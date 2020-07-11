@@ -17,7 +17,7 @@ class following_path:
         
         self.odom_topic = rospy.get_param("~odom_topic", "odom")
         self.global_plan_topic = rospy.get_param("~global_plan_topic", "/move_base/TebLocalPlannerROS/global_plan")
-        self.ackermann_cmd_topic = rospy.get_param("~ackermann_cmd_topic", "/vesc/low_level/ackermann_cmd_mux/input/navigation")
+        self.ackermann_cmd_topic = rospy.get_param("~ackermann_cmd_topic", "/cmd_ackermann")
 
         self.current_pose = rospy.Subscriber(self.odom_topic, Odometry, self.callback_read_current_position, queue_size=1)
         self.Pose = []

@@ -23,6 +23,7 @@ state_lock = Lock()
 state_pub = None
 root = None
 control = False
+reset = False
 
 
 def keyeq(e, c):
@@ -74,23 +75,29 @@ def keydown(e):
 
 
 def publish_cb(_):
+    global reset
+
     with state_lock:
-        if not control:
-            return
-        ack = AckermannDriveStamped()
-        if state[0]:
-            ack.drive.speed = max_velocity
-        elif state[2]:
-            ack.drive.speed = -max_velocity
+        if control:
+            ack = AckermannDriveStamped()
+            if state[0]:
+                ack.drive.speed = max_velocity
+            elif state[2]:
+                ack.drive.speed = -max_velocity
 
-        if state[1]:
-            ack.drive.steering_angle = max_steering_angle
-        elif state[3]:
-            ack.drive.steering_angle = -max_steering_angle
+            if state[1]:
+                ack.drive.steering_angle = max_steering_angle
+            elif state[3]:
+                ack.drive.steering_angle = -max_steering_angle
+            
+            reset = True
 
-        if state_pub is not None:
-            state_pub.publish(ack)
-
+            if state_pub is not None:
+                state_pub.publish(ack)
+        else:
+            if reset:
+                reset = False
+                state_pub.publish(AckermannDriveStamped())
 
 def exit_func():
     os.system("xset r on")
@@ -110,9 +117,9 @@ def main():
     max_velocity = rospy.get_param("~speed", 2.0)
     max_steering_angle = rospy.get_param("~max_steering_angle", 0.34)
 
-    state_pub = rospy.Publisher(
-        "/vesc/low_level/ackermann_cmd_mux/input/teleop", AckermannDriveStamped, queue_size=1
-    )
+    ackermann_cmd_topic = rospy.get_param("~ackermann_cmd_topic", "/cmd_ackermann")
+
+    state_pub = rospy.Publisher(ackermann_cmd_topic, AckermannDriveStamped, queue_size=1)
     rospy.Timer(rospy.Duration(0.1), publish_cb)
     atexit.register(exit_func)
     os.system("xset r off")
