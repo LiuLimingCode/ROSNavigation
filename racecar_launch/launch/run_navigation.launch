@@ -53,16 +53,27 @@
     </node>
   </group>
 
-  <!--node name="path_pursuit_node" pkg="racecar_control" type="path_pursuit.py" output="screen">
+  <node name="path_pursuit_node" pkg="racecar_control" type="path_pursuit.py" output="screen">
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="global_plan_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
-    <param name="ackermann_cmd_topic" value="/cmd_ackermann"/>
+    <param name="ackermann_cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/navigation"/>
+  </node>
+
+  <!--node name="path_pursuit_node" pkg="racecar_control" type="path_pursuit_node" output="screen">
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/navigation"/>
+    <param name="path_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
+    <param name="debug_path_topic" value="/debug_path_topic"/>
+    <param name="enable_publish_debug_path" value="true"/>
+    <param name="speed" value="0.4"/>
+    <param name="max_steering_angle" value="0.785398163"/>
+    <param name="wheel_base" value="0.335"/>
   </node-->
 
-  <node name="cmd_to_ackermann_node" pkg="racecar_control" type="cmd_to_ackermann.py">
+  <!--node name="cmd_to_ackermann_node" pkg="racecar_control" type="cmd_to_ackermann.py">
     <param name="twist_cmd_topic" value="$(arg cmd_topic)"/>
-    <param name="ackermann_cmd_topic" value="/cmd_ackermann"/>
-  </node>
+    <param name="ackermann_cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/navigation"/>
+  </node-->
 
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>

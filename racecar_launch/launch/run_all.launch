@@ -26,6 +26,8 @@
   <arg name="navigation" default="false"/>
   <arg name="slamandnav" default="false"/>
 
+  <param name="/use_sim_time" value="true"/>
+
 
   <!-- simulator -->
   <group if="$(arg simulator)">
@@ -64,7 +66,11 @@
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
 
-    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+    <!-- Spawn the MUXs -->
+    <arg name="racecar_version" default="racecar-v2" />
+    <include file="$(find racecar)/launch/mux.launch" ns="vesc"/>
+
+    <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
       <arg name="node_name" default="odom_gazebo_to_path_node"/>
       <arg name="update_frequncy" default="10.0"/>
       <arg name="odom_buffer_num" default="2000"/>
@@ -86,7 +92,7 @@
       <arg name="odom_buffer_num" default="2000"/>
       <arg name="odom_sub_topic" default="$(arg odom_ekf_topic)"/>
       <arg name="path_pub_topic" default="$(arg path_ekf_topic)"/>
-    </include>
+    </include-->
   </group>
 
 

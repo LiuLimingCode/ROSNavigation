@@ -15,7 +15,7 @@
   <!-- servo node -->
   <node pkg="racecar_gazebo" type="servo_commands.py" name="servo_commands" output="screen">
     <param name="wheel_radius" value="0.073" type="double"/>
-    <param name="ackermann_output_topic" value="/cmd_ackermann"/>
+    <param name="ackermann_output_topic" value="/vesc/low_level/ackermann_cmd_mux/output"/>
     <param name="left_rear_wheel_command_topic" value="/racecar/left_rear_wheel_velocity_controller/command"/>
     <param name="right_rear_wheel_command_topic" value="/racecar/right_rear_wheel_velocity_controller/command"/>
     <param name="left_front_wheel_command_topic" value="/racecar/left_front_wheel_velocity_controller/command"/>

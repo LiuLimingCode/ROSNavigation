@@ -128,7 +128,12 @@ class following_path:
             # Hint: You may need to flip to negative because for the VESC a right steering angle has a negative value.
             diff_angle = path_points_w[goal] - yaw # Find the turning angle
             r = L/(2*math.sin(diff_angle)) # Calculate the turning radius
-            angle = 2 * math.atan(0.4/r) # Find the wheel turning radius
+            angle = 2 * math.atan(0.335/r) # Find the wheel turning radius
+            #v1 = [path_points_x[goal] - x, path_points_y[goal] - y]
+            #v2 = [math.cos(yaw), math.sin(yaw)]
+            #diff_angle = self.find_angle(v1,v2) # Find the turning angle
+            #r = L/(2*math.sin(diff_angle/2.0)) # Calculate the turning radius
+            #angle = math.atan(0.335/r) # Find the wheel turning radius
 
             angle = np.clip(angle, -self.max_angle, self.max_angle) # 0.4189 radians = 24 degrees because car can only turn 24 degrees max
             angle = (0 if abs(angle) < 0.1 else angle)

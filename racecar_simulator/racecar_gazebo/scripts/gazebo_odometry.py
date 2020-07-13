@@ -14,6 +14,7 @@ from std_msgs.msg import Header
 import numpy as np
 import math
 import tf2_ros
+from tf.transformations import translation_matrix, euler_from_quaternion, euler_matrix
 
 class OdometryNode:
 
@@ -51,13 +52,17 @@ class OdometryNode:
         else:
             # Extract our current position information
             temp_pose = msg.pose[arrayIndex]
+            temp_twist = msg.twist[arrayIndex]
+
             temp_pose.position.x -= self.x_pos
             temp_pose.position.y -= self.y_pos
             temp_pose.position.z -= self.z_pos
 
+            temp_twist = self.switch_twist_world_to_robot(temp_pose.orientation, temp_twist)
+
             self.flag_reading = True
             self.last_received_pose = temp_pose
-            self.last_received_twist = msg.twist[arrayIndex]
+            self.last_received_twist = temp_twist
             self.last_recieved_stamp = rospy.Time.now()
             self.flag_reading = False
 
@@ -89,6 +94,25 @@ class OdometryNode:
                 )
             )
             self.tfBroadcaster.sendTransform(tf)
+    
+    def switch_twist_world_to_robot(self, orientation, twist):
+        linear_transfrom =  translation_matrix((twist.linear.x, twist.linear.y, twist.linear.z))
+        angular_transfrom = translation_matrix((twist.angular.x, twist.angular.y, twist.angular.z))
+        euler = euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])
+        rotation_transfrom = euler_matrix(-euler[0], -euler[1], -euler[2], 'rxyz')
+
+        linear = np.dot(rotation_transfrom, linear_transfrom)
+        angular = np.dot(rotation_transfrom, angular_transfrom)
+
+        result = Twist()
+        result.linear.x = linear[0][3]
+        result.linear.y = linear[1][3]
+        result.linear.z = linear[2][3]
+        result.angular.x = angular[0][3]
+        result.angular.y = angular[1][3]
+        result.angular.z = angular[2][3]
+
+        return result
 
 # Start the node
 if __name__ == '__main__':

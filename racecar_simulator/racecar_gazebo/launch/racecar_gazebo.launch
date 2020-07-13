@@ -46,7 +46,7 @@
     <param name="y_pos" value="$(arg y_pos)"/>
     <param name="z_pos" value="$(arg z_pos)"/>
     <param name="object_name" value="racecar"/>
-    <param name="update_rate" value="20"/>
+    <param name="update_rate" value="10"/>
     <param name="publish_tf" value="$(arg enable_odom_tf)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="base_frame" value="$(arg base_frame)"/>
@@ -58,7 +58,7 @@
   <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
     <param name="speed" value="1"/>
     <param name="max_steering_angle" value="0.785398163"/>
-    <param name="ackermann_cmd_topic" value="/cmd_ackermann"/>
+    <param name="ackermann_cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/teleop"/>
   </node>
 
 </launch>
