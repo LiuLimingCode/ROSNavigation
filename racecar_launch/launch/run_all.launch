@@ -2,11 +2,13 @@
 
 <launch>
 
+  <!-- 设定机器人模型的初始坐标点 -->
   <arg name="origin_x" default="0"/>
   <arg name="origin_y" default="0"/>
 
   <!-- topic and frame -->
   <arg name="scan_topic" default="/scan"/>
+  <arg name="ackermann_topic" default="/cmd_ackermann"/>
   <arg name="cmd_topic" default="/cmd_vel"/>
   <arg name="imu_topic" default="/imu_data"/>
   <arg name="map_topic" default="/map"/>
@@ -18,57 +20,39 @@
   <arg name="laser_frame" default="laser_link"/>
 
   <!-- launch option -->
-  <arg name="simulator" default="false"/>
-  <arg name="realrobot" default="false"/>
-  <arg name="gmapping" default="false"/>
-  <arg name="pure_mapping" default="false"/>
-  <arg name="savemap" default="false"/>
-  <arg name="navigation" default="false"/>
-  <arg name="slamandnav" default="false"/>
-
-  <param name="/use_sim_time" value="true"/>
+  <arg name="simulator" default="false"/>    <!-- 开启gazebo仿真 -->
+  <arg name="realrobot" default="false"/>    <!-- 使用真实机器人 -->
+  <arg name="localization" default="false"/> <!-- 开启定位 -->
+  <arg name="gmapping" default="false"/>     <!-- 使用gmapping建图 -->
+  <arg name="savemap" default="false"/>      <!-- 保存gmapping的建图结果 -->
+  <arg name="navigation" default="false"/>   <!-- 在有地图的情况下进行导航 -->
+  <arg name="rviz_base" default="false"/>    <!-- 打开Rviz -->
+  <arg name="rviz_full" default="false"/>    <!-- 打开Rviz -->
 
 
   <!-- simulator -->
   <group if="$(arg simulator)">
+  
+    <param name="/use_sim_time" value="true"/>
+
     <arg name="world_name" default="building"/>
-
-    <arg name="use_gazebo_odom" default="true"/>
-    <arg name="use_rf2o_odom" default="false"/>
-    <arg name="use_ekf_odom" default="false"/>
-
+    <arg name="use_gazebo_odom" default="false"/>
     <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
-    <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
-    <arg name="odom_ekf_topic" default="/odom_ekf"/>
     <arg name="path_gazebo_topic" default="/path_gazebo"/>
-    <arg name="path_rf2o_topic" default="/path_rf2o"/>
-    <arg name="path_ekf_topic" default="/path_ekf"/>
 
     <include file="$(find racecar_launch)/launch/run_simulator.launch">
       <arg name="origin_x" default="$(arg origin_x)"/>
       <arg name="origin_y" default="$(arg origin_y)"/>
 
       <arg name="use_gazebo_odom" default="$(arg use_gazebo_odom)"/>
-      <arg name="use_rf2o_odom" default="$(arg use_rf2o_odom)"/>
-      <arg name="use_ekf_odom" default="$(arg use_ekf_odom)"/>
-
       <arg name="odom_gazebo_topic" default="$(arg odom_gazebo_topic)"/>
-      <arg name="odom_rf2o_topic" default="$(arg odom_rf2o_topic)"/>
-      <arg name="odom_ekf_topic" default="$(arg odom_ekf_topic)"/>
 
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-      <arg name="imu_topic" default="$(arg imu_topic)"/>
+      <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
       <arg name="base_frame" default="$(arg base_frame)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="odom_topic" default="$(arg odom_topic)"/>
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
-
-    <!-- Spawn the MUXs -->
-    <arg name="racecar_version" default="racecar-v2" />
-    <include file="$(find racecar)/launch/mux.launch" ns="vesc"/>
 
     <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
       <arg name="node_name" default="odom_gazebo_to_path_node"/>
@@ -76,9 +60,52 @@
       <arg name="odom_buffer_num" default="2000"/>
       <arg name="odom_sub_topic" default="$(arg odom_gazebo_topic)"/>
       <arg name="path_pub_topic" default="$(arg path_gazebo_topic)"/>
+    </include-->
+  </group>
+
+
+  <!-- realrobot -->
+  <group if="$(arg realrobot)">
+    <include file="$(find racecar_launch)/launch/run_base_sensor.launch">
+      <arg name="base_frame" default="$(arg base_frame)"/>
+      <arg name="imu_frame" default="$(arg imu_frame)"/>
+      <arg name="imu_topic" default="$(arg imu_topic)"/>
+      <arg name="odom_frame" default="$(arg odom_frame)"/>
+      <arg name="odom_topic" default="$(arg odom_topic)"/>
+      <arg name="laser_frame" default="$(arg laser_frame)"/>
+      <arg name="scan_topic" default="$(arg scan_topic)"/>
+      <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
+      <arg name="map_frame" default="$(arg map_frame)"/>
+    </include>
+  </group>
+
+
+  <!-- localization -->
+  <group if="$(arg localization)">
+
+    <arg name="use_rf2o_odom" default="false"/>
+    <arg name="use_ekf_odom" default="false"/>
+    <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
+    <arg name="odom_ekf_topic" default="/odom_ekf"/>
+    <arg name="path_rf2o_topic" default="/path_rf2o"/>
+    <arg name="path_ekf_topic" default="/path_ekf"/>
+
+    <include file="$(find racecar_launch)/launch/run_localization.launch">
+      <arg name="use_rf2o_odom" default="$(arg use_rf2o_odom)"/>
+      <arg name="use_ekf_odom" default="$(arg use_ekf_odom)"/>
+
+      <arg name="odom_rf2o_topic" default="$(arg odom_rf2o_topic)"/>
+      <arg name="odom_ekf_topic" default="$(arg odom_ekf_topic)"/>
+
+      <arg name="scan_topic" default="$(arg scan_topic)"/>
+      <arg name="imu_topic" default="$(arg imu_topic)"/>
+      <arg name="base_frame" default="$(arg base_frame)"/>
+      <arg name="map_frame" default="$(arg map_frame)"/>
+      <arg name="odom_frame" default="$(arg odom_frame)"/>
+      <arg name="odom_topic" default="$(arg odom_topic)"/>
     </include>
 
-    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+    <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
       <arg name="node_name" default="odom_rf2o_to_path_node"/>
       <arg name="update_frequncy" default="10.0"/>
       <arg name="odom_buffer_num" default="2000"/>
@@ -96,22 +123,6 @@
   </group>
 
 
-  <!-- realrobot -->
-  <group if="$(arg realrobot)">
-    <include file="$(find racecar_launch)/launch/run_base_sensor.launch">
-      <arg name="base_frame" default="$(arg base_frame)"/>
-      <arg name="imu_frame" default="$(arg imu_frame)"/>
-      <arg name="imu_topic" default="$(arg imu_topic)"/>
-      <arg name="odom_frame" default="$(arg odom_frame)"/>
-      <arg name="odom_topic" default="$(arg odom_topic)"/>
-      <arg name="laser_frame" default="$(arg laser_frame)"/>
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-    </include>
-  </group>
-
-
   <!-- gmapping -->
   <group if="$(arg gmapping)">
     <include file="$(find racecar_launch)/launch/run_gmapping.launch">
@@ -122,15 +133,6 @@
     </include>
   </group>
 
-  <!-- pure_mapping -->
-  <group if="$(arg pure_mapping)">
-    <include file="$(find pure_mapping)/launch/pure_mapping.launch">
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="base_frame" default="$(arg base_frame)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_frame)"/>
-    </include>
-  </group>
 
   <!-- savemap -->
   <group if="$(arg savemap)">
@@ -138,12 +140,14 @@
     <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg world_name)"/>
   </group>
 
+
   <!-- navigation -->
   <group if="$(arg navigation)">
     <arg name="world_name" default="building"/>
     <include file="$(find racecar_launch)/launch/run_navigation.launch">
       <arg name="map_topic" default="$(arg map_topic)"/>
       <arg name="scan_topic" default="$(arg scan_topic)"/>
+      <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
       <arg name="cmd_topic" default="$(arg cmd_topic)"/>
       <arg name="odom_topic" default="$(arg odom_topic)"/>
       <arg name="laser_frame" default="$(arg laser_frame)"/>
@@ -151,34 +155,13 @@
       <arg name="map_frame" default="$(arg map_frame)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="mapfile_name" default="$(arg world_name)"/>
-      <arg name="amcl_mode" default="true"/>
       <arg name="origin_x" default="$(arg origin_x)"/>
       <arg name="origin_y" default="$(arg origin_y)"/>
     </include>
   </group>
 
-
-  <!-- slam and navigation -->
-  <group if="$(arg slamandnav)">
-    <include file="$(find racecar_launch)/launch/run_navigation.launch">
-      <arg name="map_topic" default="$(arg map_topic)"/>
-      <arg name="scan_topic" default="$(arg scan_topic)"/>
-      <arg name="cmd_topic" default="$(arg cmd_topic)"/>
-      <arg name="odom_topic" default="$(arg odom__topic)"/>
-      <arg name="laser_frame" default="$(arg laser_frame)"/>
-      <arg name="base_frame" default="$(arg base_frame)"/>
-      <arg name="map_frame" default="$(arg map_frame)"/>
-      <arg name="odom_frame" default="$(arg odom_frame)"/>
-      <arg name="mapfile_name" default="$(arg mapfile_name)"/>
-      <arg name="slam_mode" default="true"/>
-    </include>
-  </group>
-
   <!-- rviz -->
-  <arg name="rviz_base" default="false"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_rf2o_odometry_base.rviz" if="$(arg rviz_base)"/>
-
-  <arg name="rviz_full" default="false"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_rf2o_odometry_full.rviz" if="$(arg rviz_full)"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_base.rviz" if="$(arg rviz_base)"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_full.rviz" if="$(arg rviz_full)"/>
 
 </launch>

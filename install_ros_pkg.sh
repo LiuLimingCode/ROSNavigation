@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # Varibles
-rosversion="kinect"
+rosversion="kinetic"
 
 if [ `id -u` == 0 ]; then
 	echo "Don't running this use root(sudo)."
 	exit 0
 fi
+
+#sudo apt-get update
+sudo apt-get upgrade -y
 
 echo "Install the rosinstall"
 sudo apt-get install python-rosinstall -y
@@ -24,13 +27,13 @@ sudo apt-get install chrony -y
 echo "Start to config for the project"
 
 #echo "Install the python dependecies"
-#sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose -y
+sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose -y
 
 #echo "Install the eigen3"
-#sudo apt install libeigen3-dev -y
+sudo apt install libeigen3-dev -y
 
 #echo "Install the nlopt"
-#sudo apt install libnlopt* -y
+sudo apt install libnlopt* -y
 
 
 
@@ -63,12 +66,20 @@ sudo apt install -y ros-$rosversion-jsk-visualization
 sudo apt install -y ros-$rosversion-robot-pose-publisher
 
 # camera
+sudo apt install -y glibc-doc manpages-posix manpages-posix-dev
 sudo apt install -y ros-$rosversion-uvc-camera
 sudo apt install -y ros-$rosversion-image-transport
 sudo apt install -y ros-$rosversion-image-transport-plugins
 sudo apt install -y ros-$rosversion-camera-calibration
 sudo apt install -y ros-$rosversion-image-proc
 sudo apt install -y ros-$rosversion-opencv-apps
+sudo apt install -y ros-$rosversion-ecl-threads
+sudo apt install -y ros-$rosversion-libuvc ros-melodic-libuvc-*
+sudo apt install -y ros-$rosversion-rgbd-launch
+sudo apt install -y ros-$rosversion-libuvc
+sudo apt install -y ros-$rosversion-libuvc-camera
+sudo apt install -y ros-$rosversion-libuvc-ros
+sudo apt install -y ros-$rosversion-openni-launch
 
 # web
 sudo apt install -y ros-$rosversion-roswww

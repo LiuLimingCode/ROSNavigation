@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Varibles
-rosversion="kinect"
+rosversion="kinetic"
 # Install the ros
 
 if [ `id -u` == 0 ]; then
@@ -11,7 +11,7 @@ fi
 
 echo "Start to install the ros, http://wiki.ros.org/$rosversion/Installation/Ubuntu"
 echo "Update the software list"
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.ustc.edu.cn/ros/ubuntu/ $DISTRIB_CODENAME main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 sudo apt-get update
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'

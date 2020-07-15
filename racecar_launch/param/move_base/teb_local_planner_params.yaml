@@ -1,37 +1,48 @@
+# teb_local_planner 资料见 http://wiki.ros.org/teb_local_planner
+#                   教程见 http://wiki.ros.org/teb_local_planner/Tutorials （必看）
+# 有些参数与官方资料描述不一致，建议使用 rosrun rqt_reconfigure rqt_reconfigure 调整参数
+
 TebLocalPlannerROS:
 
- odom_topic: odom
+ #odom_topic: odom
     
  # Trajectory
   
  teb_autosize: True
- dt_ref: 0.3
+ dt_ref: 0.3     
  dt_hysteresis: 0.1
- max_samples: 500
+ max_samples: 500 
  global_plan_overwrite_orientation: True
- allow_init_with_backwards_motion: True
- max_global_plan_lookahead_dist: 10
+ allow_init_with_backwards_motion: False  # 允许倒退
+ max_global_plan_lookahead_dist: 10  #
  global_plan_viapoint_sep: -1
- global_plan_prune_distance: 1  #
+ global_plan_prune_distance: 1 
  exact_arc_length: False
  feasibility_check_no_poses: 2
  publish_feedback: False
     
  # Robot
+
+ # v  1.0    1.5    2.0    2.5
+ # w  1~1.7  1~2.4  1~2.9  1~3.5
+ # r  0.65   0.85   1.05   1.125
+ # ra 1.7    2.6    3
+ # wa 0.5    0.5    0.5
          
- max_vel_x: 0.4
- max_vel_x_backwards: 0.2
+ max_vel_x: 1.5  # 最大X轴线速度
+ max_vel_x_backwards: 0.0
  max_vel_y: 0.0
- max_vel_theta: 0.3 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
- acc_lim_x: 0.5
- acc_lim_theta: 0.5
+ max_vel_theta: 2.4 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
+ acc_lim_x: 1
+ acc_lim_theta: 1.7
 
  # ********************** Carlike robot parameters ********************
- min_turning_radius: 0.5        # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
- wheelbase: 0.335               # Wheelbase of our robot
+ min_turning_radius: 0.4        # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
+ wheelbase: 0.335               # 前轮到后轮的距离
  cmd_angle_instead_rotvel: True # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************
 
+ # 机器人的 footprint 
  footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
    type: "line"
    radius: 0.2 # for type "circular"
@@ -47,33 +58,33 @@ TebLocalPlannerROS:
     
  xy_goal_tolerance: 0.2
  yaw_goal_tolerance: 0.1
- free_goal_vel: False
- complete_global_plan: True  #
+ free_goal_vel: True
+ complete_global_plan: True
     
  # Obstacles
     
- min_obstacle_dist: 0.4 # This value must also include our robot's expansion, since footprint_model is set to "line".
- inflation_dist: 0.8
+ min_obstacle_dist: 0.4 # 障碍物到机器人的 footprint 的最小距离
+ inflation_dist: 0.8    # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
  include_costmap_obstacles: True
- costmap_obstacles_behind_robot_dist: 1.0
+ costmap_obstacles_behind_robot_dist: 1.0  # 考虑机器人身后障碍物的范围
  obstacle_poses_affected: 20
 
- dynamic_obstacle_inflation_dist: 0.6
+ dynamic_obstacle_inflation_dist: 0.6  # 动态障碍物膨胀
  include_dynamic_obstacles: True 
 
  costmap_converter_plugin: ""
  costmap_converter_spin_thread: True
  costmap_converter_rate: 8
 
- # Optimization
+ # Optimization 路径优化
     
  no_inner_iterations: 5
  no_outer_iterations: 4
  optimization_activate: True
  optimization_verbose: False
- penalty_epsilon: 0.1
+ penalty_epsilon: 0.1      # 功能类似于 min_obstacle_dist
  obstacle_cost_exponent: 4
- weight_max_vel_x: 2
+ weight_max_vel_x: 2       # 机器人线速度的权重
  weight_max_vel_theta: 1
  weight_acc_lim_x: 1
  weight_acc_lim_theta: 1
@@ -81,8 +92,8 @@ TebLocalPlannerROS:
  weight_kinematics_forward_drive: 1
  weight_kinematics_turning_radius: 1
  weight_optimaltime: 1 # must be > 0
- weight_shortest_path: 0
- weight_obstacle: 100
+ weight_shortest_path: 10.0   # 寻找最短路径的权重
+ weight_obstacle: 100         # 躲避障碍物的权重
  weight_inflation: 0.2
  weight_dynamic_obstacle: 10 # not in use yet
  weight_dynamic_obstacle_inflation: 0.2

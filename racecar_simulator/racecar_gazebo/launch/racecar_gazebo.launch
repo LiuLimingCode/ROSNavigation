@@ -2,18 +2,12 @@
 
 <launch>
 
-  <arg name="enable_odom_tf" default="false"/>
-  <arg name="odom_frame" default="odom"/>
-  <arg name="odom_topic" default="odom"/>
-  <arg name="cmd_topic" default="cmd_vel"/>
-  <arg name="base_frame" default="base_link"/>
   <arg name="world_name" default=""/>
   
     <!--模型车的位置不能修改-->
   <arg name="x_pos" default="-0.5"/>
   <arg name="y_pos" default="0"/>
   <arg name="z_pos" default="0.0"/>
-
 
   <env name="GAZEBO_MODEL_PATH" value="$GAZEBO_MODEL_PATH:$(find racecar_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="$GAZEBO_RESOURCE_PATH:$(find racecar_gazebo)/models"/>
@@ -29,7 +23,7 @@
   </include>
 
   <!-- 加载机器人.urdf文件，启动robot_state_publisher节点发布机器人的tf信息 -->
-  <include file="$(find racecar_gazebo)/launch/racecar_spawn.launch">
+  <include file="$(find racecar_description)/launch/racecar_spawn.launch">
     <arg name="x_pos" default="$(arg x_pos)"/>
     <arg name="y_pos" default="$(arg y_pos)"/>
     <arg name="z_pos" default="$(arg z_pos)"/>
@@ -38,27 +32,5 @@
   <!-- ros_control racecar launch file -->
   <!-- 加载gazebo中的机器人joint控制节点 -->
   <include file="$(find racecar_gazebo)/launch/gazebo_control.launch"/>
-
-  <!-- Allow for Gazebo to broadcast odom -->
-  <!-- 从gazebo中得到机器人的准确定位数据，用作参考 -->
-  <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
-    <param name="x_pos" value="$(arg x_pos)"/>
-    <param name="y_pos" value="$(arg y_pos)"/>
-    <param name="z_pos" value="$(arg z_pos)"/>
-    <param name="object_name" value="racecar"/>
-    <param name="update_rate" value="10"/>
-    <param name="publish_tf" value="$(arg enable_odom_tf)"/>
-    <param name="odom_topic" value="$(arg odom_topic)"/>
-    <param name="base_frame" value="$(arg base_frame)"/>
-    <param name="odom_frame" value="$(arg odom_frame)"/>
-  </node>
-
-  <!--Launch the simulation joystick control-->
-  <!-- 使用键盘发布cmd数据 -->
-  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
-    <param name="speed" value="1"/>
-    <param name="max_steering_angle" value="0.785398163"/>
-    <param name="ackermann_cmd_topic" value="/vesc/low_level/ackermann_cmd_mux/input/teleop"/>
-  </node>
 
 </launch>

@@ -1,18 +1,17 @@
 <?xml version="1.0"?>
 
-<launch>
 <!-- 启动车的基本传感器和TF -->
+<launch>
+
   <master auto="start"/>
 
-  <arg name="base_frame"/>
-  <arg name="imu_frame"/>
-  <arg name="imu_topic"/>
-  <arg name="odom_frame"/>
-  <arg name="odom_topic"/>
-  <arg name="laser_frame"/>
-  <arg name="scan_topic"/>
-  <arg name="cmd_topic"/>
-  <arg name="map_frame"/>
+  <arg name="base_frame" default="base_footprint"/>
+  <arg name="imu_frame"/ default="imu_link">
+  <arg name="imu_topic" default="/imu_data"/>
+  <arg name="laser_frame" default="laser_link"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="ackermann_topic" default="/cmd_ackermann"/>
+  <arg name="map_frame" default="map"/>
 
   <!-- TF setting -->
   <node pkg="tf" type="static_transform_publisher" name="base_link2laser_link" args=" 0.07 0.0 0.15 0.0 0.0 0.0 $(arg base_frame) $(arg laser_frame) 10"/>
@@ -32,29 +31,6 @@
 
   <!-- Car Driver 车模电机舵机驱动 -->
   <node pkg="art_driver" type="art_driver_node" name="art_driver_node"/>
-	
-  <!-- ODOMETRY 里程计 rf2o_laser_odometry算法  -->
-  <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
-    <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
-    <arg name="rf2o_odom_topic" default="odom_rf2o"/>
-    <arg name="base_frame_id" default="$(arg base_frame)"/>
-    <arg name="odom_frame_id" default="$(arg odom_frame)"/>
-    <arg name="publish_tf" default="false"/>
-    <arg name="init_pose_from_topic" default="/initialpose"/>
-  </include>
-
-  <!-- IMU 激光雷达 ODOMETRY 融合滤波  robot_localization算法  -->
-  <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
-    <arg name="odom_pub_topic" default="$(arg odom_topic)"/>
-    <arg name="imu0_topic" default="$(arg imu_topic)"/>
-    <arg name="odom0_topic" default="odom_rf2o"/>
-    <arg name="map_frame" default="$(arg map_frame)"/>
-    <arg name="odom_frame" default="$(arg odom_frame)"/>
-    <arg name="base_link_frame" default="$(arg base_frame)"/>
-    <arg name="world_frame" default="$(arg odom_frame)"/>
-    <arg name="publish_tf" default="true"/>
-    <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
-  </include>
 
   <!-- L1 controller -->  
   <node pkg="art_racecar" type="art_car_controller" respawn="false" name="art_car_controller" output="screen">       
@@ -72,7 +48,7 @@
     <remap from="/move_base_node/NavfnROS/plan" to="/move_base/NavfnROS/plan" /> 
   </node>
 
-  <include file="$(find racecar_simulator)/launch/racecar_spawn.launch"/>
+  <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
 
 </launch>
 

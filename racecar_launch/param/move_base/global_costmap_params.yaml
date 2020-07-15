@@ -1,6 +1,8 @@
+# 全局 costmap 参数，应该无需修改
+
 global_costmap:
-  global_frame: map
-  robot_base_frame: base_footprint
+  #global_frame: map
+  #robot_base_frame: base_footprint
   update_frequency: 0.001
   publish_frequency: 0.0005
   static_map: true

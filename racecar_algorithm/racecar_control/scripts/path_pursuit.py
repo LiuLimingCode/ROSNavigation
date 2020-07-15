@@ -56,13 +56,15 @@ class following_path:
         self.Goal = list(self.path_info[-1]) # Set the last pose of the global path as goal location
 
     def callback_read_current_position(self, data):
+        ackermann_control = AckermannDriveStamped()
+        ackermann_control.header.stamp = rospy.Time.now()
+        ackermann_control.drive.speed = 0.0
+        ackermann_control.drive.steering_angle = 0.0
+        ackermann_control.drive.steering_angle_velocity = 0.0
+
         if self.reach_goal: # Stop updating the information.
             self.path_info = []
             self.Pose = []
-            ackermann_control = AckermannDriveStamped()
-            ackermann_control.drive.speed = 0.0
-            ackermann_control.drive.steering_angle = 0.0
-            ackermann_control.drive.steering_angle_velocity = 0.0
 
         if not len(self.path_info) == 0:
             # Read the path information to path_point list
@@ -140,15 +142,9 @@ class following_path:
             VELOCITY = self.speed_control(angle, self.MIN_VELOCITY, self.MAX_VELOCITY)
 
             # Write the Velocity and angle data into the ackermann message
-            ackermann_control = AckermannDriveStamped()
             ackermann_control.drive.speed = VELOCITY
             ackermann_control.drive.steering_angle = angle
             ackermann_control.drive.steering_angle_velocity = self.steering_velocity   
-        else:
-            ackermann_control = AckermannDriveStamped()
-            ackermann_control.drive.speed = 0.0
-            ackermann_control.drive.steering_angle = 0.0
-            ackermann_control.drive.steering_angle_velocity = 0.0
         
         self.navigation_input.publish(ackermann_control)
     
