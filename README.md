@@ -45,7 +45,7 @@
 - 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch/map/building.yaml,修改该文件第一行image:的文件地址)
 
 
-    roslaunch racecar_launch run_all.launch simulator:=true world_name:=building
+    roslaunch racecar_launch run_all.launch simulator:=true use_gazebo_odom:=true world_name:=building
 
 - 3 执行定位、导航功能包
 
