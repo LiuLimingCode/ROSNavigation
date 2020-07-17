@@ -33,6 +33,7 @@ class OdometryNode:
         self.odom_topic = rospy.get_param("~odom_topic", "odom")
         self.base_frame = rospy.get_param("~base_frame", "base_link")
         self.odom_frame = rospy.get_param("~odom_frame", "odom")
+        self.mode_2d = rospy.get_param("~mode_2d", True)
 
         # Set the update rate
         rospy.Timer(rospy.Duration(1.0 / self.update_rate), self.timer_callback)
@@ -57,8 +58,13 @@ class OdometryNode:
             temp_pose.position.x -= self.x_pos
             temp_pose.position.y -= self.y_pos
             temp_pose.position.z -= self.z_pos
-
             temp_twist = self.switch_twist_world_to_robot(temp_pose.orientation, temp_twist)
+
+            if self.mode_2d:
+                temp_pose.position.z = 0
+                temp_twist.angular.x = 0
+                temp_twist.angular.y = 0
+                temp_twist.linear.z = 0
 
             self.flag_reading = True
             self.last_received_pose = temp_pose

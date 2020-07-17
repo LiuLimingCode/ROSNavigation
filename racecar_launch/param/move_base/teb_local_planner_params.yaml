@@ -9,7 +9,7 @@ TebLocalPlannerROS:
  # Trajectory
   
  teb_autosize: True
- dt_ref: 0.3     
+ dt_ref: 0.3   
  dt_hysteresis: 0.1
  max_samples: 500 
  global_plan_overwrite_orientation: True
@@ -29,16 +29,16 @@ TebLocalPlannerROS:
  # ra 1.7    2.6    3
  # wa 0.5    0.5    0.5
          
- max_vel_x: 1.5  # 最大X轴线速度
+ max_vel_x: 2.0  # 最大X轴线速度
  max_vel_x_backwards: 0.0
  max_vel_y: 0.0
- max_vel_theta: 2.4 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
- acc_lim_x: 1
- acc_lim_theta: 1.7
+ max_vel_theta: 3 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
+ acc_lim_x: 2
+ acc_lim_theta: 3
 
  # ********************** Carlike robot parameters ********************
- min_turning_radius: 0.4        # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
- wheelbase: 0.335               # 前轮到后轮的距离
+ min_turning_radius: 0.6        # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
+ wheelbase: 0.335               # 前轮到后轮的距离,最大角度
  cmd_angle_instead_rotvel: True # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************
 
@@ -66,7 +66,7 @@ TebLocalPlannerROS:
  min_obstacle_dist: 0.4 # 障碍物到机器人的 footprint 的最小距离
  inflation_dist: 0.8    # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
  include_costmap_obstacles: True
- costmap_obstacles_behind_robot_dist: 1.0  # 考虑机器人身后障碍物的范围
+ costmap_obstacles_behind_robot_dist: 3.0  # 考虑机器人身后障碍物的范围
  obstacle_poses_affected: 20
 
  dynamic_obstacle_inflation_dist: 0.6  # 动态障碍物膨胀
@@ -92,9 +92,9 @@ TebLocalPlannerROS:
  weight_kinematics_forward_drive: 1
  weight_kinematics_turning_radius: 1
  weight_optimaltime: 1 # must be > 0
- weight_shortest_path: 10.0   # 寻找最短路径的权重
+ weight_shortest_path: 0.0   # 寻找最短路径的权重
  weight_obstacle: 100         # 躲避障碍物的权重
- weight_inflation: 0.2
+ weight_inflation: 0.4
  weight_dynamic_obstacle: 10 # not in use yet
  weight_dynamic_obstacle_inflation: 0.2
  weight_viapoint: 1
