@@ -8,8 +8,8 @@ map_type: costmap
 
 obstacle_layer:
  enabled: true
- obstacle_range: 5.0
- raytrace_range: 5.5
+ obstacle_range: 5.0  #设置机器人检测障碍物的最大范围
+ raytrace_range: 5.5  #设置机器人检测自由空间的最大范围
  inflation_radius: 0.2
  track_unknown_space: false
  combination_method: 1
