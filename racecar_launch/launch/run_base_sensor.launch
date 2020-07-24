@@ -13,7 +13,6 @@
   <arg name="ackermann_topic" default="/cmd_ackermann"/>
   <arg name="map_frame" default="map"/>
 
-
   <!-- ls01g 激光雷达传感器 -->
   <include file="$(find ls01g)/launch/ls01g.launch">
     <arg name="scan_topic" value="$(arg scan_topic)"/>
@@ -27,6 +26,17 @@
   </include>
 
   <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
+
+  <!-- 使用键盘发布cmd数据 -->
+  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
+    <param name="speed" value="1"/>
+    <param name="max_steering_angle" value="0.785398163"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
+
+  <node pkg="art_driver" name="art_driver_node" type="art_driver_node" >
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
 
 </launch>
 

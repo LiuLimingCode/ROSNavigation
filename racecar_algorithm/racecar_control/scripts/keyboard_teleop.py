@@ -81,6 +81,7 @@ def publish_cb(_):
         if control:
             ack = AckermannDriveStamped()
             ack.header.stamp = rospy.Time.now()
+            
             if state[0]:
                 ack.drive.speed = max_velocity
             elif state[2]:

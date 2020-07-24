@@ -7,28 +7,36 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <geometry_msgs/Twist.h>
+#include <ackermann_msgs/AckermannDriveStamped.h>
 
-void TwistCallback(const geometry_msgs::Twist& twist)
+std::string ackermann_cmd_topic;
+
+void AckermannCallback(const ackermann_msgs::AckermannDriveStamped& Ackermann)
 {
     double angle;
-    //ROS_INFO("x= %f", twist.linear.x);
-    //ROS_INFO("z= %f", twist.angular.z);
-    angle = 2500.0 - twist.angular.z * 2000.0 / 180.0;
-    //ROS_INFO("angle= %d",uint16_t(angle));
-    send_cmd(uint16_t(twist.linear.x),uint16_t(angle));
+    
+    
+    
+    angle = 2500.0 - Ackermann.drive.steering_angle * 2000.0 / 180.0;
+    ROS_INFO("Ackermann.drive.speed= %f", Ackermann.drive.speed);
+    ROS_INFO("Ackermann.drive.steering_angle= %f", Ackermann.drive.steering_angle);
+    ROS_INFO("angle= %d",uint16_t(angle));
+    send_cmd(uint16_t(Ackermann.drive.speed),uint16_t(angle));
 }
 
 int main(int argc, char** argv)
 {
     char data[] = "/dev/car";
-    art_racecar_init(38400,data);
+    art_racecar_init(115200,data);
     ros::init(argc, argv, "art_driver");
-    ros::NodeHandle n;
 
-    ros::Subscriber sub = n.subscribe("/car/cmd_vel",1,TwistCallback);
+	ros::NodeHandle node("~");
+    
+	node.param<std::string>("ackermann_cmd_topic", ackermann_cmd_topic, "/cmd_ackermann");
 
-
+	ros::Subscriber sub = node.subscribe(ackermann_cmd_topic, 1, AckermannCallback);
 
     ros::spin();
+	return(0);
 
 }

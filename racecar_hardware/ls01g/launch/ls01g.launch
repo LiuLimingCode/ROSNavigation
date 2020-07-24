@@ -4,7 +4,7 @@
 
     <arg name="inverted" default="false"/>
     <arg name="scan_topic" default="scan"/>
-    <arg name="laser_link" default="laser"/>
+    <arg name="laser_link" default="laser_link"/>
 
     <node name="ls01g" pkg="ls01g" type="ls01g" output="screen">
         <param name="scan_topic" value="$(arg scan_topic)"/>         #设置激光数据topic名称

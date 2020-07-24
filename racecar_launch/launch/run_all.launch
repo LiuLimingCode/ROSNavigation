@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 
+<!-- roslaunch racecar_launch run_all.launch simulator:=true world_name:=racetrack
+
+roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz_full:=true use_ekf_odom:=true world_name:=racetrack -->
+
 <launch>
 
   <!-- 设定机器人模型的初始坐标点 -->
@@ -95,6 +99,7 @@
 
       <arg name="odom_rf2o_topic" default="$(arg odom_rf2o_topic)"/>
       <arg name="odom_ekf_topic" default="$(arg odom_ekf_topic)"/>
+
 
       <arg name="scan_topic" default="$(arg scan_topic)"/>
       <arg name="imu_topic" default="$(arg imu_topic)"/>
