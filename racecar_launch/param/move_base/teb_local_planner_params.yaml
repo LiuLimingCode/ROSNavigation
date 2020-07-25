@@ -36,12 +36,12 @@ TebLocalPlannerROS:
  # 建议是适当增大wheelbase参数，尽管根据该值的定义，该值应该根据urdf文件确定，wheelbase的调整范围为(0.335~tan(45°)*min_turning_radius)
 
       
- max_vel_x: 2.5  # 最大X轴线速度
- max_vel_x_backwards: 0.0   #最大允许倒退速度
+ max_vel_x: 5 # 最大X轴线速度
+ max_vel_x_backwards: 1.0   #最大允许倒退速度
  max_vel_y: 0.0
  max_vel_theta: 2.22 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
- acc_lim_x: 2
- acc_lim_theta: 3
+ acc_lim_x: 5   #x轴加速度约束
+ acc_lim_theta: 3 
 
  # ********************** Carlike robot parameters ********************
  min_turning_radius: 0.65       # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
@@ -72,12 +72,12 @@ TebLocalPlannerROS:
     
  min_obstacle_dist: 0.4 # 障碍物到机器人的 footprint 的最小距离
  inflation_dist: 0.8    # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
- include_costmap_obstacles: True
+ include_costmap_obstacles: True  #
  costmap_obstacles_behind_robot_dist: 3.0  # 考虑机器人身后障碍物的范围
- obstacle_poses_affected: 20
+ obstacle_poses_affected: 20    #障碍造成影响系数
 
  dynamic_obstacle_inflation_dist: 0.6  # 动态障碍物膨胀
- include_dynamic_obstacles: True 
+ include_dynamic_obstacles: True  #使能动态障碍
 
  costmap_converter_plugin: ""
  costmap_converter_spin_thread: True
@@ -98,7 +98,7 @@ TebLocalPlannerROS:
  weight_kinematics_nh: 1000
  weight_kinematics_forward_drive: 1
  weight_kinematics_turning_radius: 1
- weight_optimaltime: 1 # must be > 0
+ weight_optimaltime: 3 # must be > 0    #直道上快速加速，切线过弯
  weight_shortest_path: 0.0   # 寻找最短路径的权重
  weight_obstacle: 100         # 躲避障碍物的权重
  weight_inflation: 0.4

@@ -10,8 +10,8 @@ def Angular_PD_Control(angular):
 
     global angular_last
 
-    P = 1
-    D = 0
+    P = 9
+    D = 1
 
     return angular * P + (angular - angular_last) * D
 
@@ -29,7 +29,8 @@ def Twist_Cmd_Callback(data):
     # the speed is very slow, maybe performance can be improved by adjusting the params of teb_local_planner, like weight_max_vel_x, weight_shortest_path...
     ack_cmd.drive.speed = data.linear.x
     ack_cmd.drive.steering_angle = data.angular.z
-
+    rospy.loginfo("speed=%f",ack_cmd.drive.speed)
+    rospy.loginfo("angle=%f",ack_cmd.drive.steering_angle)
     # scheme 2:
     # set cmd_angle_instead_rotvel TRUE in teb_planner and use constant linear data
     # it's a simply way to improve speed, but the car cannot finish navigation when speed is fast 
@@ -41,11 +42,11 @@ def Twist_Cmd_Callback(data):
     # because cmd_angle_instead_rotvel is false and move_base will calculate the desired linear data and angular data
     # we can use the ackermann turning model and the params of car model to calcaulate the steering_angle
     # I haven't implemented this scheme yet
-    #speed_set = 1.5
-    #ack_cmd.drive.speed = speed_set
-    #r = data.linear.x / data.angular.z
-    #angular = math.atan(0.335 / r)
-    #ack_cmd.drive.steering_angle =  Angular_PD_Control(angular)
+    # speed_set = 1.5
+    # ack_cmd.drive.speed = speed_set
+    # r = data.linear.x / data.angular.z
+    # angular = math.atan(0.335 / r)
+    # ack_cmd.drive.steering_angle =  Angular_PD_Control(angular)
 
     ack_publisher.publish(ack_cmd)
     angular_last = data.angular.z
