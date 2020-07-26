@@ -20,8 +20,8 @@ obstacle_layer:
 
 inflation_layer:
   enabled:              true
-  cost_scaling_factor:  5.0  # 与单元的代价值成反比，设置高值将使衰减更陡峭 默认10
-  inflation_radius:     3.0  # 控制零成本点距离障碍物有多远 默认2.5
+  cost_scaling_factor:  10.0  # 与单元的代价值成反比，设置高值将使衰减更陡峭 默认10
+  inflation_radius:     2.5  # 控制零成本点距离障碍物有多远 默认2.5
 
 static_layer:
   enabled:              true

@@ -29,8 +29,7 @@ def Twist_Cmd_Callback(data):
     # the speed is very slow, maybe performance can be improved by adjusting the params of teb_local_planner, like weight_max_vel_x, weight_shortest_path...
     ack_cmd.drive.speed = data.linear.x
     ack_cmd.drive.steering_angle = data.angular.z
-    rospy.loginfo("speed=%f",ack_cmd.drive.speed)
-    rospy.loginfo("angle=%f",ack_cmd.drive.steering_angle)
+
     # scheme 2:
     # set cmd_angle_instead_rotvel TRUE in teb_planner and use constant linear data
     # it's a simply way to improve speed, but the car cannot finish navigation when speed is fast 
