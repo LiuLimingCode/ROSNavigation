@@ -15,7 +15,7 @@
 
   <arg name="origin_x" default="0.0"/>
   <arg name="origin_y" default="0.0"/>
-
+  <arg name="speed_fast" default="false"/>
 
   <!-- 将已有的map文件发布map话题 -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(find racecar_launch)/map/$(arg mapfile_name).yaml">
@@ -50,6 +50,7 @@
     <arg name="base_frame" default="$(arg base_frame)"/>
     <arg name="origin_x" default="$(arg origin_x)"/>
     <arg name="origin_y" default="$(arg origin_y)"/>
+    <arg name="speed_fast" default="$(arg speed_fast)"/>
   </include>
 
   <!-- 关于运动规划： -->
