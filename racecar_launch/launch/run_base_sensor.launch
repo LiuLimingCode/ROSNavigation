@@ -6,49 +6,37 @@
   <master auto="start"/>
 
   <arg name="base_frame" default="base_footprint"/>
-  <arg name="imu_frame"/ default="imu_link">
+  <arg name="imu_frame" default="imu_link"/>
   <arg name="imu_topic" default="/imu_data"/>
   <arg name="laser_frame" default="laser_link"/>
   <arg name="scan_topic" default="/scan"/>
   <arg name="ackermann_topic" default="/cmd_ackermann"/>
   <arg name="map_frame" default="map"/>
 
-  <!-- TF setting -->
-  <node pkg="tf" type="static_transform_publisher" name="base_link2laser_link" args=" 0.07 0.0 0.15 0.0 0.0 0.0 $(arg base_frame) $(arg laser_frame) 10"/>
-  <node pkg="tf" type="static_transform_publisher" name="base_link2imu" args="0.1653 0.0 0.15 0.0 0.0 0.0 $(arg base_frame) $(arg imu_frame) 10"/>
-
   <!-- ls01g 激光雷达传感器 -->
   <include file="$(find ls01g)/launch/ls01g.launch">
-    <param name="scan_topic" value="$(arg scan_topic)"/>
-    <param name="laser_frame" value="$(arg laser_frame)"/>
+    <arg name="scan_topic" value="$(arg scan_topic)"/>
+    <arg name="laser_link" value="$(arg laser_frame)"/>
   </include>
 
   <!-- IMU 姿态传感器 -->
   <include file="$(find art_imu)/launch/imu.launch">
-    <param name="imu_frame" value="$(arg imu_frame)"/>
-    <param name="imu_topic" value="$(arg imu_topic)"/>
+    <arg name="imu_frame" value="$(arg imu_frame)"/>
+    <arg name="imu_topic" value="$(arg imu_topic)"/>
   </include>
 
-  <!-- Car Driver 车模电机舵机驱动 -->
-  <node pkg="art_driver" type="art_driver_node" name="art_driver_node"/>
+  <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
 
-  <!-- L1 controller -->  
-  <node pkg="art_racecar" type="art_car_controller" respawn="false" name="art_car_controller" output="screen">       
-    <!-- L1 -->
-    <param name="Vcmd" value="1.5" /> <!-- speed of car m/s -->        
-    <!-- ESC -->
-    <param name="baseSpeed" value="1565"/> <!-- pwm for motor constant speed, 1500: stop --> 
- 
-    <!-- Servo -->
-    <param name="baseAngle" value="90.0"/> <!-- the middle pos of servo, for tt02: 87, for hsp: ? -->
-    <param name="AngleGain" value="-3.0"/> <!-- for tt02: >0, for hsp: <0 -->	
-    <param name="GasGain" value="1.0"/>
-
-    <!-- remap from="/odometry/filtered" to="odom" / --> 
-    <remap from="/move_base_node/NavfnROS/plan" to="/move_base/NavfnROS/plan" /> 
+  <!-- 使用键盘发布cmd数据 -->
+  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
+    <param name="speed" value="1"/>
+    <param name="max_steering_angle" value="0.785398163"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
 
-  <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
+  <node pkg="art_driver" name="art_driver_node" type="art_driver_node" >
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
 
 </launch>
 

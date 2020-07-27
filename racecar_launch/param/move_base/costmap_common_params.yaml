@@ -8,9 +8,9 @@ map_type: costmap
 
 obstacle_layer:
  enabled: true
- obstacle_range: 5.0
- raytrace_range: 5.5
- inflation_radius: 0.2
+ obstacle_range: 5.0  #设置机器人检测障碍物的最大范围
+ raytrace_range: 5.5  #设置机器人检测自由空间的最大范围
+ inflation_radius: 0.2 
  track_unknown_space: false
  combination_method: 1
 
@@ -20,8 +20,8 @@ obstacle_layer:
 
 inflation_layer:
   enabled:              true
-  cost_scaling_factor:  10.0  # exponential rate at which the obstacle cost drops off (default: 10)
-  inflation_radius:     2.5  # max. distance from an obstacle at which costs are incurred for planning paths.
+  cost_scaling_factor:  10.0  # 与单元的代价值成反比，设置高值将使衰减更陡峭 默认10
+  inflation_radius:     2.5  # 控制零成本点距离障碍物有多远 默认2.5
 
 static_layer:
   enabled:              true

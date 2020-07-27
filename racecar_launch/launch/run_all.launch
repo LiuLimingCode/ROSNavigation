@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 
+<!-- roslaunch racecar_launch run_all.launch simulator:=true world_name:=racetrack
+
+roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz_full:=true use_ekf_odom:=true world_name:=racetrack -->
+
 <launch>
 
   <!-- 设定机器人模型的初始坐标点 -->
@@ -45,6 +49,7 @@
       <arg name="origin_y" default="$(arg origin_y)"/>
 
       <arg name="use_gazebo_odom" default="$(arg use_gazebo_odom)"/>
+
       <arg name="odom_gazebo_topic" default="$(arg odom_gazebo_topic)"/>
 
       <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
@@ -70,8 +75,6 @@
       <arg name="base_frame" default="$(arg base_frame)"/>
       <arg name="imu_frame" default="$(arg imu_frame)"/>
       <arg name="imu_topic" default="$(arg imu_topic)"/>
-      <arg name="odom_frame" default="$(arg odom_frame)"/>
-      <arg name="odom_topic" default="$(arg odom_topic)"/>
       <arg name="laser_frame" default="$(arg laser_frame)"/>
       <arg name="scan_topic" default="$(arg scan_topic)"/>
       <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
@@ -96,6 +99,7 @@
 
       <arg name="odom_rf2o_topic" default="$(arg odom_rf2o_topic)"/>
       <arg name="odom_ekf_topic" default="$(arg odom_ekf_topic)"/>
+
 
       <arg name="scan_topic" default="$(arg scan_topic)"/>
       <arg name="imu_topic" default="$(arg imu_topic)"/>

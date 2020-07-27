@@ -93,6 +93,8 @@ sudo apt install -y ros-$rosversion-amcl
 sudo apt install -y ros-$rosversion-map-server
 sudo apt install -y ros-$rosversion-move-base
 sudo apt install -y ros-$rosversion-navigation
+sudo apt install -y ros-$rosversion-teb-local-planner
+sudo apt install -y ros-$rosversion-ackermann-msgs
 
 # arm
 sudo apt install -y ros-$rosversion-moveit

@@ -10,8 +10,8 @@ def Angular_PD_Control(angular):
 
     global angular_last
 
-    P = 1
-    D = 0
+    P = 9
+    D = 1
 
     return angular * P + (angular - angular_last) * D
 
@@ -41,11 +41,11 @@ def Twist_Cmd_Callback(data):
     # because cmd_angle_instead_rotvel is false and move_base will calculate the desired linear data and angular data
     # we can use the ackermann turning model and the params of car model to calcaulate the steering_angle
     # I haven't implemented this scheme yet
-    #speed_set = 1.5
-    #ack_cmd.drive.speed = speed_set
-    #r = data.linear.x / data.angular.z
-    #angular = math.atan(0.335 / r)
-    #ack_cmd.drive.steering_angle =  Angular_PD_Control(angular)
+    # speed_set = 1.5
+    # ack_cmd.drive.speed = speed_set
+    # r = data.linear.x / data.angular.z
+    # angular = math.atan(0.335 / r)
+    # ack_cmd.drive.steering_angle =  Angular_PD_Control(angular)
 
     ack_publisher.publish(ack_cmd)
     angular_last = data.angular.z

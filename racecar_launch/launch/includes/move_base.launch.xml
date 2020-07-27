@@ -46,7 +46,7 @@
     <rosparam file="$(find racecar_launch)/param/move_base/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find racecar_launch)/param/move_base/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find racecar_launch)/param/move_base/teb_local_planner_params.yaml" command="load" />
-    
+
     <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
 
     <param name="global_costmap/origin_x" value="$(arg origin_x)"/>

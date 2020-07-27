@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <sdf version='1.6'>
   <world name='default'>
     <light name='sun' type='directional'>
@@ -1682,12 +1681,12 @@
       <static>1</static>
     </model>
     <state world_name='default'>
-      <sim_time>89 791000000</sim_time>
-      <real_time>90 251111555</real_time>
-      <wall_time>1593927244 730557090</wall_time>
-      <iterations>89791</iterations>
+      <sim_time>150 360000000</sim_time>
+      <real_time>26 944586944</real_time>
+      <wall_time>1595655715 347724548</wall_time>
+      <iterations>26530</iterations>
       <model name='Untitled'>
-        <pose frame=''>17.5019 0.909917 0 0 -0 0</pose>
+        <pose frame=''>17.5019 0.90992 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='Wall_10'>
           <pose frame=''>7.2089 -1.66908 0 0 0 -0.785398</pose>
@@ -1928,13 +1927,23 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
+      <model name='smartcar_plane'>
+        <pose frame=''>-0.5 1 0 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>-0.5 1 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
       <light name='sun'>
         <pose frame=''>0 0 10 0 -0 0</pose>
       </light>
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>4.77018 -2.46842 27.8245 -0 1.55964 0.036195</pose>
+        <pose frame=''>2.85257 -1.09456 17.122 -0 1.55964 0.036195</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
