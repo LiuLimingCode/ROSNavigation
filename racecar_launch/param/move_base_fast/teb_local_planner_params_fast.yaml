@@ -40,12 +40,12 @@ TebLocalPlannerROS:
  max_vel_x_backwards: 1.0   #最大允许倒退速度
  max_vel_y: 0.0
  max_vel_theta: 2.22 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
- acc_lim_x: 4   #x轴加速度约束
+ acc_lim_x: 2   #x轴加速度约束
  acc_lim_theta: 3 
 
  # ********************** Carlike robot parameters ********************
- min_turning_radius: 1.00       # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
- wheelbase: 0.8                 # 前轮到后轮的距离
+ min_turning_radius: 0.65      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
+ wheelbase: 0.4                 # 前轮到后轮的距离
  cmd_angle_instead_rotvel: True # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************
 
@@ -53,8 +53,8 @@ TebLocalPlannerROS:
  footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
    type: "line"
    radius: 0.2 # for type "circular"
-   line_start: [-0.4, 0.0] # for type "line"
-   line_end: [0.4, 0.0] # for type "line"
+   line_start: [-0.35, 0.0] # for type "line"
+   line_end: [0.35, 0.0] # for type "line"
    front_offset: 0.2 # for type "two_circles"
    front_radius: 0.2 # for type "two_circles"
    rear_offset: 0.2 # for type "two_circles"
@@ -71,7 +71,7 @@ TebLocalPlannerROS:
  # Obstacles
     
  min_obstacle_dist: 0.4 # 障碍物到机器人的 footprint 的最小距离
- inflation_dist: 0.4    # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
+ inflation_dist: 0.8    # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
  include_costmap_obstacles: True  #
  costmap_obstacles_behind_robot_dist: 3.0  # 考虑机器人身后障碍物的范围
  obstacle_poses_affected: 20    #障碍造成影响系数，系统性能不佳则减少此参数
