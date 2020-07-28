@@ -36,11 +36,11 @@ TebLocalPlannerROS:
  # 建议是适当增大wheelbase参数，尽管根据该值的定义，该值应该根据urdf文件确定，wheelbase的调整范围为(0.335~tan(45°)*min_turning_radius)
 
       
- max_vel_x: 3.5 # 最大X轴线速度
+ max_vel_x: 4 # 最大X轴线速度
  max_vel_x_backwards: 1.0   #最大允许倒退速度
  max_vel_y: 0.0
  max_vel_theta: 2.4 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
- acc_lim_x: 4   #x轴加速度约束
+ acc_lim_x: 3  #x轴加速度约束
  acc_lim_theta: 3 
 
  # ********************** Carlike robot parameters ********************
