@@ -4,8 +4,8 @@
 local_costmap:
   #global_frame: map
   #robot_base_frame: base_footprint
-  update_frequency: 20.0
-  publish_frequency: 10.0
+  update_frequency: 30.0
+  publish_frequency: 30.0
   static_map: false
   rolling_window: true
   width: 6

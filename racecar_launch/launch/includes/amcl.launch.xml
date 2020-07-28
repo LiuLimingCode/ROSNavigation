@@ -35,7 +35,7 @@
     <param name="update_min_d" value="0.1"/>       #Translational movement required before performing a filter update. (default: 0.2 meters)
     <param name="update_min_a" value="0.1"/>       #Rotational movement required before performing a filter update. (default: π/6.0 radians)
     <param name="resample_interval" value="2"/>    #Number of filter updates required before resampling. (default: 2)
-    <param name="transform_tolerance" value="0.2"/>#Time with which to post-date the transform that is published, to indicate that this transform is valid into the future. (0.1 seconds)
+    <param name="transform_tolerance" value="0.1"/>#Time with which to post-date the transform that is published, to indicate that this transform is valid into the future. (0.1 seconds)
     <param name="recovery_alpha_slow" value="0.0"/>#Exponential decay rate for the slow average weight filter, used in deciding when to recover by adding random poses. A good value might be 0.001. (default: 0.0 (disabled))
     <param name="recovery_alpha_fast" value="0.1"/>#Exponential decay rate for the fast average weight filter, used in deciding when to recover by adding random poses. A good value might be 0.1. (default: 0.0 (disabled))
 

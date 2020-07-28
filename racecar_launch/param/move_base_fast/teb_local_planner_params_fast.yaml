@@ -40,7 +40,7 @@ TebLocalPlannerROS:
  max_vel_x_backwards: 1.0   #最大允许倒退速度
  max_vel_y: 0.0
  max_vel_theta: 2.4 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
- acc_lim_x: 3   #x轴加速度约束
+ acc_lim_x: 4   #x轴加速度约束
  acc_lim_theta: 3 
 
  # ********************** Carlike robot parameters ********************
@@ -71,10 +71,10 @@ TebLocalPlannerROS:
  # Obstacles
     
  min_obstacle_dist: 0.5 # 障碍物到机器人的 footprint 的最小距离
- inflation_dist: 0.6  # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
- include_costmap_obstacles: True  #
+ inflation_dist: 0.7  # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
+ include_costmap_obstacles: True  
  costmap_obstacles_behind_robot_dist: 3.0  # 考虑机器人身后障碍物的范围
- obstacle_poses_affected: 20    #障碍造成影响系数，系统性能不佳则减少此参数
+ obstacle_poses_affected: 10    #障碍造成影响系数，系统性能不佳则减少此参数
 
  dynamic_obstacle_inflation_dist: 0.4  # 动态障碍物膨胀
  include_dynamic_obstacles: True  #使能动态障碍
@@ -92,7 +92,7 @@ TebLocalPlannerROS:
   ## Configure plugins (namespace move_base/TebLocalPlannerROS/PLUGINNAME)
   ## The parameters must be added for each plugin separately
  costmap_converter/CostmapToLinesDBSRANSAC:
-  cluster_max_distance: 0.01
+  cluster_max_distance: 0.1
   cluster_min_pts: 2
   ransac_inlier_distance: 0.15
   ransac_min_inliers: 10
@@ -106,7 +106,7 @@ TebLocalPlannerROS:
     
  no_inner_iterations: 5
  no_outer_iterations: 4
- optimization_activate: True
+ optimization_activate: True  
  optimization_verbose: False
  penalty_epsilon: 0.1      # 功能类似于 min_obstacle_dist
  obstacle_cost_exponent: 4
@@ -116,7 +116,7 @@ TebLocalPlannerROS:
  weight_acc_lim_theta: 1
  weight_kinematics_nh: 1000
  weight_kinematics_forward_drive: 1
- weight_kinematics_turning_radius: 1
+ weight_kinematics_turning_radius: 50
  weight_optimaltime: 1 # must be > 0    #直道上快速加速，切线过弯
  weight_shortest_path: 0.0   # 寻找最短路径的权重
  weight_obstacle: 100         # 躲避障碍物的权重
