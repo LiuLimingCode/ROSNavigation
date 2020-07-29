@@ -90,4 +90,13 @@
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->
 
+  <node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
+    <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="odom_topic" value="/odom_gazebo"/>
+    <param name="use_goal_info" value="false"/>
+    <param name="min_time" value="2"/>
+    <param name="goal_x" value="0"/>
+    <param name="consider_x" value="less"/>
+  </node>
+
 </launch>
