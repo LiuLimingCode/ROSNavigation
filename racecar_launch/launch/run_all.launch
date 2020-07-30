@@ -41,7 +41,7 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
   
     <param name="/use_sim_time" value="true"/>
 
-    <arg name="world_name" default="racetrack_withCone"/>
+    <arg name="world_name" default="racetrack"/>
     <arg name="use_gazebo_odom" default="false"/>
     <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
     <arg name="path_gazebo_topic" default="/path_gazebo"/>
