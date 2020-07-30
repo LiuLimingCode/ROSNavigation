@@ -1,123 +1,167 @@
 #include <ros/ros.h>
 
-#include "tf/transform_listener.h"
+#include <tf/transform_listener.h>
+#include <tf/message_filter.h>
+#include <message_filters/subscriber.h>
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseStamped.h"
 
+//#define DEBUG
+#ifdef DEBUG
+#define DEBUG_INFO ROS_ERROR
+#else
+#define DEBUG_INFO
+#endif
 
-bool isGoalReceived = false;
-bool use_goal_info = false;
+class RaceTimer{
 
-double goal_x = 0.0;
-double goal_y = 0.0;
+protected:
 
-geometry_msgs::Pose goalPose;
+    ros::NodeHandle nodeHandle;
+    ros::Subscriber goalSubscriber;
+    ros::Subscriber poseSubscriber;
+    tf::TransformListener tfListener;
+    //message_filters::Subscriber<nav_msgs::Odometry> odomSubscriber;
+    //tf::MessageFilter<nav_msgs::Odometry> * odomMsgFilter;
 
-ros::Duration cost_time;
+    bool isGoalReceived = false;
+    bool useGoalInfo = false;
 
-std::string goal_topic;
-std::string odom_topic;
-std::string map_frame;
-std::string consider_x;
-std::string consider_y;
+    double goalX = 0.0;
+    double goalY = 0.0;
 
-int min_time;
+    geometry_msgs::Pose goalPose;
 
-void goalReceivedCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
-    cost_time = ros::Duration(0);
-    goalPose = msg->pose;
-    isGoalReceived = true;
-}
+    std::string goalTopic;
+    std::string odomTopic;
+    std::string mapFrame;
+    std::string considerX;
+    std::string considerY;
+    int minTime;
 
-void odomReceivedCallback(const nav_msgs::Odometry::ConstPtr& msg)
-{
-    if(!isGoalReceived) return;
+public:
 
-    geometry_msgs::PoseStamped poseStamped;
-    poseStamped.header = msg->header;
-    poseStamped.pose = msg->pose.pose;
-    geometry_msgs::Pose destination;
+    ros::Duration costTime;
 
-    tf::TransformListener transformListener;
-    try
+    RaceTimer(ros::NodeHandle handle)
     {
-        transformListener.transformPose(map_frame, poseStamped, poseStamped);
+        nodeHandle = handle;
+
+        nodeHandle.param<std::string>("goal_topic", goalTopic, "/move_base_simple/goal");
+        nodeHandle.param<std::string>("odom_topic", odomTopic, "/odom");
+        nodeHandle.param<std::string>("map_frame", mapFrame, "map");
+        nodeHandle.param<std::string>("consider_x", considerX, "ignore");
+        nodeHandle.param<std::string>("consider_y", considerY, "ignore");
+        nodeHandle.param<bool>("use_goal_info", useGoalInfo, false);
+        nodeHandle.param<int>("min_time", minTime, 2);
+        nodeHandle.param<double>("goal_x", goalX, 0.0);
+        nodeHandle.param<double>("goal_y", goalY, 0.0);
+
+        goalSubscriber = nodeHandle.subscribe<geometry_msgs::PoseStamped>(goalTopic, 1, &RaceTimer::goalReceivedCallback, this);
+        poseSubscriber = nodeHandle.subscribe<nav_msgs::Odometry>(odomTopic, 1, &RaceTimer::odomReceivedCallback, this);
+
+    //    goalSubscriber = nodeHandle.subscribe<geometry_msgs::PoseStamped>(goalTopic, 1, &RaceTimer::goalReceivedCallback, this);
+    //    odomSubscriber.subscribe(nodeHandle, odomTopic, 1);
+    //    odomMsgFilter = new tf::MessageFilter<nav_msgs::Odometry>(odomSubscriber, tfListener, mapFrame, 1);
+    //    odomMsgFilter->setTolerance(ros::Duration(1));
+    //    odomMsgFilter->registerCallback(&RaceTimer::odomReceivedCallback, this);
     }
-    catch(const std::exception& e)
+
+    void increaseCostTime(ros::Duration duration)
     {
-        return;
-    }
-    geometry_msgs::Pose pose = poseStamped.pose;
-
-    if(use_goal_info) destination = goalPose;
-    else destination.position.x = goal_x, destination.position.y = goal_y;
-
-    bool flag_x = false, flag_y = false;
-    if(consider_x == "ignore") flag_x = true;
-    else if(consider_x == "less")
-        if(destination.position.x > pose.position.x) flag_x = true;
-    else if(consider_x == "large")
-        if(destination.position.x < pose.position.x) flag_x = true;
-    else if(consider_x == "close")
-        if(fabs(destination.position.x - pose.position.x) < 0.1) flag_x = true;
-
-    if(consider_y == "ignore") flag_y = true;
-    else if(consider_y == "less")
-        if(destination.position.y > pose.position.y) flag_y = true;
-    else if(consider_y == "large")
-        if(destination.position.y < pose.position.y) flag_y = true;
-    else if(consider_y == "close")
-        if(fabs(destination.position.y - pose.position.y) < 0.1) flag_y = true;
-
-    if(cost_time.sec > min_time)
-    {
-        if(flag_x && flag_y)
+        if(isGoalReceived)
         {
-            isGoalReceived = false;
-            ROS_INFO("goal reached, cost time is : %d.%d", cost_time.sec, cost_time.nsec);
+            costTime += duration;
+            ROS_INFO("cost time : %d.%d", costTime.sec, costTime.nsec);
         }
     }
-}
+
+    void goalReceivedCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+    {
+        DEBUG_INFO("goalReceivedCallback");
+        costTime = ros::Duration(0);
+        goalPose = msg->pose;
+        isGoalReceived = true;
+    }
+
+    void odomReceivedCallback(const nav_msgs::Odometry::ConstPtr& msg)
+    {
+        if(!isGoalReceived) return;
+
+        DEBUG_INFO("odomReceivedCallback");
+        geometry_msgs::PoseStamped poseStamped;
+        poseStamped.header = msg->header;
+        poseStamped.pose = msg->pose.pose;
+        geometry_msgs::Pose destination;
+
+        tf::StampedTransform transform;
+        try
+        {
+            tfListener.transformPose(mapFrame, poseStamped, poseStamped);
+            //tfListener.lookupTransform(msg->header.frame_id, mapFrame, ros::Time(0), transform);
+        }
+        catch(tf::TransformException &ex)
+        {
+            DEBUG_INFO("%s",ex.what());
+            return;
+        }
+        geometry_msgs::Pose pose = poseStamped.pose;
+        
+        if(useGoalInfo) destination = goalPose;
+        else destination.position.x = goalX, destination.position.y = goalY;
+
+        bool flag_x = false, flag_y = false;
+
+        if(considerX == "ignore") flag_x = true;
+        else if(considerX == "less") {
+            if(pose.position.x < destination.position.x) flag_x = true;
+        }    
+        else if(considerX == "large"){
+            if(pose.position.x > destination.position.x) flag_x = true;
+        }     
+        else if(considerX == "close") {
+            if(fabs(pose.position.x - destination.position.x) < 0.1) flag_x = true;
+        }
+        
+        DEBUG_INFO("pose_x: %lf, destination_x: %lf", pose.position.x, destination.position.x);
+
+        if(considerY == "ignore") flag_y = true;
+        else if(considerY == "less") {
+            if(pose.position.y < destination.position.y) flag_y = true;
+        }
+        else if(considerY == "large") {
+            if(pose.position.y > destination.position.y) flag_y = true;
+        }
+        else if(considerY == "close") {
+            if(fabs(pose.position.y - destination.position.y) < 0.1) flag_y = true;
+        }   
+
+        DEBUG_INFO("pose_y: %lf, destination_y: %lf", pose.position.y, destination.position.y);
+        DEBUG_INFO("flag_x: %d, flag_y: %d", (int)flag_x, (int)flag_y);
+
+        if(costTime.sec >= minTime)
+        {
+            if(flag_x && flag_y)
+            {
+                isGoalReceived = false;
+                ROS_INFO("goal reached, cost time is : %d.%d", costTime.sec, costTime.nsec);
+            }
+        }
+    }
+};
 
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "race_timer_node");
 
-	ros::NodeHandle node("~");
-
-    node.param<std::string>("goal_topic", goal_topic, "/move_base_simple/goal");
-    node.param<std::string>("odom_topic", odom_topic, "/odom");
-    node.param<std::string>("map_frame", map_frame, "map");
-    node.param<std::string>("consider_x", consider_x, "ignore");
-    node.param<std::string>("consider_y", consider_y, "ignore");
-    node.param<bool>("use_goal_info", use_goal_info, false);
-    node.param<int>("min_time", min_time, 2);
-    node.param<double>("goal_x", goal_x, 0.0);
-    node.param<double>("goal_y", goal_y, 0.0);
-
-    ros::Subscriber goal_subscriber = node.subscribe("/move_base_simple/goal", 1, goalReceivedCallback);
-    ros::Subscriber pose_subscriber = node.subscribe("/odom", 1, odomReceivedCallback);
-
- //   message_filters::Subscriber<nav_msgs::Odometry> odomSubscriber;
- //   tf::TransformListener tfListener;
-//    tf::MessageFilter<nav_msgs::Odometry> * odomMsgFilter;
- //   ros::Subscriber goal_subscriber = node.subscribe(goal_topic, 1, goalReceivedCallback);
- //   odomSubscriber.subscribe(node, odom_topic, 1);
- //   odomMsgFilter = new tf::MessageFilter<nav_msgs::Odometry>(odomSubscriber, tfListener, map_frame, 1);
- //   odomMsgFilter->setTolerance(ros::Duration(0.2));
- //   odomMsgFilter->registerCallback(&odomReceivedCallback);
+	RaceTimer raceTimer(ros::NodeHandle("~"));
     
     ros::Duration loop(0.01);
 
     while(ros::ok())
     {
-        if(isGoalReceived)
-        {
-            cost_time += loop;
-            ROS_INFO("cost time : %d.%d", cost_time.sec, cost_time.nsec);
-        }
+        raceTimer.increaseCostTime(loop);
         loop.sleep();
         ros::spinOnce();
     }

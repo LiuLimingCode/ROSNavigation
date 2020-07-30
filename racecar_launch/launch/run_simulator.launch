@@ -41,7 +41,7 @@
 
   <!-- 使用键盘发布cmd数据 -->
   <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
-    <param name="speed" value="1.5"/>
+    <param name="speed" value="1"/>
     <param name="max_steering_angle" value="0.785398163"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
