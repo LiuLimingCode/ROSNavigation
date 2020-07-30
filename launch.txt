@@ -1,2 +1,0 @@
-roslaunch racecar_launch run_all.launch simulator:=true world_name:=racetrack_withCone origin_x:=-0.5 origin_y:=0
-roslaunch racecar_launch run_all.launch localization:=true navigation:=true world_name:=racetrack rviz_full:=true use_ekf_odom:=true speed_fast:=true
