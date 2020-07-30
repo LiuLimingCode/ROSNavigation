@@ -80,7 +80,7 @@
   <!-- 方案2： -->
   <!-- 使用一个节点对move_base的/cmd_vel数据进行转换，完成导航，具体转换方式见cmd_to_ackermann.py -->
   <!-- 评价：不同的转换方式都存在一定的局限性，速度不快 -->
-  <node name="cmd_to_ackermann_node" pkg="racecar_control" type="cmd_to_ackermann.py">
+  <node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
     <param name="twist_cmd_topic" value="$(arg cmd_topic)"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
@@ -90,13 +90,14 @@
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->
 
-  <node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
+  <!--node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
     <param name="goal_topic" value="/move_base_simple/goal"/>
-    <param name="odom_topic" value="/odom_gazebo"/>
+    <param name="odom_topic" value="/odom_eklf"/>
+    <param name="map_frame" value="map"/>
     <param name="use_goal_info" value="false"/>
     <param name="min_time" value="2"/>
     <param name="goal_x" value="0"/>
     <param name="consider_x" value="less"/>
-  </node>
+  </node-->
 
 </launch>

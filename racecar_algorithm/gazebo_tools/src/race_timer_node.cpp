@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 
+#include "tf/transform_listener.h"
 #include "nav_msgs/Odometry.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -17,6 +18,7 @@ ros::Duration cost_time;
 
 std::string goal_topic;
 std::string odom_topic;
+std::string map_frame;
 std::string consider_x;
 std::string consider_y;
 
@@ -27,14 +29,27 @@ void goalReceivedCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
     cost_time = ros::Duration(0);
     goalPose = msg->pose;
     isGoalReceived = true;
-    //isGoalReached = false;
 }
 
 void odomReceivedCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
     if(!isGoalReceived) return;
-    geometry_msgs::Pose pose = msg->pose.pose;
+
+    geometry_msgs::PoseStamped poseStamped;
+    poseStamped.header = msg->header;
+    poseStamped.pose = msg->pose.pose;
     geometry_msgs::Pose destination;
+
+    tf::TransformListener transformListener;
+    try
+    {
+        transformListener.transformPose(map_frame, poseStamped, poseStamped);
+    }
+    catch(const std::exception& e)
+    {
+        return;
+    }
+    geometry_msgs::Pose pose = poseStamped.pose;
 
     if(use_goal_info) destination = goalPose;
     else destination.position.x = goal_x, destination.position.y = goal_y;
@@ -45,12 +60,16 @@ void odomReceivedCallback(const nav_msgs::Odometry::ConstPtr& msg)
         if(destination.position.x > pose.position.x) flag_x = true;
     else if(consider_x == "large")
         if(destination.position.x < pose.position.x) flag_x = true;
+    else if(consider_x == "close")
+        if(fabs(destination.position.x - pose.position.x) < 0.1) flag_x = true;
 
     if(consider_y == "ignore") flag_y = true;
     else if(consider_y == "less")
         if(destination.position.y > pose.position.y) flag_y = true;
     else if(consider_y == "large")
         if(destination.position.y < pose.position.y) flag_y = true;
+    else if(consider_y == "close")
+        if(fabs(destination.position.y - pose.position.y) < 0.1) flag_y = true;
 
     if(cost_time.sec > min_time)
     {
@@ -70,6 +89,7 @@ int main(int argc, char** argv)
 
     node.param<std::string>("goal_topic", goal_topic, "/move_base_simple/goal");
     node.param<std::string>("odom_topic", odom_topic, "/odom");
+    node.param<std::string>("map_frame", map_frame, "map");
     node.param<std::string>("consider_x", consider_x, "ignore");
     node.param<std::string>("consider_y", consider_y, "ignore");
     node.param<bool>("use_goal_info", use_goal_info, false);
@@ -79,6 +99,15 @@ int main(int argc, char** argv)
 
     ros::Subscriber goal_subscriber = node.subscribe("/move_base_simple/goal", 1, goalReceivedCallback);
     ros::Subscriber pose_subscriber = node.subscribe("/odom", 1, odomReceivedCallback);
+
+ //   message_filters::Subscriber<nav_msgs::Odometry> odomSubscriber;
+ //   tf::TransformListener tfListener;
+//    tf::MessageFilter<nav_msgs::Odometry> * odomMsgFilter;
+ //   ros::Subscriber goal_subscriber = node.subscribe(goal_topic, 1, goalReceivedCallback);
+ //   odomSubscriber.subscribe(node, odom_topic, 1);
+ //   odomMsgFilter = new tf::MessageFilter<nav_msgs::Odometry>(odomSubscriber, tfListener, map_frame, 1);
+ //   odomMsgFilter->setTolerance(ros::Duration(0.2));
+ //   odomMsgFilter->registerCallback(&odomReceivedCallback);
     
     ros::Duration loop(0.01);
 
@@ -92,7 +121,6 @@ int main(int argc, char** argv)
         loop.sleep();
         ros::spinOnce();
     }
-
 
     return(0);
 }

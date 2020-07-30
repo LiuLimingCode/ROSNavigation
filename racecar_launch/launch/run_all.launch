@@ -41,7 +41,7 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
   
     <param name="/use_sim_time" value="true"/>
 
-    <arg name="world_name" default="racetrack_withCone3"/>
+    <arg name="world_name" default="1234"/>
     <arg name="use_gazebo_odom" default="false"/>
     <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
     <arg name="path_gazebo_topic" default="/path_gazebo"/>
@@ -61,13 +61,13 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
 
-    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+    <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
       <arg name="node_name" default="odom_gazebo_to_path_node"/>
       <arg name="update_frequncy" default="10.0"/>
       <arg name="odom_buffer_num" default="2000"/>
       <arg name="odom_sub_topic" default="$(arg odom_gazebo_topic)"/>
       <arg name="path_pub_topic" default="$(arg path_gazebo_topic)"/>
-    </include>
+    </include-->
   </group>
 
 
