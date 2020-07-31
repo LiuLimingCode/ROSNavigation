@@ -3,15 +3,13 @@
 global_costmap:
   #global_frame: map
   #robot_base_frame: base_footprint
-  update_frequency: 0.001
-  publish_frequency: 0.0005
-  static_map: true
-  
-
-  inflation_layer:
-    enabled:              true
-    cost_scaling_factor:  10.0  # 与单元的代价值成反比，设置高值将使衰减更陡峭 默认10
-    inflation_radius:     1.0  # 控制零成本点距离障碍物有多远 默认2.5
+  update_frequency: 20
+  publish_frequency: 20
+  static_map: false
+  rolling_window: true
+  width: 80
+  height: 20
+  transform_tolerance: 0.5
  
   transform_tolerance: 0.5
   plugins:
