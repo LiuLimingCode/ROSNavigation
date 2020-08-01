@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+import math
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 from std_msgs.msg import Float64
@@ -36,8 +37,8 @@ class ServoCommandNode:
         throttle = data.drive.speed * 0.05 * 19.97 / self.wheel_radius
         steer = data.drive.steering_angle
 
-        self.pub_vel_left_rear_wheel.publish(throttle)
-        self.pub_vel_right_rear_wheel.publish(throttle)
+        self.pub_vel_left_rear_wheel.publish(throttle - 0.45 * math.tan(steer) * throttle)
+        self.pub_vel_right_rear_wheel.publish(throttle + 0.45 * math.tan(steer) * throttle)
         self.pub_vel_left_front_wheel.publish(throttle)
         self.pub_vel_right_front_wheel.publish(throttle)
         self.pub_pos_left_steering_hinge.publish(steer)

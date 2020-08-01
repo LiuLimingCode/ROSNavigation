@@ -7,7 +7,7 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
 <launch>
 
   <!-- 设定机器人模型的初始坐标点 -->
-  <arg name="origin_x" default="0"/>
+  <arg name="origin_x" default="-0.5"/>
   <arg name="origin_y" default="0"/>
 
   <!-- topic and frame -->
@@ -24,14 +24,16 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
   <arg name="laser_frame" default="laser_link"/>
 
   <!-- launch option -->
-  <arg name="simulator" default="false"/>    <!-- 开启gazebo仿真 -->
+  <arg name="simulator" default="true"/>    <!-- 开启gazebo仿真 -->
   <arg name="realrobot" default="false"/>    <!-- 使用真实机器人 -->
-  <arg name="localization" default="false"/> <!-- 开启定位 -->
+  <arg name="localization" default="true"/> <!-- 开启定位 -->
   <arg name="gmapping" default="false"/>     <!-- 使用gmapping建图 -->
   <arg name="savemap" default="false"/>      <!-- 保存gmapping的建图结果 -->
-  <arg name="navigation" default="false"/>   <!-- 在有地图的情况下进行导航 -->
+  <arg name="navigation" default="true"/>   <!-- 在有地图的情况下进行导航 -->
   <arg name="rviz_base" default="false"/>    <!-- 打开Rviz -->
-  <arg name="rviz_full" default="false"/>    <!-- 打开Rviz -->
+  <arg name="rviz_full" default="true"/>    <!-- 打开Rviz -->
+
+  <arg name="speed" default="3.5"/>
 
 
   <!-- simulator -->
@@ -39,14 +41,14 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
   
     <param name="/use_sim_time" value="true"/>
 
-    <arg name="world_name" default="building"/>
+    <arg name="world_name" default="racetrack"/>
     <arg name="use_gazebo_odom" default="false"/>
     <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
     <arg name="path_gazebo_topic" default="/path_gazebo"/>
 
     <include file="$(find racecar_launch)/launch/run_simulator.launch">
-      <arg name="origin_x" default="$(arg origin_x)"/>
-      <arg name="origin_y" default="$(arg origin_y)"/>
+      <arg name="origin_x" default="-0.5"/>
+      <arg name="origin_y" default="0"/>
 
       <arg name="use_gazebo_odom" default="$(arg use_gazebo_odom)"/>
 
@@ -59,13 +61,13 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
       <arg name="world_name" default="$(arg world_name)"/>
     </include>
 
-    <include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
+    <!--include file="$(find odometry_to_path)/launch/odometry_to_path.launch">
       <arg name="node_name" default="odom_gazebo_to_path_node"/>
       <arg name="update_frequncy" default="10.0"/>
       <arg name="odom_buffer_num" default="2000"/>
       <arg name="odom_sub_topic" default="$(arg odom_gazebo_topic)"/>
       <arg name="path_pub_topic" default="$(arg path_gazebo_topic)"/>
-    </include>
+    </include-->
   </group>
 
 
@@ -87,7 +89,7 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
   <group if="$(arg localization)">
 
     <arg name="use_rf2o_odom" default="false"/>
-    <arg name="use_ekf_odom" default="false"/>
+    <arg name="use_ekf_odom" default="true"/>
     <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
     <arg name="odom_ekf_topic" default="/odom_ekf"/>
     <arg name="path_rf2o_topic" default="/path_rf2o"/>
@@ -147,7 +149,7 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
 
   <!-- navigation -->
   <group if="$(arg navigation)">
-    <arg name="world_name" default="building"/>
+    <arg name="world_name" default="racetrack"/>
     <include file="$(find racecar_launch)/launch/run_navigation.launch">
       <arg name="map_topic" default="$(arg map_topic)"/>
       <arg name="scan_topic" default="$(arg scan_topic)"/>
@@ -159,8 +161,9 @@ roslaunch racecar_launch run_all.launch localization:=true navigation:=true rviz
       <arg name="map_frame" default="$(arg map_frame)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
       <arg name="mapfile_name" default="$(arg world_name)"/>
-      <arg name="origin_x" default="$(arg origin_x)"/>
-      <arg name="origin_y" default="$(arg origin_y)"/>
+      <arg name="origin_x" default="0"/>
+      <arg name="origin_y" default="0"/>
+      <arg name="speed" default="$(arg speed)"/>
     </include>
   </group>
 

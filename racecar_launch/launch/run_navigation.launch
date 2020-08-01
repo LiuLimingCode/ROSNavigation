@@ -15,7 +15,7 @@
 
   <arg name="origin_x" default="0.0"/>
   <arg name="origin_y" default="0.0"/>
-
+  <arg name="speed" default="3.5"/>
 
   <!-- 将已有的map文件发布map话题 -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(find racecar_launch)/map/$(arg mapfile_name).yaml">
@@ -50,6 +50,7 @@
     <arg name="base_frame" default="$(arg base_frame)"/>
     <arg name="origin_x" default="$(arg origin_x)"/>
     <arg name="origin_y" default="$(arg origin_y)"/>
+    <arg name="speed" default="$(arg speed)"/>
   </include>
 
   <!-- 关于运动规划： -->
@@ -79,7 +80,7 @@
   <!-- 方案2： -->
   <!-- 使用一个节点对move_base的/cmd_vel数据进行转换，完成导航，具体转换方式见cmd_to_ackermann.py -->
   <!-- 评价：不同的转换方式都存在一定的局限性，速度不快 -->
-  <node name="cmd_to_ackermann_node" pkg="racecar_control" type="cmd_to_ackermann.py">
+  <node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
     <param name="twist_cmd_topic" value="$(arg cmd_topic)"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
@@ -88,5 +89,15 @@
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->
+
+  <node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
+    <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="use_goal_info" value="false"/>
+    <param name="min_time" value="2"/>
+    <param name="goal_x" value="0"/>
+    <param name="consider_x" value="less"/>
+  </node>
 
 </launch>
