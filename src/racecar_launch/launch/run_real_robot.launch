@@ -40,7 +40,7 @@
 
   <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
 
-  <node pkg="art_driver" name="art_driver_node" type="art_driver_node" >
+  <node pkg="art_driver" name="art_driver_node" type="art_driver_node">
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
 
@@ -50,7 +50,7 @@
     <arg name="publish_tf" default="$(arg use_rf2o_odom)"/>
     <arg name="odom_frame_id" default="$(arg odom_frame)"/>
     <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
-    <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
+    <arg name="laser_scan_topic" default="$(arg scan_topic)"/>
     <arg name="base_frame_id" default="$(arg base_frame)"/>
   </include>
 
@@ -85,15 +85,21 @@
   </include>
 
   <!-- 重命名odom的topic，方便后面使用 -->
-  <node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)"
-        args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
-  <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)"
-        args="$(arg odom_ekf_topic) $(arg odom_topic)"/>
+  <node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)" args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
+  <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)" args="$(arg odom_ekf_topic) $(arg odom_topic)"/>
 
   <!-- 使用键盘发布cmd数据 -->
   <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
     <param name="speed" value="1"/>
     <param name="max_steering_angle" value="0.785398163"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
+
+  <!-- 使用遥控手柄发布ackermann数据 -->
+  <node name="joy_node" pkg="joy" type="joy_node"/>
+  <node name="racecar_joy" pkg="racecar_control" type="racecar_joy.py" output="screen">
+    <param name="speed" value="3.0"/>
+    <param name="max_steering_angle" value="0.7853981634"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
 

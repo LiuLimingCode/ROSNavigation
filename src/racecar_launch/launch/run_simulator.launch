@@ -111,4 +111,12 @@
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
 
+  <!-- 使用遥控手柄发布ackermann数据 -->
+  <node name="joy_node" pkg="joy" type="joy_node"/>
+  <node name="racecar_joy" pkg="racecar_control" type="racecar_joy.py" output="screen">
+    <param name="speed" value="2.0"/>
+    <param name="max_steering_angle" value="0.7853981634"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
+
 </launch>
