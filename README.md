@@ -20,45 +20,50 @@
 
 ## 安装
 
-- 1 安装ubuntu操作系统
+##### 1.安装ubuntu操作系统
 
 教程：http://www.wmcollege.club/front/couinfo/197
 
-- 2 在ubuntu上安装ROS
+##### 2.在ubuntu上安装ROS
 
 官方教程：http://wiki.ros.org/ROS/Installation
 
 或者使用本工程的bash文件`bash install_ros.bash`（版本为kinetic，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本）
 
-- 3 安装本工程使用的ROS功能包
+##### 3.安装本工程使用的ROS功能包
 
 使用本工程的bash文件`bash install_ros_pkg.bash`（版本为kinetic，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本）
 
-- 4 更新gazebo（可选）
+##### 4.如果gazebo版本为 x.0.0 版本，请更新gazebo
 
 官方教程：http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 
+或输入指令：
+```
+sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+sudo apt-get update && sudo apt-get upgrade
+```
+
 ## 使用
 
-- 1 使用`catkin_make`正确编译本工程
+- 1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
 
 - 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch/map/building.yaml,修改该文件第一行image:的文件地址)
-
-
-    roslaunch racecar_launch run_all.launch simulator:=true use_gazebo_odom:=true world_name:=building
-
+```
+roslaunch racecar_launch run_all.launch simulator:=true world_name:=building
+```
 - 3 执行定位、导航功能包
-
-
-    roslaunch racecar_launch run_all.launch navigation:=true world_name:=building rviz_full:=true
-    
+```
+roslaunch racecar_launch run_all.launch navigation:=true world_name:=building rviz_full:=true speed:=1
+```
 - 4 执行结果如下
 
 ![](doc/rviz.png)
 
 ## 如何学习
 
-- 通用
+##### 通用
 
 http://www.baidu.com
 
@@ -66,7 +71,7 @@ http://www.google.com
 
 下载别人开源的工程，通过依样画葫芦学习。
 
-- ROS
+##### ROS
 
 基本使用方法：http://www.wmcollege.club/front/couinfo/197
 
@@ -74,7 +79,7 @@ http://www.google.com
 
 ROS导航官方教程：http://wiki.ros.org/navigation/Tutorials
 
-- Gazebo
+##### Gazebo
 
 官网教程：http://gazebosim.org/tutorials （可以重点学习Get Started、Build a Robot、Model Editor、Build a World、Sensors、Connect to ROS章节）
 

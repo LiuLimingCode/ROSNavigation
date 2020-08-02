@@ -1,3 +1,4 @@
+#include <deque>
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
@@ -9,7 +10,7 @@ std::string path_pub_topic;
 int odom_buffer_num;
 double update_frequncy;
 ros::Publisher pathPublisher;
-std::vector<geometry_msgs::PoseStamped> posesStamped;
+std::deque<geometry_msgs::PoseStamped> posesStamped;
 
 void odomCallBack(const nav_msgs::Odometry::ConstPtr& data)
 {
