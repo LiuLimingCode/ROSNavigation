@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="base_frame" default="base_footprint"/>
+  <arg name="map_frame" default="map"/>
+  <arg name="odom_frame" default="odom"/>
+
+  <!-- http://wiki.ros.org/gmapping -->
+  <!-- gmapping 是基于粒子滤波的SLAM算法，能够基于(arg odom_frame)数据计算(arg map_frame)，同时完成建图 -->
+  <include file="$(find racecar_launch)/launch/includes/gmapping.launch.xml" >
+    <arg name="scan_topic" default="$(arg scan_topic)"/>
+    <arg name="base_frame" default="$(arg base_frame)"/>
+    <arg name="map_frame" default="$(arg map_frame)"/>
+    <arg name="odom_frame" default="$(arg odom_frame)"/>
+  </include>
+
+</launch>

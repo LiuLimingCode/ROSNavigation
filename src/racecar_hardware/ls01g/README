@@ -1,0 +1,23 @@
+激光雷达软件包
+<node name="ls01g" pkg="ls01g" ls01g">
+Publisher:
+topic="scan" data=sensor_msgs::LaserScan(http://docs.ros.org/api/sensor_msgs/html/msg/LaserScan.html)
+float32 angle_min        # start angle of the scan [rad]
+float32 angle_max        # end angle of the scan [rad]
+float32 angle_increment  # angular distance between measurements [rad]
+
+float32 time_increment   # time between measurements [seconds] - if your scanner
+                         # is moving, this will be used in interpolating position
+                         # of 3d points
+float32 scan_time        # time between scans [seconds]
+
+float32 range_min        # minimum range value [m]
+float32 range_max        # maximum range value [m]
+
+float32[] ranges         # range data [m] (Note: values < range_min or > range_max should be discarded)
+float32[] intensities    # intensity data [device-specific units].  If your
+                         # device does not provide intensities, please leave
+                         # the array empty.
+
+Subscriber:
+topic="startOrStop" data=std_msgs::Int32 -> (uart_driver.h: STOP_DATA = 1, STOP_MOTOR = 2, START_MOTOR_AND_SCAN = 4)

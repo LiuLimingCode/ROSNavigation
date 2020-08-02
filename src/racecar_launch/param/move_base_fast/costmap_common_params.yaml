@@ -1,0 +1,28 @@
+# costmap 参数
+# 该yaml下的所有参数会同时运用在 local_costmap 和 global_costmap 下
+
+footprint: [[-0.25, -0.2], [0.25, -0.2], [0.25, 0.2], [-0.25, 0.2]] # 机器人的 footprint
+
+transform_tolerance: 0.2
+map_type: costmap
+
+obstacle_layer:
+  enabled: true
+  obstacle_range: 5.0 #设置机器人检测障碍物的最大范围
+  raytrace_range: 5.5 #设置机器人检测自由空间的最大范围
+  inflation_radius: 0.2
+  track_unknown_space: false
+  combination_method: 1
+
+  observation_sources: laser_scan_sensor
+  laser_scan_sensor:
+    { data_type: LaserScan, topic: scan, marking: true, clearing: true }
+
+inflation_layer:
+  enabled: true
+  cost_scaling_factor: 10.0 # 与单元的代价值成反比，设置高值将使衰减更陡峭 默认10
+  inflation_radius: 0.26 # 控制零成本点距离障碍物有多远 默认2.5
+
+static_layer:
+  enabled: true
+  map_topic: "/map"
