@@ -27,22 +27,43 @@
   <arg name="odom_topic" default="/odom"/>
 
   <!-- ls01g 激光雷达传感器 -->
-  <include file="$(find ls01g)/launch/ls01g.launch">
+  <!-- <include file="$(find ls01g)/launch/ls01g.launch">
     <arg name="scan_topic" value="$(arg scan_topic)"/>
     <arg name="laser_link" value="$(arg laser_frame)"/>
-  </include>
+  </include> -->
 
   <!-- IMU 姿态传感器 -->
-  <include file="$(find art_imu)/launch/imu.launch">
+  <!-- <include file="$(find art_imu)/launch/imu.launch">
     <arg name="imu_frame" value="$(arg imu_frame)"/>
     <arg name="imu_topic" value="$(arg imu_topic)"/>
-  </include>
+  </include> -->
 
   <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
+
+  <!-- 使用键盘发布cmd数据 -->
+  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
+    <param name="speed" value="1"/>
+    <param name="max_steering_angle" value="0.785398163"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
+
+  <!-- 使用遥控手柄发布ackermann数据 -->
+  <node name="joy_node" pkg="joy" type="joy_node"/>
+  <node name="racecar_joy" pkg="racecar_control" type="racecar_joy.py" output="screen">
+    <param name="speed" value="3.0"/>
+    <param name="max_steering_angle" value="0.7853981634"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
+
 
   <node pkg="art_driver" name="art_driver_node" type="art_driver_node">
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
+
+
+<!-- ！！！！！！！！！！！！！！！！！！！！以下为定位！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！ -->
+
+
 
   <!-- http://wiki.ros.org/rf2o_laser_odometry -->
   <!-- RF2O算法：从激光雷达的数据中得到机器人的线速度、角速度数据 -->
@@ -87,21 +108,6 @@
   <!-- 重命名odom的topic，方便后面使用 -->
   <node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)" args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
   <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)" args="$(arg odom_ekf_topic) $(arg odom_topic)"/>
-
-  <!-- 使用键盘发布cmd数据 -->
-  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
-    <param name="speed" value="1"/>
-    <param name="max_steering_angle" value="0.785398163"/>
-    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-  </node>
-
-  <!-- 使用遥控手柄发布ackermann数据 -->
-  <node name="joy_node" pkg="joy" type="joy_node"/>
-  <node name="racecar_joy" pkg="racecar_control" type="racecar_joy.py" output="screen">
-    <param name="speed" value="3.0"/>
-    <param name="max_steering_angle" value="0.7853981634"/>
-    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-  </node>
 
 </launch>
 
