@@ -77,10 +77,10 @@
   <!-- 方案3： -->
   <!-- 使用一个节点对move_base的/cmd_vel数据进行转换，完成导航，具体转换方式见cmd_to_ackermann.py -->
   <!-- 评价：不同的转换方式都存在一定的局限性，速度不快 -->
-  <!--node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
+  <node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
     <param name="twist_cmd_topic" value="$(arg cmd_topic)"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-  </node-->
+  </node>
 
   <!-- 方案2的debug节点，可以看到teb_local_planner的feedback信息，使用前将teb的publish_feedback参数置true -->
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">

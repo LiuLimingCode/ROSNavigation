@@ -27,16 +27,16 @@
   <arg name="odom_topic" default="/odom"/>
 
   <!-- ls01g 激光雷达传感器 -->
-  <!-- <include file="$(find ls01g)/launch/ls01g.launch">
+  <include file="$(find ls01g)/launch/ls01g.launch">
     <arg name="scan_topic" value="$(arg scan_topic)"/>
     <arg name="laser_link" value="$(arg laser_frame)"/>
-  </include> -->
+  </include>
 
   <!-- IMU 姿态传感器 -->
-  <!-- <include file="$(find art_imu)/launch/imu.launch">
+  <include file="$(find art_imu)/launch/imu.launch">
     <arg name="imu_frame" value="$(arg imu_frame)"/>
     <arg name="imu_topic" value="$(arg imu_topic)"/>
-  </include> -->
+  </include>
 
   <include file="$(find racecar_description)/launch/racecar_spawn.launch"/>
 
