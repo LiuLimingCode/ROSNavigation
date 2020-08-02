@@ -60,36 +60,34 @@
   <!-- 方案1： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，因此，通过跟随该路径完成导航 -->
   <!-- 评价：可能是最好的方案，但算法需要全部重写，难度最大 -->
-  <!--node name="path_pursuit_node" pkg="racecar_control" type="path_pursuit.py" output="screen">
-    <param name="odom_topic" value="$(arg odom_topic)"/>
-    <param name="global_plan_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
-    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-  </node-->
-
-  <!--node name="path_pursuit_node" pkg="racecar_control" type="path_pursuit_node" output="screen">
-    <param name="odom_topic" value="$(arg odom_topic)"/>
-    <param name="cmd_topic" value="$(arg ackermann_topic)"/>
-    <param name="path_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
-    <param name="debug_path_topic" value="/debug_path_topic"/>
-    <param name="enable_publish_debug_path" value="true"/>
-    <param name="speed" value="0.4"/>
-    <param name="max_steering_angle" value="0.785398163"/>
-    <param name="wheel_base" value="0.335"/>
-  </node-->
+  <node name="Pure_Pursuit" pkg="racecar_control" type="Pure_Pursuit" output="screen" >
+      <rosparam file="$(find racecar_launch)/param/move_base/simulator/pure_pursuit_params.yaml" command="load"/>
+      <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
+      <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
+      <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>
+      <remap from="/pure_pursuit/ackermann_cmd" to="$(arg ackermann_topic)"/>
+  </node>
 
   <!-- 方案2： -->
+  <!-- 由于teb_local_planner会输出规划出来的路径，使用mpc算法进行路径跟踪 -->
+  <!--node name="MPC_Node" pkg="racecar_control" type="MPC_Node" output="screen">
+    <rosparam file="$(find racecar_control)/param/move_base/simulator/mpc_params.yaml" command="load"/>
+  </node-->
+
+  <!-- 方案3： -->
   <!-- 使用一个节点对move_base的/cmd_vel数据进行转换，完成导航，具体转换方式见cmd_to_ackermann.py -->
   <!-- 评价：不同的转换方式都存在一定的局限性，速度不快 -->
-  <node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
+  <!--node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
     <param name="twist_cmd_topic" value="$(arg cmd_topic)"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-  </node>
+  </node-->
 
   <!-- 方案2的debug节点，可以看到teb_local_planner的feedback信息，使用前将teb的publish_feedback参数置true -->
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->
 
+  <!-- 计时节点,计算导航所用时间 -->
   <node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>

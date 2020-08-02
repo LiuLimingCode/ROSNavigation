@@ -20,29 +20,35 @@
 
 ## 安装
 
-##### 1.安装ubuntu操作系统
+#### 1.安装ubuntu操作系统
 
 教程：http://www.wmcollege.club/front/couinfo/197
 
-##### 2.在ubuntu上安装ROS
+#### 2.在ubuntu上安装ROS
 
 官方教程：http://wiki.ros.org/ROS/Installation
 
 或者使用本工程的bash文件`bash install_ros.bash`（版本为kinetic，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本）
 
-##### 3.安装本工程使用的ROS功能包
+#### 3.安装本工程使用的ROS功能包
 
 使用本工程的bash文件`bash install_ros_pkg.bash`（版本为kinetic，若需要安装其他版本，请直接将.bash文件中的`rosversion="kinetic"`更改为其他版本）
 
-##### 4.如果gazebo版本为 x.0.0 版本，请更新gazebo
+#### 4.如果gazebo版本为 x.0.0 版本，请更新gazebo
 
 官方教程：http://gazebosim.org/tutorials?tut=install_ubuntu&cat=install
 
 或输入指令：
 ```
-sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-sudo apt-get update && sudo apt-get upgrade
+cd install
+bash update_gazebo.sh
+```
+
+#### 5.安装ipopt
+输入指令：
+```
+cd install/ipopt
+bash install.sh
 ```
 
 ## 使用
@@ -63,7 +69,7 @@ roslaunch racecar_launch run_all.launch navigation:=true world_name:=building rv
 
 ## 如何学习
 
-##### 通用
+#### 通用
 
 http://www.baidu.com
 
@@ -71,7 +77,7 @@ http://www.google.com
 
 下载别人开源的工程，通过依样画葫芦学习。
 
-##### ROS
+#### ROS
 
 基本使用方法：http://www.wmcollege.club/front/couinfo/197
 
@@ -79,7 +85,7 @@ http://www.google.com
 
 ROS导航官方教程：http://wiki.ros.org/navigation/Tutorials
 
-##### Gazebo
+#### Gazebo
 
 官网教程：http://gazebosim.org/tutorials （可以重点学习Get Started、Build a Robot、Model Editor、Build a World、Sensors、Connect to ROS章节）
 
