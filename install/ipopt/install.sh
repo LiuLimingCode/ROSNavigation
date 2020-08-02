@@ -1,3 +1,5 @@
+sudo apt install cppad gfortran
+
 cwd=$(pwd)
 tar -zxvf Ipopt-3.12.8.tar.gz
 
