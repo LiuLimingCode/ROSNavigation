@@ -398,7 +398,7 @@ int main(int argc, char** argv)
                 msg_mag.header.frame_id = msg.header.frame_id;
                 pub_mag.publish(msg_mag);
 
-                ROS_INFO("imu senser send a message.");
+                //ROS_INFO("imu senser send a message.");
 
                 found = true;
             }

@@ -51,7 +51,7 @@ def joy_callback(data):
 
     ack.drive.speed = speed_t
     ack.drive.steering_angle = angle_t
-
+    print("speed=%d angle=%f"%(speed_t,angle_t))
     state_pub.publish(ack)
 
 def main():
