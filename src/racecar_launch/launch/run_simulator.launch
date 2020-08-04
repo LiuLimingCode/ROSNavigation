@@ -36,7 +36,7 @@
   </include>
 
   <!-- 从gazebo中得到机器人的准确定位数据，用作参考 -->
-  <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
+  <!-- <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
     <param name="x_pos" value="$(arg origin_x)"/>
     <param name="y_pos" value="$(arg origin_y)"/>
     <param name="object_name" value="racecar"/>
@@ -45,7 +45,7 @@
     <param name="odom_topic" value="$(arg odom_gazebo_topic)"/>
     <param name="base_frame" value="$(arg base_frame)"/>
     <param name="odom_frame" value="$(arg odom_frame)"/>
-  </node>
+  </node> -->
 
   <!-- 将odometry数据转化为path数据,以方便显示 -->
   <include file="$(find odometry_to_path)/launch/odometry_to_path.launch" if="$(arg odom_to_path)">
