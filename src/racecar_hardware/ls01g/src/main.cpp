@@ -211,7 +211,7 @@ int main(int argv, char **argc)
 			data_intensity[i] = angle[i];
 		}
 		//ROS_INFO_THROTTLE(30, "ls01g works fine!");
-                ROS_INFO("laser senser send a message.");
+        //ROS_INFO("laser senser send a message.");
 		ends = ros::Time::now();
 		float scan_duration = (ends - starts).toSec() * 1e-3;
 		publish_scan(&scan_pub, data, data_intensity, ret, starts, scan_duration);

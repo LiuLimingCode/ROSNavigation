@@ -66,7 +66,7 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
 
   <!-- realrobot -->
   <group if="$(arg realrobot)">
-    <include file="$(find racecar_launch)/launch/run_base_sensor.launch">
+    <include file="$(find racecar_launch)/launch/run_real_robot.launch">
 
       <arg name="use_rf2o_odom" default="false"/>
       <arg name="use_ekf_odom" default="true"/>

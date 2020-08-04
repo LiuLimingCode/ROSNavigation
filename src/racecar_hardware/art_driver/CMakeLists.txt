@@ -9,6 +9,7 @@ SET(CMAKE_EXE_LINKER_FLAGS " -no-pie")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  ackermann_msgs
   roscpp
   rospy
   std_msgs
@@ -152,15 +153,14 @@ include_directories(
 # )
 
 add_executable(${PROJECT_NAME}_node
-  src/art_racecar.cpp
+  src/art_driver.cpp
   include/art_racecar_driver.h
 )
 
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${PROJECT_SOURCE_DIR}/lib/libart_driver.a
-   
- )
+)
 
 #############
 ## Install ##
