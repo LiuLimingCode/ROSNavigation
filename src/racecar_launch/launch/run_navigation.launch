@@ -50,7 +50,6 @@
     <arg name="base_frame" default="$(arg base_frame)"/>
     <arg name="origin_x" default="$(arg origin_x)"/>
     <arg name="origin_y" default="$(arg origin_y)"/>
-    <arg name="speed" default="$(arg speed)"/>
   </include>
 
   <!-- 关于运动规划： -->
@@ -61,17 +60,24 @@
   <!-- 由于teb_local_planner会输出规划出来的路径，因此，通过跟随该路径完成导航 -->
   <!-- 评价：可能是最好的方案，但算法需要全部重写，难度最大 -->
   <node name="Pure_Pursuit" pkg="racecar_control" type="Pure_Pursuit" output="screen" >
-      <rosparam file="$(find racecar_launch)/param/move_base/simulator/pure_pursuit_params.yaml" command="load"/>
-      <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
-      <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
-      <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>
-      <remap from="/pure_pursuit/ackermann_cmd" to="$(arg ackermann_topic)"/>
+    <rosparam file="$(find racecar_launch)/param/move_base/simulator/pure_pursuit_params.yaml" command="load"/>
+    <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
+    <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
+    <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>
+    <remap from="/pure_pursuit/ackermann_cmd" to="$(arg ackermann_topic)"/>
   </node>
 
   <!-- 方案2： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，使用mpc算法进行路径跟踪 -->
   <!--node name="MPC_Node" pkg="racecar_control" type="MPC_Node" output="screen">
-    <rosparam file="$(find racecar_control)/param/move_base/simulator/mpc_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch)/param/move_base/simulator/mpc_params.yaml" command="load"/>
+    <remap from="/odom" to="$(arg odom_topic)"/>
+    <remap from="/ackermann_cmd" to="$(arg ackermann_topic)"/>
+    <param name="global_path_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
+    <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+    <param name="car_frame" value="$(arg base_frame)"/>
   </node-->
 
   <!-- 方案3： -->
@@ -88,7 +94,7 @@
   </node-->
 
   <!-- 计时节点,计算导航所用时间 -->
-  <node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
+  <!--node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="map_frame" value="$(arg map_frame)"/>
@@ -96,6 +102,6 @@
     <param name="min_time" value="2"/>
     <param name="goal_x" value="0"/>
     <param name="consider_x" value="less"/>
-  </node>
+  </node-->
 
 </launch>

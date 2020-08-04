@@ -39,8 +39,8 @@ class ServoCommandNode:
 
         self.pub_vel_left_rear_wheel.publish(throttle - 0.45 * math.tan(steer) * throttle)
         self.pub_vel_right_rear_wheel.publish(throttle + 0.45 * math.tan(steer) * throttle)
-        self.pub_vel_left_front_wheel.publish(throttle)
-        self.pub_vel_right_front_wheel.publish(throttle)
+        self.pub_vel_left_front_wheel.publish(throttle - 0.45 * math.tan(steer) * throttle)
+        self.pub_vel_right_front_wheel.publish(throttle + 0.45 * math.tan(steer) * throttle)
         self.pub_pos_left_steering_hinge.publish(steer)
         self.pub_pos_right_steering_hinge.publish(steer)
 

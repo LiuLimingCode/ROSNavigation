@@ -5,13 +5,10 @@ global_costmap:
   #robot_base_frame: base_footprint
   update_frequency: 20
   publish_frequency: 20
-  static_map: false
-  rolling_window: true
-  width: 80
-  height: 20
+  static_map: true
+  rolling_window: false
   transform_tolerance: 0.5
  
-  transform_tolerance: 0.5
   plugins:
     - {name: static_layer,            type: "costmap_2d::StaticLayer"}
     - {name: obstacle_layer,          type: "costmap_2d::VoxelLayer"}
