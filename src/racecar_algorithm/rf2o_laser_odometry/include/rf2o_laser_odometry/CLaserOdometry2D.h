@@ -67,6 +67,8 @@ public:
     std::string         laser_scan_topic;
     std::string         odom_topic;
     bool                publish_tf;
+	bool                invert_linear_data;
+	bool                invert_position_data;
     std::string         base_frame_id;
     std::string         odom_frame_id;
     std::string         init_pose_from_topic;

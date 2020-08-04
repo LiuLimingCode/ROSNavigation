@@ -12,7 +12,7 @@
 * Maintainer: Javier G. Monroy
 * MAPIR group: http://mapir.isa.uma.es/
 ******************************************************************************************** */
-#define rplidar
+
 #include "rf2o_laser_odometry/CLaserOdometry2D.h"
 using namespace mrpt;
 using namespace mrpt::math;
@@ -40,6 +40,8 @@ CLaserOdometry2D::CLaserOdometry2D()
     pn.param<std::string>("init_pose_from_topic", init_pose_from_topic, "/base_pose_ground_truth");
     pn.param<bool>("publish_tf", publish_tf, true);
     pn.param<double>("freq",freq,10.0);
+    pn.param<bool>("invert_linear_data", invert_linear_data, false);
+	pn.param<bool>("invert_position_data", invert_position_data, false);
 
     //Publishers and Subscribers
     //--------------------------    
@@ -1041,17 +1043,17 @@ void CLaserOdometry2D::PoseUpdate()
     odom.header.stamp = ros::Time::now();
     odom.header.frame_id = odom_frame_id;
     //set the position
-    odom.pose.pose.position.x = robot_pose.x();
-    odom.pose.pose.position.y = robot_pose.y();
+    int position_sign = 1;
+    if(invert_position_data) position_sign = -1;
+    odom.pose.pose.position.x = robot_pose.x() * position_sign;
+    odom.pose.pose.position.y = robot_pose.y() * position_sign;
     odom.pose.pose.position.z = 0.0;
     odom.pose.pose.orientation = tf::createQuaternionMsgFromYaw(robot_pose.yaw());
     //set the velocity
     odom.child_frame_id = base_frame_id;
-    #ifdef rplidar 
-    	odom.twist.twist.linear.x = lin_speed;    //linear speed
-    #else
-    	odom.twist.twist.linear.x = -lin_speed;    //linear speed
-    #endif
+    int linear_sign = 1;
+    if(invert_linear_data) linear_sign = -1;
+    odom.twist.twist.linear.x = lin_speed * linear_sign;    //linear speed
     odom.twist.twist.linear.y = 0.0;
     odom.twist.twist.angular.z = ang_speed;   //angular speed
 
