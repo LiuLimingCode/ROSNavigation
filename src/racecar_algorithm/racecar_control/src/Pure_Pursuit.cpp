@@ -47,7 +47,8 @@ class PurePursuit
         PurePursuit();
         void initMarker();
         bool isForwardWayPt(const geometry_msgs::Point& wayPt, const geometry_msgs::Pose& carPose);
-        bool isWayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos, double distance);
+        double WayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos);
+        void transformPathData(void);
         double getYawFromPose(const geometry_msgs::Pose& carPose);
         double getEta(const geometry_msgs::Pose& carPose);
         double getCar2GoalDist();
@@ -71,10 +72,11 @@ class PurePursuit
 
         std::vector<geometry_msgs::Point> forwardPtVector;
 
-        double L, Lfw_max, Lfw_min, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max;
+        double L, Lfw_max, Lfw_min, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max, predicted_dist;
         double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
         int controller_freq;
-        bool foundForwardPt, goal_received, goal_reached, cmd_vel_mode, debug_mode, smooth_accel, stop_robot;
+        bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot;
+        bool foundPredictedCarPt, foundForwardPt, goal_received, goal_reached, transform_path_data;
 
         void odomCB(const nav_msgs::Odometry::ConstPtr& odomMsg);
         void pathCB(const nav_msgs::Path::ConstPtr& pathMsg);
@@ -97,6 +99,7 @@ PurePursuit::PurePursuit()
     pn.param("Vcmd_min", Vcmd_min, 1.0);// reference speed (m/s)
     pn.param("Lfw_max", Lfw_max, 3.0); // forward look ahead distance (m)
     pn.param("Lfw_min", Lfw_min, 3.0); // forward look ahead distance (m)
+    pn.param("predicted_dist", predicted_dist, 0.1);
     pn.param("lfw", lfw, 0.13); // distance between front the center of car
 
     //Controller parameter
@@ -127,6 +130,7 @@ PurePursuit::PurePursuit()
 
     //Init variables
     foundForwardPt = false;
+    foundPredictedCarPt = false;
     goal_received = false;
     goal_reached = false;
     velocity = 0.0;
@@ -197,6 +201,7 @@ void PurePursuit::odomCB(const nav_msgs::Odometry::ConstPtr& odomMsg)
 void PurePursuit::pathCB(const nav_msgs::Path::ConstPtr& pathMsg)
 {
     this->map_path = *pathMsg;
+    transform_path_data = true;
 }
 
 // 得到 goal 数据,并且转换到 map 坐标系下
@@ -247,26 +252,47 @@ bool PurePursuit::isForwardWayPt(const geometry_msgs::Point& wayPt, const geomet
         return false;
 }
 
-// 判断 wayPt 与 car_pos 的距离是否大于参数 Lfw
-bool PurePursuit::isWayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos, double distance)
+double PurePursuit::WayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos)
 {
     double dx = wayPt.x - car_pos.x;
     double dy = wayPt.y - car_pos.y;
-    double dist = sqrt(dx*dx + dy*dy);
+    return sqrt(dx*dx + dy*dy);
+}
 
-    if(dist < distance)
-        return false;
-    else if(dist >= distance)
-        return true;
+void PurePursuit::transformPathData(void)
+{
+    if(!goal_reached && transform_path_data)
+    {
+        transform_path_data = false;
+        odom_path.poses.clear();
+        for(int i = 0; i< map_path.poses.size(); i++)
+        {
+            geometry_msgs::PoseStamped map_path_pose = map_path.poses[i];
+            geometry_msgs::PoseStamped odom_path_pose;
+
+            try
+            {
+                tf_listener.transformPose("odom", ros::Time(0) , map_path_pose, "map" ,odom_path_pose); // 将点从 map 坐标系转换到 odom 坐标系下
+                odom_path.poses.push_back(odom_path_pose);
+            }
+            catch(tf::TransformException &ex)
+            {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+            }
+        }
+    }
 }
 
 geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pose& carPose)
 {
-    geometry_msgs::Point carPose_pos = carPose.position;
-    double carPose_yaw = getYawFromPose(carPose);
+    geometry_msgs::Pose carPosePredicted = carPose;
+    geometry_msgs::Point carPose_pos = carPosePredicted.position;
+    double carPose_yaw = getYawFromPose(carPosePredicted);
     geometry_msgs::Point forwardPt;
     geometry_msgs::Point odom_car2WayPtVec;
     foundForwardPt = false;
+    foundPredictedCarPt = false;
     forwardPtVector.clear();
 
     PURE_PURSUIT_INFO("===============================");
@@ -275,21 +301,30 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     bool _isYawInited = false;
 
     if(!goal_reached){
-        for(int i = 0; i< map_path.poses.size(); i++) // 对 path 上的每一个点进行处理
-        {
-            geometry_msgs::PoseStamped map_path_pose = map_path.poses[i];
-            geometry_msgs::PoseStamped odom_path_pose;
 
-            try
+        for(int i = 0; i< odom_path.poses.size(); i++) // 对 path 上的每一个点进行处理
+        {
+            geometry_msgs::PoseStamped odom_path_pose = odom_path.poses[i];
+            geometry_msgs::Point odom_path_wayPt = odom_path_pose.pose.position;
+
+            bool _isForwardWayPt = isForwardWayPt(odom_path_wayPt, carPosePredicted);
+            
+            if(_isForwardWayPt)
             {
-                tf_listener.transformPose("odom", ros::Time(0) , map_path_pose, "map" ,odom_path_pose); // 将点从 map 坐标系转换到 odom 坐标系下
-                geometry_msgs::Point odom_path_wayPt = odom_path_pose.pose.position;
-                bool _isForwardWayPt = isForwardWayPt(odom_path_wayPt,carPose);
-                forwardPtVector.push_back(odom_path_wayPt);
-                int index = forwardPtVector.size() - 1;
-                
-                if(_isForwardWayPt)
+                if(!foundPredictedCarPt)
                 {
+                    double dist = WayPtAwayFromLfwDist(odom_path_wayPt, carPose_pos);
+                    if(dist > predicted_dist)
+                    {
+                        foundPredictedCarPt = true;
+                        carPosePredicted = odom_path.poses[i].pose;
+                    }
+                }
+                else
+                {
+                    forwardPtVector.push_back(odom_path_wayPt);
+                    int index = forwardPtVector.size() - 1;
+
                     if(forwardPtVector.size() == 2)
                     {
                         PURE_PURSUIT_INFO("way pose info :");
@@ -311,11 +346,11 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
                         else cost += fabs(yaw - yaw_last);
                         PURE_PURSUIT_INFO("\t%d\t%lf\t%lf\t%lf\t%lf", index, forwardPtVector[index].x, forwardPtVector[index].y, yaw, cost);
 
-                        if(!foundForwardPt) // 如果 odom_path_wayPt 在 carPose 的前面
+                        
+
+                        if(!foundForwardPt) // 如果 odom_path_wayPt 在 carPosePredicted 的前面
                         {
-                            double dx = forwardPtVector[index].x - carPose_pos.x;
-                            double dy = forwardPtVector[index].y - carPose_pos.y;
-                            double dist = sqrt(dx*dx + dy*dy);
+                            double dist = WayPtAwayFromLfwDist(forwardPtVector[index], carPose_pos);
                             if(dist > Lfw_min)
                             {
                                 bool flag = false;
@@ -324,7 +359,7 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
 
                                 if(flag)
                                 {
-                                    forwardPt = odom_path_wayPt; // 如果 odom_path_wayPt 满足在 carPose 的前面,并且与 carPose 的距离大于参数 Lfw,记录满足条件的的一个点
+                                    forwardPt = odom_path_wayPt; // 如果 odom_path_wayPt 满足在 carPosePredicted 的前面,并且与 carPosePredicted 的距离大于参数 Lfw,记录满足条件的的一个点
                                     foundForwardPt = true;
                                     speed_expected = Vcmd_min;
                                     if(debug_mode) ROS_INFO("dist = %.3f, cost = %.3f, expected speed = %.2f", dist, cost, speed_expected);
@@ -335,11 +370,6 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
                     }
                 }
             }
-            catch(tf::TransformException &ex)
-            {
-                ROS_ERROR("%s",ex.what());
-                ros::Duration(1.0).sleep();
-            }
         }
         
     }
@@ -347,6 +377,7 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     {
         forwardPt = odom_goal_pos; // 如果已经接近终点,那么设定 forwardPt 为 odom_goal_pos
         foundForwardPt = false;
+        foundPredictedCarPt = false;
         //ROS_INFO("goal REACHED!");
     }
 
@@ -355,9 +386,9 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     points.points.clear();
     line_strip.points.clear();
     
-    if(foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
+    if(foundPredictedCarPt && foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
     {
-        line_strip.points = (forwardPtVector);
+        points.points = (forwardPtVector);
     }
 
     marker_pub.publish(points);
@@ -417,14 +448,14 @@ void PurePursuit::controlLoopCB(const ros::TimerEvent&)
 
     if(this->goal_received)
     {
-
-        
-
-
+        transformPathData();
 
         /*Estimate Steering Angle*/
-        double eta = getEta(carPose);  // 找出追踪路径上在机器人前方并且距离大于 Lfw 点,计算两点之间的夹角
-        if(foundForwardPt)
+        geometry_msgs::Point odom_car2WayPtVec = get_odom_car2WayPtVec(carPose);
+        double eta = atan2(odom_car2WayPtVec.y,odom_car2WayPtVec.x); // 计算 forwardPt 与 carPose_pos 的角度
+
+        
+        if(foundForwardPt && foundPredictedCarPt)
         {
             this->steering = this->base_angle + getSteering(eta)*this->steering_gain; // 计算舵机转角
 
