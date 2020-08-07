@@ -88,7 +88,7 @@
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node-->
 
-  <!-- 方案2的debug节点，可以看到teb_local_planner的feedback信息，使用前将teb的publish_feedback参数置true -->
+  <!-- 方案3的debug节点，可以看到teb_local_planner的feedback信息，使用前将teb的publish_feedback参数置true -->
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->

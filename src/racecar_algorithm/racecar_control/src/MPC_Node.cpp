@@ -67,7 +67,7 @@ class MPCNode
         double _mpc_steps, _ref_cte, _ref_epsi, _ref_vel, _w_cte, _w_epsi, _w_vel, 
                _w_delta, _w_accel, _w_delta_d, _w_accel_d, _max_steering, _max_throttle, _bound_value;
 
-        double _Lf, _dt, _steering, _throttle, _speed, _max_speed;
+        double _Lf, _dt, _steering, _throttle, _speed, _max_speed, _min_speed;
         double _pathLength, _goalRadius, _waypointsDist;
         int _controller_freq, _downSampling, _thread_numbers;
         bool _goal_received, _goal_reached, _path_computed, _pub_twist_flag, _debug_info, _delay_mode;
@@ -95,6 +95,7 @@ MPCNode::MPCNode()
     pn.param("debug_info", _debug_info, false);
     pn.param("delay_mode", _delay_mode, true);
     pn.param("max_speed", _max_speed, 2.0); // unit: m/s
+    pn.param("min_speed", _min_speed, 0.0); // unit: m/s
     pn.param("waypoints_dist", _waypointsDist, -1.0); // unit: m
     pn.param("path_length", _pathLength, 8.0); // unit: m
     pn.param("goal_radius", _goalRadius, 0.5); // unit: m
@@ -143,7 +144,7 @@ MPCNode::MPCNode()
     _sub_path   = _nh.subscribe( _globalPath_topic, 1, &MPCNode::pathCB, this);
     _sub_goal   = _nh.subscribe( _goal_topic, 1, &MPCNode::goalCB, this);
     _sub_amcl   = _nh.subscribe("/amcl_pose", 5, &MPCNode::amclCB, this);
-    _pub_odompath  = _nh.advertise<nav_msgs::Path>("/mpc_reference", 1); // reference path for MPC 
+    //_pub_odompath  = _nh.advertise<nav_msgs::Path>("/mpc_reference", 1); // reference path for MPC 
     _pub_mpctraj   = _nh.advertise<nav_msgs::Path>("/mpc_trajectory", 1);// MPC trajectory output
     _pub_ackermann = _nh.advertise<ackermann_msgs::AckermannDriveStamped>("/ackermann_cmd", 1);
     if(_pub_twist_flag)
@@ -255,7 +256,7 @@ void MPCNode::pathCB(const nav_msgs::Path::ConstPtr& pathMsg)
             int sampling = _downSampling;
             // Cut and downsampling the path
             for(int i =0; i< pathMsg->poses.size(); i++)
-            {
+            {  
                 if(total_length > _pathLength)
                     break;
 
@@ -267,7 +268,7 @@ void MPCNode::pathCB(const nav_msgs::Path::ConstPtr& pathMsg)
                     sampling = 0;
                 }
                 total_length = total_length + _waypointsDist; 
-                sampling = sampling + 1;  
+                sampling = sampling + 1; 
             }
            
             if(odom_path.poses.size() >= 6 )
@@ -275,9 +276,9 @@ void MPCNode::pathCB(const nav_msgs::Path::ConstPtr& pathMsg)
                 _odom_path = odom_path; // Path waypoints in odom frame
                 _path_computed = true;
                 // publish odom path
-                odom_path.header.frame_id = _odom_frame;
-                odom_path.header.stamp = ros::Time::now();
-                _pub_odompath.publish(odom_path);
+                //odom_path.header.frame_id = _odom_frame;
+                //odom_path.header.stamp = ros::Time::now();
+                //_pub_odompath.publish(odom_path);
             }
             //DEBUG            
             //cout << endl << "N: " << odom_path.poses.size() << endl <<  "Car path[0]: " << odom_path.poses[0] << ", path[N]: " << _odom_path.poses[_odom_path.poses.size()-1] << endl;
@@ -349,8 +350,8 @@ void MPCNode::controlLoopCB(const ros::TimerEvent&)
         const double sinpsi = sin(psi);
 
         // Convert to the vehicle coordinate system
-        VectorXd x_veh(N);
-        VectorXd y_veh(N);
+        VectorXd x_veh(N); // 存放x轴偏移的矩阵
+        VectorXd y_veh(N); // 存放y轴偏移的矩阵
         for(int i = 0; i < N; i++) 
         {
             const double dx = odom_path.poses[i].pose.position.x - px;
@@ -391,8 +392,8 @@ void MPCNode::controlLoopCB(const ros::TimerEvent&)
         _speed = v + _throttle*dt;  // speed
         if (_speed >= _max_speed)
             _speed = _max_speed;
-        if(_speed <= 0.0)
-            _speed = 0.0;
+        if(_speed <= _min_speed)
+            _speed = _min_speed;
 
         if(_debug_info)
         {

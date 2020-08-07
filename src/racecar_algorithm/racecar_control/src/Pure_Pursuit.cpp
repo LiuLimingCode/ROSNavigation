@@ -30,6 +30,14 @@
 #include <ackermann_msgs/AckermannDriveStamped.h>
 #include <visualization_msgs/Marker.h>
 
+//#define DEBUG
+#ifdef DEBUG
+#define PURE_PURSUIT_INFO ROS_ERROR
+#else
+#define PURE_PURSUIT_INFO
+#endif
+#define PI 3.1415926535898
+
 /********************/
 /* CLASS DEFINITION */
 /********************/
@@ -39,11 +47,8 @@ class PurePursuit
         PurePursuit();
         void initMarker();
         bool isForwardWayPt(const geometry_msgs::Point& wayPt, const geometry_msgs::Pose& carPose);
-        bool isWayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos);
-        double getExpectedSpeed(const geometry_msgs::Pose& carPose);
+        bool isWayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos, double distance);
         double getYawFromPose(const geometry_msgs::Pose& carPose);
-        double getAngle(const geometry_msgs::Point& wayPose_pos, const geometry_msgs::Pose& carPose);
-        double getAngle(const geometry_msgs::Point& wayPose_pos, const geometry_msgs::Point& carPose_pos, const double& carPose_yaw);
         double getEta(const geometry_msgs::Pose& carPose);
         double getCar2GoalDist();
         double getSteering(double eta);
@@ -66,8 +71,8 @@ class PurePursuit
 
         std::vector<geometry_msgs::Point> forwardPtVector;
 
-        double L, Lfw, Vcmd, lfw, steering, velocity;
-        double steering_gain, base_angle, goal_radius, speed_incremental;
+        double L, Lfw_max, Lfw_min, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max;
+        double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
         int controller_freq;
         bool foundForwardPt, goal_received, goal_reached, cmd_vel_mode, debug_mode, smooth_accel, stop_robot;
 
@@ -88,8 +93,10 @@ PurePursuit::PurePursuit()
 
     //Car parameter
     pn.param("L", L, 0.26); // length of car
-    pn.param("Vcmd", Vcmd, 1.0);// reference speed (m/s)
-    pn.param("Lfw", Lfw, 3.0); // forward look ahead distance (m)
+    pn.param("Vcmd_max", Vcmd_max, 1.0);// reference speed (m/s)
+    pn.param("Vcmd_min", Vcmd_min, 1.0);// reference speed (m/s)
+    pn.param("Lfw_max", Lfw_max, 3.0); // forward look ahead distance (m)
+    pn.param("Lfw_min", Lfw_min, 3.0); // forward look ahead distance (m)
     pn.param("lfw", lfw, 0.13); // distance between front the center of car
 
     //Controller parameter
@@ -102,6 +109,7 @@ PurePursuit::PurePursuit()
     pn.param("smooth_accel", smooth_accel, true); // smooth the acceleration of car 限制加速度
     pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
     pn.param("stop_robot", stop_robot, false);
+    pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
 
     //Publishers and Subscribers
     odom_sub = n_.subscribe("/pure_pursuit/odom", 1, &PurePursuit::odomCB, this);
@@ -126,8 +134,10 @@ PurePursuit::PurePursuit()
 
     //Show info
     ROS_INFO("[param] base_angle: %f", base_angle);
-    ROS_INFO("[param] Vcmd: %f", Vcmd);
-    ROS_INFO("[param] Lfw: %f", Lfw);
+    ROS_INFO("[param] Vcmd_max: %f", Vcmd_max);
+    ROS_INFO("[param] Vcmd_min: %f", Vcmd_min);
+    ROS_INFO("[param] Lfw-max: %f", Lfw_max);
+    ROS_INFO("[param] Lfw_min: %f", Lfw_min);
 
     //Visualization Marker Settings
     initMarker();
@@ -214,17 +224,11 @@ void PurePursuit::goalCB(const geometry_msgs::PoseStamped::ConstPtr& goalMsg)
 
 double PurePursuit::getYawFromPose(const geometry_msgs::Pose& carPose)
 {
-    float x = carPose.orientation.x;
-    float y = carPose.orientation.y;
-    float z = carPose.orientation.z;
-    float w = carPose.orientation.w;
+    tf::Pose pose;
+    tf::poseMsgToTF(carPose, pose);
+    const double psi = tf::getYaw(pose.getRotation());
 
-    double tmp,yaw;
-    tf::Quaternion q(x,y,z,w);
-    tf::Matrix3x3 quaternion(q);
-    quaternion.getRPY(tmp,tmp, yaw);
-
-    return yaw;
+    return psi;
 }
 
 // 判断 wayPt 是否在 carPose 的前面
@@ -244,15 +248,15 @@ bool PurePursuit::isForwardWayPt(const geometry_msgs::Point& wayPt, const geomet
 }
 
 // 判断 wayPt 与 car_pos 的距离是否大于参数 Lfw
-bool PurePursuit::isWayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos)
+bool PurePursuit::isWayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, const geometry_msgs::Point& car_pos, double distance)
 {
     double dx = wayPt.x - car_pos.x;
     double dy = wayPt.y - car_pos.y;
     double dist = sqrt(dx*dx + dy*dy);
 
-    if(dist < Lfw)
+    if(dist < distance)
         return false;
-    else if(dist >= Lfw)
+    else if(dist >= distance)
         return true;
 }
 
@@ -264,6 +268,11 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     geometry_msgs::Point odom_car2WayPtVec;
     foundForwardPt = false;
     forwardPtVector.clear();
+
+    PURE_PURSUIT_INFO("===============================");
+    PURE_PURSUIT_INFO("car pose info = x: %lf, y: %lf, yaw: %lf", carPose_pos.x, carPose_pos.y, carPose_yaw);
+    double cost = 0, x_diff, y_diff, yaw, yaw_last;
+    bool _isYawInited = false;
 
     if(!goal_reached){
         for(int i = 0; i< map_path.poses.size(); i++) // 对 path 上的每一个点进行处理
@@ -277,16 +286,52 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
                 geometry_msgs::Point odom_path_wayPt = odom_path_pose.pose.position;
                 bool _isForwardWayPt = isForwardWayPt(odom_path_wayPt,carPose);
                 forwardPtVector.push_back(odom_path_wayPt);
-
-                if((!foundForwardPt) && _isForwardWayPt) // 如果 odom_path_wayPt 在 carPose 的前面
+                int index = forwardPtVector.size() - 1;
+                
+                if(_isForwardWayPt)
                 {
-                    bool _isWayPtAwayFromLfwDist = isWayPtAwayFromLfwDist(odom_path_wayPt,carPose_pos);
-
-                    if(_isWayPtAwayFromLfwDist)
+                    if(forwardPtVector.size() == 2)
                     {
-                        forwardPt = odom_path_wayPt; // 如果 odom_path_wayPt 满足在 carPose 的前面,并且与 carPose 的距离大于参数 Lfw,记录满足条件的的一个点
-                        foundForwardPt = true;
-                        //break;
+                        PURE_PURSUIT_INFO("way pose info :");
+                        PURE_PURSUIT_INFO("\tindex\tx\ty\tyaw\tcost\t");
+                        PURE_PURSUIT_INFO("\t%d\t%lf\t%lf\t", 0, forwardPtVector[0].x, forwardPtVector[0].y);
+                        PURE_PURSUIT_INFO("\t%d\t%lf\t%lf\t%lf\t", 1, forwardPtVector[1].x, forwardPtVector[1].y, yaw_last);
+                    }
+                    else if(forwardPtVector.size() > 2)
+                    {
+                        yaw_last = atan2(forwardPtVector[index -1].y - forwardPtVector[index - 2].y, forwardPtVector[index - 1].x - forwardPtVector[index - 2].x);
+                        x_diff = forwardPtVector[index].x - forwardPtVector[index - 1].x;
+                        y_diff = forwardPtVector[index].y - forwardPtVector[index - 1].y;
+                        yaw = atan2(y_diff, x_diff);
+                        //x_sum += fabs(cos(yaw_last)*(forwardPtVector[index].x - forwardPtVector[index - 1].x) + sin(yaw_last)*(forwardPtVector[index].y - forwardPtVector[index - 1].y));
+                        //y_sum += fabs(-sin(yaw_last)*(forwardPtVector[index].x - forwardPtVector[index - 1].x) + cos(yaw_last)*(forwardPtVector[index].y - forwardPtVector[index - 1].y));
+
+                        if(fabs(yaw + 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw + 2 * PI - yaw_last));
+                        else if(fabs(yaw - 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw -  2 * PI - yaw_last));
+                        else cost += fabs(yaw - yaw_last);
+                        PURE_PURSUIT_INFO("\t%d\t%lf\t%lf\t%lf\t%lf", index, forwardPtVector[index].x, forwardPtVector[index].y, yaw, cost);
+
+                        if(!foundForwardPt) // 如果 odom_path_wayPt 在 carPose 的前面
+                        {
+                            double dx = forwardPtVector[index].x - carPose_pos.x;
+                            double dy = forwardPtVector[index].y - carPose_pos.y;
+                            double dist = sqrt(dx*dx + dy*dy);
+                            if(dist > Lfw_min)
+                            {
+                                bool flag = false;
+                                if(dist > Lfw_max) flag = true;
+                                else if(cost > cost_max) flag = true;
+
+                                if(flag)
+                                {
+                                    forwardPt = odom_path_wayPt; // 如果 odom_path_wayPt 满足在 carPose 的前面,并且与 carPose 的距离大于参数 Lfw,记录满足条件的的一个点
+                                    foundForwardPt = true;
+                                    speed_expected = Vcmd_min;
+                                    if(debug_mode) ROS_INFO("dist = %.3f, cost = %.3f, expected speed = %.2f", dist, cost, speed_expected);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -312,10 +357,7 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     
     if(foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
     {
-        points.points.push_back(carPose_pos);
-        points.points.push_back(forwardPt);
-        line_strip.points.push_back(carPose_pos);
-        line_strip.points.push_back(forwardPt);
+        line_strip.points = (forwardPtVector);
     }
 
     marker_pub.publish(points);
@@ -324,23 +366,6 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     odom_car2WayPtVec.x = cos(carPose_yaw)*(forwardPt.x - carPose_pos.x) + sin(carPose_yaw)*(forwardPt.y - carPose_pos.y);
     odom_car2WayPtVec.y = -sin(carPose_yaw)*(forwardPt.x - carPose_pos.x) + cos(carPose_yaw)*(forwardPt.y - carPose_pos.y);
     return odom_car2WayPtVec; // 返回 forwardPt 与 carPose_pos 的距离并转换到机器人的坐标系下
-}
-
-
-double PurePursuit::getAngle(const geometry_msgs::Point& wayPose_pos, const geometry_msgs::Pose& carPose)
-{
-    geometry_msgs::Point carPose_pos = carPose.position;
-    double carPose_yaw = getYawFromPose(carPose);
-
-    return getAngle(wayPose_pos, carPose_pos, carPose_yaw);
-}
-
-double PurePursuit::getAngle(const geometry_msgs::Point& wayPose_pos, const geometry_msgs::Point& carPose_pos, const double& carPose_yaw)
-{
-    double x = cos(carPose_yaw)*(wayPose_pos.x - carPose_pos.x) + sin(carPose_yaw)*(wayPose_pos.y - carPose_pos.y);
-    double y = -sin(carPose_yaw)*(wayPose_pos.x - carPose_pos.x) + cos(carPose_yaw)*(wayPose_pos.y - carPose_pos.y);
-
-    return atan2(y, x);
 }
 
 double PurePursuit::getEta(const geometry_msgs::Pose& carPose)
@@ -362,7 +387,7 @@ double PurePursuit::getCar2GoalDist()
 
 double PurePursuit::getSteering(double eta)
 {
-    return atan2((this->L*sin(eta)),(this->Lfw/2 + this->lfw*cos(eta)));
+    return atan2((this->L*sin(eta)),(this->Lfw_min/2 + this->lfw*cos(eta)));
 }
 
 // 接受到机器人在 map 坐标系下的坐标,判断机器人是否已经到达目标点
@@ -383,35 +408,6 @@ void PurePursuit::amclCB(const geometry_msgs::PoseWithCovarianceStamped::ConstPt
     }
 }
 
-double PurePursuit::getExpectedSpeed(const geometry_msgs::Pose& carPose)
-{
-    if(this->goal_reached) return 0;
-
-    ROS_ERROR("===============================");
-
-    double carPose_yaw = getYawFromPose(carPose);
-    geometry_msgs::Point carPose_pos = carPose.position;
-    ROS_ERROR("car pose info = x: %lf, y: %lf, yaw: %lf", carPose_pos.x, carPose_pos.y, carPose_yaw);
-
-    std::vector<double> angleVector;
-    double cost = 0;
-    double normalization = 1;
-
-    angleVector.push_back(getAngle(forwardPtVector[0], carPose));
-    cost += fabs(angleVector[0]);
-    ROS_ERROR("way pose[%d] info = x: %lf, y: %lf, yaw: %lf, cost: %lf", 0, forwardPtVector[0].x, forwardPtVector[0].y, angleVector[0], cost);
-    for(auto index = 1; index < forwardPtVector.size(); ++index)
-    {
-        angleVector.push_back(getAngle(forwardPtVector[index], forwardPtVector[index - 1], angleVector[index - 1]));
-        cost += fabs(angleVector[index]) / (index + 1);
-        ROS_ERROR("way pose[%d] info = x: %lf, y: %lf, yaw: %lf, cost: %lf", index, forwardPtVector[index].x, forwardPtVector[index].y, angleVector[index], cost);
-        normalization += 1.0 / (index + 1);
-    }
-    ROS_ERROR("num: %d, normalization: %lf", (int)forwardPtVector.size(), normalization);
-    cost /= normalization;
-    ROS_ERROR("cost final: %lf", cost);
-}
-
 // 控制周期
 void PurePursuit::controlLoopCB(const ros::TimerEvent&)
 {
@@ -421,6 +417,11 @@ void PurePursuit::controlLoopCB(const ros::TimerEvent&)
 
     if(this->goal_received)
     {
+
+        
+
+
+
         /*Estimate Steering Angle*/
         double eta = getEta(carPose);  // 找出追踪路径上在机器人前方并且距离大于 Lfw 点,计算两点之间的夹角
         if(foundForwardPt)
@@ -430,11 +431,15 @@ void PurePursuit::controlLoopCB(const ros::TimerEvent&)
             /*Estimate Gas Input*/
             if(!this->goal_reached)
             {
-                getExpectedSpeed(carPose);
                 if(this->smooth_accel) // 计算速度
-                    this->velocity = std::min(this->velocity + this->speed_incremental, this->Vcmd);
+                {
+                    if(speed_expected >= this->velocity) this->velocity = std::min(this->velocity + this->speed_incremental, speed_expected);
+                    else this->velocity = std::max(this->velocity - this->speed_incremental, speed_expected);
+                }
                 else
-                    this->velocity = this->Vcmd;
+                {
+                    this->velocity = speed_expected;
+                }
                 if(debug_mode) ROS_INFO("Velocity = %.2f, Steering = %.2f", this->velocity, this->steering);
             }
         }
@@ -448,6 +453,7 @@ void PurePursuit::controlLoopCB(const ros::TimerEvent&)
     
     if(!stop_robot)
     {
+        this->ackermann_cmd.header.stamp = ros::Time::now();
         this->ackermann_cmd.drive.steering_angle = this->steering;
         this->ackermann_cmd.drive.speed = this->velocity;
         this->ackermann_pub.publish(this->ackermann_cmd);
