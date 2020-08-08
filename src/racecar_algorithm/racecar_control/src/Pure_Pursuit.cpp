@@ -253,10 +253,12 @@ double PurePursuit::WayPtAwayFromLfwDist(const geometry_msgs::Point& wayPt, cons
 
 void PurePursuit::transformPathData(void)
 {
+    if(map_path.poses.size() == 0) return;
+    nav_msgs::Path path;
     if(!goal_reached && transform_path_data)
     {
         transform_path_data = false;
-        odom_path.poses.clear();
+        path.poses.clear();
         for(int i = 0; i< map_path.poses.size(); i++)
         {
             geometry_msgs::PoseStamped map_path_pose = map_path.poses[i];
@@ -265,14 +267,15 @@ void PurePursuit::transformPathData(void)
             try
             {
                 tf_listener.transformPose("odom", ros::Time(0) , map_path_pose, "map" ,odom_path_pose); // 将点从 map 坐标系转换到 odom 坐标系下
-                odom_path.poses.push_back(odom_path_pose);
+                path.poses.push_back(odom_path_pose);
             }
             catch(tf::TransformException &ex)
             {
                 ROS_ERROR("%s",ex.what());
-                ros::Duration(1.0).sleep();
+                return;
             }
         }
+        odom_path = path;
     }
 }
 
@@ -292,6 +295,16 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     double cost = 0, x_diff, y_diff, yaw, yaw_last;
     bool _isYawInited = false;
 
+    PURE_PURSUIT_INFO("way pose number: %d", (int)odom_path.poses.size());
+    for(int i = 0; i< odom_path.poses.size(); i++)
+    {
+        geometry_msgs::PoseStamped odom_path_pose = odom_path.poses[i];
+        geometry_msgs::Point wayPose_pos = odom_path_pose.pose.position;
+        double wayPose_yaw = getYawFromPose(odom_path_pose.pose);
+
+        PURE_PURSUIT_INFO("way pose info = x: %lf, y: %lf, yaw: %lf", wayPose_pos.x, wayPose_pos.y, wayPose_yaw);    
+    }
+
     if(!goal_reached){
 
         for(int i = 0; i< odom_path.poses.size(); i++) // 对 path 上的每一个点进行处理
@@ -310,6 +323,7 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
                     {
                         foundPredictedCarPt = true;
                         carPosePredicted = odom_path.poses[i].pose;
+                        PURE_PURSUIT_INFO("car pose predicted info = index: %d, x: %lf, y: %lf", i, carPosePredicted.position.x, carPosePredicted.position.y);
                     }
                 }
                 else
@@ -337,26 +351,32 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
                         else if(fabs(yaw - 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw -  2 * PI - yaw_last));
                         else cost += fabs(yaw - yaw_last);
                         PURE_PURSUIT_INFO("\t%d\t%lf\t%lf\t%lf\t%lf", index, forwardPtVector[index].x, forwardPtVector[index].y, yaw, cost);
+                        double dist = WayPtAwayFromLfwDist(forwardPtVector[index], carPose_pos);
 
                         if(!foundForwardPt) // 如果 odom_path_wayPt 在 carPosePredicted 的前面
                         {
-                            double dist = WayPtAwayFromLfwDist(forwardPtVector[index], carPose_pos);
                             if(dist > Lfw_min)
                             {
-                                bool flag = false;
-                                if(dist > Lfw_max) flag = true;
-                                else if(cost > cost_max) flag = true;
+                                forwardPt = odom_path_wayPt; // 如果 odom_path_wayPt 满足在 carPosePredicted 的前面,并且与 carPosePredicted 的距离大于参数 Lfw,记录满足条件的的一个点
+                                foundForwardPt = true;
+                            }                            
+                        }
+                        else
+                        {
+                            bool flag = false;
+                            if(dist > Lfw_max) flag = true;
+                            else if(cost > cost_max) flag = true;
 
-                                if(flag)
-                                {
-                                    forwardPt = odom_path_wayPt; // 如果 odom_path_wayPt 满足在 carPosePredicted 的前面,并且与 carPosePredicted 的距离大于参数 Lfw,记录满足条件的的一个点
-                                    foundForwardPt = true;
-                                    speed_expected = Vcmd_min;
-                                    if(debug_mode) ROS_INFO("dist = %.3f, cost = %.3f, expected speed = %.2f", dist, cost, speed_expected);
-                                    break;
-                                }
+                            if(flag)
+                            {
+                                if(dist < 1.2)  speed_expected = Vcmd_min;
+                                else speed_expected = (dist - 1.2) / (Lfw_max - 1.2) * (Vcmd_max - Vcmd_min) + Vcmd_min;
+                                if(speed_expected > Vcmd_max) speed_expected = Vcmd_max;
+                                if(debug_mode) ROS_INFO("dist = %.3f, cost = %.3f, expected speed = %.2f", dist, cost, speed_expected);
+                                break;
                             }
                         }
+                        
                     }
                 }
             }
@@ -377,8 +397,10 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     
     if(foundPredictedCarPt && foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
     {
+        if(forwardPtVector.size() == 0) ROS_ERROR("forwardPtVector.size() == 0");
         points.points = (forwardPtVector);
     }
+    else ROS_ERROR("foundPredictedCarPt:%d && foundForwardPt%d", (int)foundPredictedCarPt, (int)foundForwardPt);
 
     marker_pub.publish(points);
     
@@ -455,7 +477,7 @@ void PurePursuit::controlLoopCB(const ros::TimerEvent&)
                 if(this->smooth_accel) // 计算速度
                 {
                     if(speed_expected >= this->velocity) this->velocity = std::min(this->velocity + this->speed_incremental, speed_expected);
-                    else this->velocity = std::max(this->velocity - this->speed_incremental, speed_expected);
+                    else this->velocity = speed_expected;
                 }
                 else
                 {
