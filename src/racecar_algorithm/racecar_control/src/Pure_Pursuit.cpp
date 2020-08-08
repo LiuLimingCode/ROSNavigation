@@ -63,7 +63,7 @@ class PurePursuit
         ros::Timer timer1, timer2;
         tf::TransformListener tf_listener;
 
-        visualization_msgs::Marker points, line_strip, goal_circle;
+        visualization_msgs::Marker points, goal_circle;
         geometry_msgs::Point odom_goal_pos, goal_pos;
         geometry_msgs::Twist cmd_vel;
         ackermann_msgs::AckermannDriveStamped ackermann_cmd;
@@ -72,7 +72,7 @@ class PurePursuit
 
         std::vector<geometry_msgs::Point> forwardPtVector;
 
-        double L, Lfw_max, Lfw_min, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max, predicted_dist;
+        double L, Lfw_max, Lfw_min, Vcmd_max, Vcmd_min, lfw, steering, steering_last, velocity, cost_max, predicted_dist, k_d;
         double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
         int controller_freq;
         bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot;
@@ -113,6 +113,7 @@ PurePursuit::PurePursuit()
     pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
     pn.param("stop_robot", stop_robot, false);
     pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
+    pn.param("k_d", k_d, 0.25); // 
 
     //Publishers and Subscribers
     odom_sub = n_.subscribe("/pure_pursuit/odom", 1, &PurePursuit::odomCB, this);
@@ -151,26 +152,21 @@ PurePursuit::PurePursuit()
 }
 
 
-// 初始化 visualization_msgs::Marker points, line_strip, goal_circle;
+// 初始化 visualization_msgs::Marker points, goal_circle;
 void PurePursuit::initMarker()
 {
-    points.header.frame_id = line_strip.header.frame_id = goal_circle.header.frame_id = "odom";
-    points.ns = line_strip.ns = goal_circle.ns = "Markers";
-    points.action = line_strip.action = goal_circle.action = visualization_msgs::Marker::ADD;
-    points.pose.orientation.w = line_strip.pose.orientation.w = goal_circle.pose.orientation.w = 1.0;
+    points.header.frame_id = goal_circle.header.frame_id = "odom";
+    points.ns = goal_circle.ns = "Markers";
+    points.action = goal_circle.action = visualization_msgs::Marker::ADD;
+    points.pose.orientation.w = goal_circle.pose.orientation.w = 1.0;
     points.id = 0;
-    line_strip.id = 1;
     goal_circle.id = 2;
 
     points.type = visualization_msgs::Marker::POINTS;
-    line_strip.type = visualization_msgs::Marker::LINE_STRIP;
     goal_circle.type = visualization_msgs::Marker::CYLINDER;
     // POINTS markers use x and y scale for width/height respectively
     points.scale.x = 0.2;
     points.scale.y = 0.2;
-
-    //LINE_STRIP markers use only the x component of scale, for the line width
-    line_strip.scale.x = 0.1;
 
     goal_circle.scale.x = goal_radius;
     goal_circle.scale.y = goal_radius;
@@ -179,10 +175,6 @@ void PurePursuit::initMarker()
     // Points are green
     points.color.g = 1.0f;
     points.color.a = 1.0;
-
-    // Line strip is blue
-    line_strip.color.b = 1.0;
-    line_strip.color.a = 1.0;
 
     //goal_circle is yellow
     goal_circle.color.r = 1.0;
@@ -346,8 +338,6 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
                         else cost += fabs(yaw - yaw_last);
                         PURE_PURSUIT_INFO("\t%d\t%lf\t%lf\t%lf\t%lf", index, forwardPtVector[index].x, forwardPtVector[index].y, yaw, cost);
 
-                        
-
                         if(!foundForwardPt) // 如果 odom_path_wayPt 在 carPosePredicted 的前面
                         {
                             double dist = WayPtAwayFromLfwDist(forwardPtVector[index], carPose_pos);
@@ -384,7 +374,6 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     /*Visualized Target Point on RVIZ*/
     /*Clear former target point Marker*/
     points.points.clear();
-    line_strip.points.clear();
     
     if(foundPredictedCarPt && foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
     {
@@ -392,7 +381,6 @@ geometry_msgs::Point PurePursuit::get_odom_car2WayPtVec(const geometry_msgs::Pos
     }
 
     marker_pub.publish(points);
-    marker_pub.publish(line_strip);
     
     odom_car2WayPtVec.x = cos(carPose_yaw)*(forwardPt.x - carPose_pos.x) + sin(carPose_yaw)*(forwardPt.y - carPose_pos.y);
     odom_car2WayPtVec.y = -sin(carPose_yaw)*(forwardPt.x - carPose_pos.x) + cos(carPose_yaw)*(forwardPt.y - carPose_pos.y);
@@ -457,7 +445,9 @@ void PurePursuit::controlLoopCB(const ros::TimerEvent&)
         
         if(foundForwardPt && foundPredictedCarPt)
         {
-            this->steering = this->base_angle + getSteering(eta)*this->steering_gain; // 计算舵机转角
+            double steer_angle = this->base_angle + getSteering(eta)*this->steering_gain; // 计算舵机转角
+            this->steering = steer_angle + (steer_angle - this->steering_last) * this->k_d;
+            this->steering_last = steer_angle;
 
             /*Estimate Gas Input*/
             if(!this->goal_reached)
@@ -502,7 +492,7 @@ bool PurePursuit::stopRobotCB(std_srvs::SetBool::Request &req, std_srvs::SetBool
 {
     stop_robot = req.data;
     res.success = stop_robot;
-    res.message = "success";
+    res.message = "success"; 
     return true;
 }
 
