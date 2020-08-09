@@ -171,8 +171,12 @@ ADD_EXECUTABLE( MPC_Node src/MPC.cpp src/MPC_Node.cpp )
 TARGET_LINK_LIBRARIES(MPC_Node ipopt ${catkin_LIBRARIES} )
 
 # Pure Pursuit Node
-add_executable(Pure_Pursuit src/Pure_Pursuit.cpp)
-target_link_libraries(Pure_Pursuit ${catkin_LIBRARIES})
+add_executable(pure_pursuit src/pure_pursuit.cpp)
+target_link_libraries(pure_pursuit ${catkin_LIBRARIES})
+
+# Multi goals Navigation
+add_executable(multi_goals_navigation src/multi_goals_navigation.cpp)
+target_link_libraries(multi_goals_navigation ${catkin_LIBRARIES})
 
 #############
 ## Install ##
