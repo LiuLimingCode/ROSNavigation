@@ -14,6 +14,8 @@
 #include <ackermann_msgs/AckermannDriveStamped.h>
 #include <visualization_msgs/Marker.h>
 
+#define PI 3.1415926535898
+
 class MultiGoalsNavigation
 {
 private:
@@ -278,15 +280,30 @@ public:
         return psi;
     }
 
-    void publishGoal(const geometry_msgs::Point& goal)
+    void publishGoal(int currentGoalIndex)
     {
+        currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
+        if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
+
+        const geometry_msgs::Point * lastGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex - 1]];
+        double currentAngel = atan2(currentGoal->y - lastGoal->y, currentGoal->x - lastGoal->x);
+
+        double xPublished = currentGoal->x, yPublished = currentGoal->y, anglePublished = currentAngel;
+        if(currentGoalIndex + 1 < optimalGoalsIndexVector.size() - 1)
+        {
+            const geometry_msgs::Point * futureGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex + 1]];
+            anglePublished = atan2(futureGoal->y - currentGoal->y, futureGoal->x - currentGoal->x);
+            xPublished += (cos(anglePublished) * goalRadius);
+            yPublished += (sin(anglePublished) * goalRadius);
+        }
+
         geometry_msgs::PoseStamped pose;
-        tf::Quaternion q = tf::createQuaternionFromYaw(0);
+        tf::Quaternion q = tf::createQuaternionFromYaw(anglePublished);
 
         pose.header.frame_id = mapFrame;
         pose.header.stamp = ros::Time::now();
-        pose.pose.position.x = goal.x - mapOffsetX;
-        pose.pose.position.y = goal.y - mapOffsetY;
+        pose.pose.position.x = xPublished - mapOffsetX;
+        pose.pose.position.y = yPublished - mapOffsetY;
         pose.pose.position.z = 0;
         pose.pose.orientation.w = q.w();
         pose.pose.orientation.x = q.x();
@@ -400,9 +417,7 @@ public:
             if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
             {
                 currentGoalIndex++;
-                currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
-                if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
-                publishGoal(*currentGoal);
+                publishGoal(currentGoalIndex);
             }
             else
             {
@@ -422,9 +437,7 @@ public:
         if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", initPoint.x, initPoint.y, initYaw);
 
         currentGoalIndex = 1;
-        currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
-        if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
-        publishGoal(*currentGoal);
+        publishGoal(currentGoalIndex);
     }
 
     template<typename T>
