@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
-<!-- roslaunch racecar_launch run_all.launch simulator:=true world_name:=racetrack
+<!-- roslaunch racecar_launch run_all.launch simulator:=true world_name:=warehouse
 
-roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_name:=racetrack -->
+roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_name:=warehouse -->
 
 <launch>
 
@@ -40,7 +40,7 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
   
     <param name="/use_sim_time" value="true"/>
 
-    <arg name="world_name" default="racetrack"/>
+    <arg name="world_name" default="warehouse"/>
 
     <include file="$(find racecar_launch)/launch/run_simulator.launch">
       <arg name="origin_x" default="$(arg origin_x)"/>
@@ -99,14 +99,14 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
 
   <!-- savemap -->
   <group if="$(arg savemap)">
-    <arg name="world_name" default="building"/>
+    <arg name="world_name" default="warehouse"/>
     <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg world_name)"/>
   </group>
 
 
   <!-- navigation -->
   <group if="$(arg navigation)">
-    <arg name="world_name" default="racetrack"/>
+    <arg name="world_name" default="warehouse"/>
     <include file="$(find racecar_launch)/launch/run_navigation.launch">
       <arg name="map_topic" default="$(arg map_topic)"/>
       <arg name="scan_topic" default="$(arg scan_topic)"/>

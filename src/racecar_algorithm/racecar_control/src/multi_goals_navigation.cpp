@@ -89,6 +89,7 @@ private:
             HeapNode startNode(startIndex, 0);
             startNode.path.clear();
             startNode.path.push_back(startIndex);
+            bestPath[startIndex] = startNode.path;
             heapNodeQueue.push(startNode);
 
             while(!heapNodeQueue.empty())
@@ -143,13 +144,14 @@ private:
     std::vector<Dijskra::LocationsRelation> locationRelationVector;
     std::vector<int> goalsIndexVector;
     std::vector<bool> goalsStaticVector;
+    std::vector<int> optimalGoalsIndexVector;
 
     int currentGoalIndex = 0;
     const geometry_msgs::Point * currentGoal;
 
     Dijskra dijskra;
-    std::vector<double *> distance;
-    std::vector<std::vector<int> *> bestPath;
+    std::vector<double *> globalDistance;
+    std::vector<std::vector<int> *> globalBestPath;
 
 public:
     ~MultiGoalsNavigation() = default;
@@ -192,6 +194,7 @@ public:
 
         checkCondition(goalsIndexVector.size() != goalsStaticVector.size(), "fatal error: the size of goals_id array param is not equal to the size of goals_static array param");
         checkCondition(goalsIndexVector.size() == 0, "fatal error: the size of goals_id array param is 0");
+        checkCondition(!(goalsStaticVector[0] && goalsStaticVector[goalsStaticVector.size() - 1]), "fatal error: the begin and the end of goals_static array param must be true");
 
         if(debugMode) ROS_INFO("locations relation:");
         for(auto index = 0; index < locationRelationVector.size(); ++index)
@@ -220,9 +223,9 @@ public:
 
         for(int startIndex = 0; startIndex < locationVector.size(); ++startIndex)
         {
-            distance.push_back(new double[locationVector.size()]);
-            bestPath.push_back(new std::vector<int>[locationVector.size()]);
-            dijskra.run(startIndex, distance[startIndex], bestPath[startIndex]);
+            globalDistance.push_back(new double[locationVector.size()]);
+            globalBestPath.push_back(new std::vector<int>[locationVector.size()]);
+            dijskra.run(startIndex, globalDistance[startIndex], globalBestPath[startIndex]);
 
             if(debugMode)
             {
@@ -230,16 +233,30 @@ public:
                 ROS_INFO("start point index: %d", startIndex + 1);
                 for(int endIndex = 0; endIndex < locationVector.size(); ++endIndex)
                 {
-                    std::string str = std::string("end point index: ") + std::to_string(endIndex + 1) + std::string(" distance: ") + std::to_string(distance[startIndex][endIndex]);
+                    std::string str = std::string("end point index: ") + std::to_string(endIndex + 1) + std::string(" distance: ") + std::to_string(globalDistance[startIndex][endIndex]);
                     str += std::string(" best path: ");
-                    for(int index = 0; index < bestPath[startIndex][endIndex].size(); ++index)
+                    for(int index = 0; index < globalBestPath[startIndex][endIndex].size(); ++index)
                     {
-                        str = str + std::to_string(bestPath[startIndex][endIndex][index] + 1) + std::string(" -> ");
+                        str = str + std::to_string(globalBestPath[startIndex][endIndex][index] + 1) + std::string(" -> ");
                     }
                     str += std::string("end");
                     ROS_INFO_STREAM(str);
                 }
             }
+        }
+
+        optimalGoalsIndexVector = getOptimalGoalsIndex(geometry_msgs::Pose(), goalsIndexVector);
+        if(debugMode)
+        {
+            ROS_INFO("feasible goals info:");
+            std::string str;
+            str += std::string(" best path: ");
+            for(int index = 0; index < optimalGoalsIndexVector.size(); ++index)
+            {
+                str = str + std::to_string(optimalGoalsIndexVector[index] + 1) + std::string(" -> ");
+            }
+            str += std::string("end");
+            ROS_INFO_STREAM(str);
         }
     }
 
@@ -279,6 +296,97 @@ public:
         goalPublisher.publish(pose);
     }
 
+    void numberPermutation(std::vector<int> numberVector, int begin, int end, std::vector<std::vector<int> > * resultVector)
+    {
+        if(begin == end) resultVector->push_back(numberVector);
+
+        for(int index = begin; index < end; ++index)
+        {
+            int temp = numberVector[begin];
+            numberVector[begin] = numberVector[index];
+            numberVector[index] = temp;
+
+            numberPermutation(numberVector, begin + 1, end, resultVector);
+
+            temp = numberVector[begin];
+            numberVector[begin] = numberVector[index];
+            numberVector[index] = temp;
+        }
+    }
+
+    std::vector<int> choooceBestPath(int startIndex, int stopIndex, const std::vector<int>& goalsIndex)
+    {
+       
+        if(goalsIndex.empty())
+        {
+            return globalBestPath[startIndex][startIndex];
+        }
+
+        std::vector<std::vector<int> > goalsPermutation;
+        std::vector<int> tempGoalsIndex = goalsIndex;
+        numberPermutation(tempGoalsIndex, 0, tempGoalsIndex.size(), &goalsPermutation);
+
+        double minCost = 1000000;
+        int minIndex = 1;
+        std::vector<int> bestPath;
+        for(int index = 0; index < goalsPermutation.size(); ++index)
+        {
+            std::vector<int> goalsSelected = goalsPermutation[index];
+            goalsSelected.insert(goalsSelected.begin(), startIndex);
+            goalsSelected.push_back(stopIndex);
+
+            double costSum = 0;
+            std::vector<int> pathSum;
+            for(int alpha = 1; alpha < goalsSelected.size(); ++alpha)
+            {
+                const int begin = goalsSelected[alpha - 1];
+                const int end = goalsSelected[alpha];
+                costSum += globalDistance[begin][end];
+                std::vector<int> pathSegment = globalBestPath[begin][end];
+                
+                for(int beta = 1; beta < pathSegment.size(); ++beta)
+                {
+                    pathSum.push_back(pathSegment[beta]);
+                }
+            }
+
+            if(costSum < minCost)
+            {
+                minCost = costSum;
+                minIndex = index;
+                bestPath = pathSum;
+            }
+        }
+
+        bestPath.insert(bestPath.begin(), startIndex);
+        return bestPath;
+    }
+
+    std::vector<int> getOptimalGoalsIndex(geometry_msgs::Pose, const std::vector<int>& goalsIndex)
+    {
+        std::vector<int> goalsNeedOptimize;
+        std::vector<int> goalsOptimized;
+
+        goalsOptimized.push_back(goalsIndex[0]); // 第一个点一定是固定的起点
+        for(int index = 1; index < goalsIndexVector.size(); ++index)
+        {
+            if(!goalsStaticVector[index])
+            {
+                goalsNeedOptimize.push_back(goalsIndexVector[index]);
+            }
+            else
+            {
+                int startIndex = goalsOptimized[goalsOptimized.size() - 1]; // 优化队列中最后一个值当做起点
+                int endIndex = goalsIndexVector[index]; // 当前值当做终点
+                std::vector<int> result = choooceBestPath(startIndex, endIndex, goalsNeedOptimize);
+                for(int temp = 1; temp < result.size(); ++temp) goalsOptimized.push_back(result[temp]);
+                goalsNeedOptimize.clear();
+            }
+        }
+
+        return goalsOptimized;
+    }
+
     void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
     {
         if(!navigationStarted) return;
@@ -289,11 +397,11 @@ public:
 
         if(dist < goalRadius)
         {
-            if(currentGoalIndex < goalsIndexVector.size() - 1)
+            if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
             {
                 currentGoalIndex++;
-                currentGoal = &locationVector[goalsIndexVector[currentGoalIndex]];
-                if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, goalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
+                currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
+                if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
                 publishGoal(*currentGoal);
             }
             else
@@ -313,9 +421,9 @@ public:
         ROS_INFO("received init pose msg, started multi navigation");
         if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", initPoint.x, initPoint.y, initYaw);
 
-        currentGoalIndex = 0;
-        currentGoal = &locationVector[goalsIndexVector[currentGoalIndex]];
-        if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, goalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
+        currentGoalIndex = 1;
+        currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
+        if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
         publishGoal(*currentGoal);
     }
 
@@ -429,12 +537,6 @@ public:
         return numberVector;
     }
 };
-
-
-
-
-
-
 
 int main(int argc, char **argv)
 {
