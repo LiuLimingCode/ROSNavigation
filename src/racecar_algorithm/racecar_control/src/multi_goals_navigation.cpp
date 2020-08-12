@@ -2,7 +2,8 @@
 #include <string>
 #include <queue>
 #include "ros/ros.h"
-#include <std_srvs/SetBool.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/Trigger.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
@@ -131,12 +132,14 @@ private:
     };
 
     ros::NodeHandle nodeHandle;
-    ros::Subscriber amclSubscriber, goalSubscriber;
+    ros::Subscriber amclSubscriber, goalSubscriber, clickedPointSubscriber;
     ros::Publisher goalPublisher;
+    ros::ServiceServer normalizeServer;
+    ros::ServiceClient clearCostmapsClient;
 
-    std::string mapFrame, amclPoseTopic, initPoseTopic, goalTopic;
+    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, initPoseTopic, goalTopic, clickedPointTopic;
 
-    double goalRadius, mapOffsetX, mapOffsetY;
+    double goalRadius, mapOffsetX, mapOffsetY, mapOffsetYaw;
 
     bool debugMode, navigationStarted;
 
@@ -149,7 +152,13 @@ private:
     std::vector<int> optimalGoalsIndexVector;
 
     int currentGoalIndex = 0;
-    const geometry_msgs::Point * currentGoal;
+    const geometry_msgs::Point* currentGoal;
+    geometry_msgs::PoseStamped publishedGoal;
+
+    #define NORMALIZED_POINTS_NUMBER 3
+    geometry_msgs::Point clickedPoints[NORMALIZED_POINTS_NUMBER];
+    int normalizedIndex = 0;
+    bool normalizeStarted = false;
 
     Dijskra dijskra;
     std::vector<double *> globalDistance;
@@ -163,13 +172,16 @@ public:
         ros::NodeHandle _n("~");
 
         _n.param<std::string>("map_frame", mapFrame, "map");
+        _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
         _n.param<std::string>("amcl_pose_topic", amclPoseTopic, "/amcl_pose");
         _n.param<std::string>("init_pose_topic", initPoseTopic, "/initialpose");
         _n.param<std::string>("goal_topic", goalTopic, "/move_base_simple/goal");
+        _n.param<std::string>("clicked_point_topic", clickedPointTopic, "/clicked_point");
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
-        _n.param<double>("map_offset_x", mapOffsetX, 1.0);
-        _n.param<double>("map_offset_y", mapOffsetY, 1.0);
+        _n.param<double>("map_offset_x", mapOffsetX, 0.0);
+        _n.param<double>("map_offset_y", mapOffsetY, 0.0);
+        _n.param<double>("map_offset_yaw", mapOffsetYaw, 0.0);
 
         _n.param<bool>("debug_mode", debugMode, false);
 
@@ -180,7 +192,10 @@ public:
 
         amclSubscriber = nodeHandle.subscribe(amclPoseTopic, 1, &MultiGoalsNavigation::amclPoseCallBack, this);
         goalSubscriber = nodeHandle.subscribe(initPoseTopic, 1, &MultiGoalsNavigation::initPoseoalCallBack, this);
+        clickedPointSubscriber.shutdown();
         goalPublisher = nodeHandle.advertise<geometry_msgs::PoseStamped>(goalTopic, 10);
+        normalizeServer = nodeHandle.advertiseService("start_normalize_map", &MultiGoalsNavigation::startNormalizeMapCallBack, this);
+        clearCostmapsClient = nodeHandle.serviceClient<std_srvs::Empty>(clearCostmapsServer);
 
         try
         {
@@ -283,7 +298,7 @@ public:
     void publishGoal(int currentGoalIndex)
     {
         currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
-        if(debugMode) ROS_INFO("current goal index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
+        if(debugMode) ROS_INFO("current goal info (before rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
 
         const geometry_msgs::Point * lastGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex - 1]];
         double currentAngel = atan2(currentGoal->y - lastGoal->y, currentGoal->x - lastGoal->x);
@@ -297,20 +312,31 @@ public:
             yPublished += (sin(anglePublished) * goalRadius);
         }
 
-        geometry_msgs::PoseStamped pose;
-        tf::Quaternion q = tf::createQuaternionFromYaw(anglePublished);
+        double x = xPublished - mapOffsetX;
+        double y = yPublished - mapOffsetY;
+        double radius = sqrt(x * x + y * y);
+        double yaw = atan2(y, x);
+        double rotatedX = radius * cos(yaw) * cos(-mapOffsetYaw) - radius * sin(yaw) * sin(-mapOffsetYaw);
+        double rotatedY = radius * sin(yaw) * cos(-mapOffsetYaw) + radius * cos(yaw) * sin(-mapOffsetYaw);
+        double rotatedYaw = anglePublished - mapOffsetYaw;
+        if(rotatedYaw > PI) rotatedYaw -= (2 * PI);
+        if(rotatedYaw < -PI) rotatedYaw += (2 * PI);
 
-        pose.header.frame_id = mapFrame;
-        pose.header.stamp = ros::Time::now();
-        pose.pose.position.x = xPublished - mapOffsetX;
-        pose.pose.position.y = yPublished - mapOffsetY;
-        pose.pose.position.z = 0;
-        pose.pose.orientation.w = q.w();
-        pose.pose.orientation.x = q.x();
-        pose.pose.orientation.y = q.y();
-        pose.pose.orientation.z = q.z();
+        publishedGoal = geometry_msgs::PoseStamped();
+        tf::Quaternion q = tf::createQuaternionFromYaw(rotatedYaw);
 
-        goalPublisher.publish(pose);
+        publishedGoal.header.frame_id = mapFrame;
+        publishedGoal.header.stamp = ros::Time::now();
+        publishedGoal.pose.position.x = rotatedX;
+        publishedGoal.pose.position.y = rotatedY;
+        publishedGoal.pose.position.z = 0;
+        publishedGoal.pose.orientation.w = q.w();
+        publishedGoal.pose.orientation.x = q.x();
+        publishedGoal.pose.orientation.y = q.y();
+        publishedGoal.pose.orientation.z = q.z();
+        if(debugMode) ROS_INFO("current goal info (after rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, rotatedX, rotatedY);
+
+        goalPublisher.publish(publishedGoal);
     }
 
     void numberPermutation(std::vector<int> numberVector, int begin, int end, std::vector<std::vector<int> > * resultVector)
@@ -404,12 +430,106 @@ public:
         return goalsOptimized;
     }
 
+    void clickedPointCallBack(const geometry_msgs::PointStamped::ConstPtr& point)
+    {
+        clickedPoints[normalizedIndex] = point->point;
+        ROS_INFO("normalized info: points, index: %d, x: %lf, y: %lf", normalizedIndex, point->point.x, point->point.y);
+        ++normalizedIndex;
+
+        if(normalizedIndex == NORMALIZED_POINTS_NUMBER)
+        {
+            clickedPointSubscriber.shutdown();
+            geometry_msgs::Point idealPoints[NORMALIZED_POINTS_NUMBER];
+            idealPoints[0].x = -8, idealPoints[0].y = 5;
+            idealPoints[1].x = 9,  idealPoints[1].y = 5;
+            idealPoints[2].x = 9,  idealPoints[2].y = -5.5;
+
+            double idealYaw[NORMALIZED_POINTS_NUMBER], clickedYaw[NORMALIZED_POINTS_NUMBER];
+            idealYaw[0] = atan2(idealPoints[1].y - idealPoints[0].y, idealPoints[1].x - idealPoints[0].x);
+            clickedYaw[0] = atan2(clickedPoints[1].y - clickedPoints[0].y, clickedPoints[1].x - clickedPoints[0].x);
+            idealYaw[1] = atan2(idealPoints[2].y - idealPoints[1].y, idealPoints[2].x - idealPoints[1].x);
+            clickedYaw[1] = atan2(clickedPoints[2].y - clickedPoints[1].y, clickedPoints[2].x - clickedPoints[1].x);
+            idealYaw[2] = atan2(idealPoints[0].y - idealPoints[2].y, idealPoints[0].x - idealPoints[2].x);
+            clickedYaw[2] = atan2(clickedPoints[0].y - clickedPoints[2].y, clickedPoints[0].x - clickedPoints[2].x);
+
+            double yawDiff[NORMALIZED_POINTS_NUMBER], yawSum = 0.0;
+            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+            {
+                yawDiff[index] = idealYaw[index] - clickedYaw[index];
+                if(yawDiff[index] > PI) yawDiff[index] -= (2 * PI);
+                if(yawDiff[index] < -PI) yawDiff[index] += (2 * PI);
+                ROS_INFO("nomalized info yaw_diff, index: %d, yaw: %lf", index, yawDiff[index]);
+                yawSum += yawDiff[index];
+            }
+            double normalizedYaw = yawSum / (double)NORMALIZED_POINTS_NUMBER;
+            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+            {
+                if(fabs(normalizedYaw - yawDiff[index]) >= 0.1) ROS_ERROR("normalized failed!");
+            }
+            ROS_INFO("nomalized info: yaw: %lf", normalizedYaw);
+
+            double xDiff[NORMALIZED_POINTS_NUMBER], yDiff[NORMALIZED_POINTS_NUMBER], xSum = 0, ySum = 0;
+            geometry_msgs::Point RotatedPoint[NORMALIZED_POINTS_NUMBER];
+            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+            {
+                double clickedX = clickedPoints[index].x;
+                double clickedY = clickedPoints[index].y;
+                double radius = sqrt(clickedX * clickedX + clickedY * clickedY);
+                double alpha = atan2(clickedY, clickedX);
+
+                double rotatedX = radius * cos(alpha) * cos(normalizedYaw) - radius * sin(alpha) * sin(normalizedYaw);
+                double rotatedY = radius * sin(alpha) * cos(normalizedYaw) + radius * cos(alpha) * sin(normalizedYaw);
+                xDiff[index] = idealPoints[index].x - rotatedX;
+                yDiff[index] = idealPoints[index].y - rotatedY;
+                xSum += xDiff[index];
+                ySum += yDiff[index];
+
+                ROS_INFO("nomalized info: index: %d, x_diff: %lf, y_diff: %lf", index, xDiff[index], yDiff[index]);
+            }
+            double normalizedX = xSum / (double)NORMALIZED_POINTS_NUMBER;
+            double normalizedY = ySum / (double)NORMALIZED_POINTS_NUMBER;
+            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+            {
+                if(fabs(normalizedX - xDiff[index]) >= 0.1) ROS_ERROR("normalized failed!");
+                if(fabs(normalizedY - yDiff[index] >= 0.1)) ROS_ERROR("normalized failed!");
+            }
+            ROS_INFO("nomalized info: x: %lf, y: %lf", normalizedX, normalizedY);
+
+            mapOffsetX = normalizedX;
+            mapOffsetY = normalizedY;
+            mapOffsetYaw = normalizedYaw;
+        }
+    }
+
+    bool startNormalizeMapCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    {
+        if(!normalizeStarted)
+        {
+            clickedPointSubscriber = nodeHandle.subscribe(clickedPointTopic, 3, &MultiGoalsNavigation::clickedPointCallBack, this);
+            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+            {
+                clickedPoints[index] = geometry_msgs::Point();
+            }
+            normalizedIndex = 0;
+
+            res.success = true;
+            res.message = "success"; 
+            return true;
+        }
+        else
+        {
+            res.success = false;
+            res.message = "fail"; 
+            return false;
+        }
+    }
+
     void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
     {
         if(!navigationStarted) return;
 
-        double dx = amclMsg->pose.pose.position.x - currentGoal->x;
-        double dy = amclMsg->pose.pose.position.y - currentGoal->y;
+        double dx = amclMsg->pose.pose.position.x - publishedGoal.pose.position.x;
+        double dy = amclMsg->pose.pose.position.y - publishedGoal.pose.position.y;
         double dist = sqrt(dx * dx + dy * dy);
 
         if(dist < goalRadius)
@@ -429,6 +549,11 @@ public:
 
     void initPoseoalCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& data)
     {
+        ros::Duration waitDuration(1);
+        waitDuration.sleep();
+        std_srvs::Empty trigger;
+        if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
+
         geometry_msgs::Point initPoint = data->pose.pose.position;
         double initYaw = getYawFromPose(data->pose.pose);
  

@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /OdomEKFGreen1/Shape1
+        - /OdomRf2oBlue1/Shape1
       Splitter Ratio: 0.602305472
     Tree Height: 747
   - Class: rviz/Selection
@@ -169,7 +171,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: false
+      Enabled: true
       Keep: 200
       Name: OdomEKFGreen
       Position Tolerance: 0.100000001
@@ -179,13 +181,13 @@ Visualization Manager:
         Axes Radius: 0.100000001
         Color: 0; 255; 0
         Head Length: 0.300000012
-        Head Radius: 0.100000001
-        Shaft Length: 1
+        Head Radius: 0.0500000007
+        Shaft Length: 0.0500000007
         Shaft Radius: 0.0500000007
         Value: Arrow
       Topic: /odom_ekf
       Unreliable: false
-      Value: false
+      Value: true
     - Angle Tolerance: 0.100000001
       Class: rviz/Odometry
       Covariance:
@@ -203,7 +205,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: false
+      Enabled: true
       Keep: 200
       Name: OdomRf2oBlue
       Position Tolerance: 0.100000001
@@ -213,82 +215,13 @@ Visualization Manager:
         Axes Radius: 0.100000001
         Color: 0; 0; 255
         Head Length: 0.300000012
-        Head Radius: 0.100000001
-        Shaft Length: 1
+        Head Radius: 0.0500000007
+        Shaft Length: 0.0500000007
         Shaft Radius: 0.0500000007
         Value: Arrow
       Topic: /odom_rf2o
       Unreliable: false
-      Value: false
-    - Alpha: 0.800000012
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 255; 0; 0
-      Enabled: false
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: PathRealRed
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /path_gazebo
-      Unreliable: false
-      Value: false
-    - Alpha: 0.800000012
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 0; 255; 0
-      Enabled: false
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: PathEKFGreen
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /path_ekf
-      Unreliable: false
-      Value: false
-    - Alpha: 0.800000012
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 0; 0; 255
-      Enabled: false
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: PathRf2oBlue
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /path_rf2o
-      Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -586,16 +519,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 13.7623358
+      Distance: 12.9990673
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 4.41783857
-        Y: -0.119803339
-        Z: 2.31254935
+        X: 3.20029283
+        Y: 0.683312535
+        Z: 4.33606434
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
@@ -604,7 +537,7 @@ Visualization Manager:
       Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.13726664
+      Yaw: 6.27729702
     Saved: ~
 Window Geometry:
   Displays:

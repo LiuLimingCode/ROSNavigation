@@ -100,10 +100,12 @@
     <param name="amcl_pose_topic" value="/amcl_pose"/>
     <param name="init_pose_topic" value="/initialpose"/>
     <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="clicked_point_topic" value="/clicked_point"/>
+    <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
   </node>
 
   <!-- 计时节点,计算导航所用时间 -->
-  <node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
+  <!--node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="map_frame" value="$(arg map_frame)"/>
@@ -111,6 +113,6 @@
     <param name="min_time" value="2"/>
     <param name="goal_x" value="0"/>
     <param name="consider_x" value="less"/>
-  </node>
+  </node-->
 
 </launch>

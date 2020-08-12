@@ -14,11 +14,6 @@
   <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
   <arg name="odom_ekf_topic" default="/odom_ekf"/>
 
-  <arg name="odom_to_path" default="true"/>
-  <arg name="path_gazebo_topic" default="/path_gazebo"/>
-  <arg name="path_rf2o_topic" default="/path_rf2o"/>
-  <arg name="path_ekf_topic" default="/path_ekf"/>
-
   <arg name="ackermann_topic" default="/cmd_ackermann"/>
   <arg name="base_frame" default="base_footprint"/>
   <arg name="odom_frame" default="odom"/>
@@ -47,15 +42,6 @@
     <param name="odom_frame" value="$(arg odom_frame)"/>
   </node>
 
-  <!-- 将odometry数据转化为path数据,以方便显示 -->
-  <include file="$(find odometry_to_path)/launch/odometry_to_path.launch" if="$(arg odom_to_path)">
-    <arg name="node_name" default="odom_gazebo_to_path_node"/>
-    <arg name="update_frequncy" default="10.0"/>
-    <arg name="odom_buffer_num" default="2000"/>
-    <arg name="odom_sub_topic" default="$(arg odom_gazebo_topic)"/>
-    <arg name="path_pub_topic" default="$(arg path_gazebo_topic)"/>
-  </include>
-
   <!-- http://wiki.ros.org/rf2o_laser_odometry -->
   <!-- RF2O算法：从激光雷达的数据中得到机器人的线速度、角速度数据 -->
   <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
@@ -64,14 +50,6 @@
     <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
     <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
     <arg name="base_frame_id" default="$(arg base_frame)"/>
-  </include>
-
-  <include file="$(find odometry_to_path)/launch/odometry_to_path.launch" if="$(arg odom_to_path)">
-    <arg name="node_name" default="odom_rf2o_to_path_node"/>
-    <arg name="update_frequncy" default="10.0"/>
-    <arg name="odom_buffer_num" default="2000"/>
-    <arg name="odom_sub_topic" default="$(arg odom_rf2o_topic)"/>
-    <arg name="path_pub_topic" default="$(arg path_rf2o_topic)"/>
   </include>
 
   <!-- http://docs.ros.org/kinetic/api/robot_localization/html/index.html -->
@@ -86,14 +64,6 @@
     <arg name="base_link_frame" default="$(arg base_frame)"/>
     <arg name="world_frame" default="$(arg odom_frame)"/>
     <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
-  </include>
-
-  <include file="$(find odometry_to_path)/launch/odometry_to_path.launch" if="$(arg odom_to_path)">
-    <arg name="node_name" default="odom_ekf_to_path_node"/>
-    <arg name="update_frequncy" default="10.0"/>
-    <arg name="odom_buffer_num" default="2000"/>
-    <arg name="odom_sub_topic" default="$(arg odom_ekf_topic)"/>
-    <arg name="path_pub_topic" default="$(arg path_ekf_topic)"/>
   </include>
 
   <!-- 将$(arg odom_gazebo_topic)重命名为$(arg odom_topic)，方便系统使用 -->

@@ -50,8 +50,6 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
       <arg name="use_rf2o_odom" default="false"/>
       <arg name="use_ekf_odom" default="true"/>
 
-      <arg name="odom_to_path" default="true"/>
-
       <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
       <arg name="base_frame" default="$(arg base_frame)"/>
       <arg name="odom_frame" default="$(arg odom_frame)"/>
@@ -70,8 +68,6 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
 
       <arg name="use_rf2o_odom" default="false"/>
       <arg name="use_ekf_odom" default="true"/>
-
-      <arg name="odom_to_path" default="true"/>
 
       <arg name="base_frame" default="$(arg base_frame)"/>
       <arg name="imu_frame" default="$(arg imu_frame)"/>

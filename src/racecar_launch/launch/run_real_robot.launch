@@ -12,10 +12,6 @@
   <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
   <arg name="odom_ekf_topic" default="/odom_ekf"/>
 
-  <arg name="odom_to_path" default="true"/>
-  <arg name="path_rf2o_topic" default="/path_rf2o"/>
-  <arg name="path_ekf_topic" default="/path_ekf"/>
-
   <arg name="base_frame" default="base_footprint"/>
   <arg name="imu_frame" default="imu_link"/>
   <arg name="imu_topic" default="/imu_data"/>
@@ -66,15 +62,6 @@
 
   <!-- ！！！！！！！！！！！！！！！！！！！！以下为定位！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！ -->
 
-  <!-- 将odometry数据转化为path数据,以方便显示 -->
-  <include file="$(find odometry_to_path)/launch/odometry_to_path.launch" if="$(arg odom_to_path)">
-    <arg name="node_name" default="odom_ekf_to_path_node"/>
-    <arg name="update_frequncy" default="10.0"/>
-    <arg name="odom_buffer_num" default="2000"/>
-    <arg name="odom_sub_topic" default="$(arg odom_ekf_topic)"/>
-    <arg name="path_pub_topic" default="$(arg path_ekf_topic)"/>
-  </include>
-
   <!-- http://wiki.ros.org/rf2o_laser_odometry -->
   <!-- RF2O算法：从激光雷达的数据中得到机器人的线速度、角速度数据 -->
   <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
@@ -85,22 +72,12 @@
     <arg name="base_frame_id" default="$(arg base_frame)"/>
   </include>
 
-  <include file="$(find odometry_to_path)/launch/odometry_to_path.launch" if="$(arg odom_to_path)">
-    <arg name="node_name" default="odom_rf2o_to_path_node"/>
-    <arg name="update_frequncy" default="10.0"/>
-    <arg name="odom_buffer_num" default="2000"/>
-    <arg name="odom_sub_topic" default="$(arg odom_rf2o_topic)"/>
-    <node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)" args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
-    <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)" args="$(arg odom_ekf_topic) $(arg odom_topic)"/>
-    <arg name="path_pub_topic" default="$(arg path_rf2o_topic)"/>
-  </include>
-
   <!-- http://docs.ros.org/kinetic/api/robot_localization/html/index.html -->
   <!-- 扩展卡尔曼滤波(EKF)：融合RF2O数据和IMU数据得到更加准确的定位数据 -->
   <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
     <arg name="publish_tf" default="$(arg use_ekf_odom)"/>
     <arg name="odom_frame" default="$(arg odom_frame)"/>
-    <arg name="odom_pub_topic" default="$(arg odom_ekf_topic)"/>
+    <arg name="odom_pub_topic" default="$(arg odom_topic)"/>
     <arg name="imu0_topic" default="$(arg imu_topic)"/>
     <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
     <arg name="map_frame" default="$(arg map_frame)"/>
@@ -108,10 +85,6 @@
     <arg name="world_frame" default="$(arg odom_frame)"/>
     <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
   </include>
-
-  <!-- 重命名odom的topic，方便后面使用 -->
-  <node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)" args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
-  <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)" args="$(arg odom_ekf_topic) $(arg odom_topic)"/>
 
 </launch>
 
