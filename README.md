@@ -55,13 +55,13 @@ bash install.sh
 
 - 1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
 
-- 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch_simulator/map/building.yaml,修改该文件第一行image:的文件地址)
+- 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch/map/building.yaml,修改该文件第一行image:的文件地址)
 ```
-roslaunch racecar_launch_simulator run_all.launch simulator:=true world_name:=building
+roslaunch racecar_launch run_all.launch simulator:=true world_name:=building
 ```
 - 3 执行定位、导航功能包
 ```
-roslaunch racecar_launch_simulator run_all.launch navigation:=true world_name:=building rviz_full:=true speed:=1
+roslaunch racecar_launch run_all.launch navigation:=true world_name:=building rviz_full:=true speed:=1
 ```
 - 4 执行结果如下
 
@@ -90,3 +90,25 @@ ROS导航官方教程：http://wiki.ros.org/navigation/Tutorials
 官网教程：http://gazebosim.org/tutorials （可以重点学习Get Started、Build a Robot、Model Editor、Build a World、Sensors、Connect to ROS章节）
 
 
+#### 车模参数
+轴距 33.5cm
+轮距 28.5cm
+imu (0,0,0) 单位cm
+laser （-9,0,9) 单位cm
+base_link （-18,0,-5) 单位cm
+转向半径 左 90cm
+转向半径 右 105cm
+车footprint 40cm x 60cm
+右最大打角 35度 0.6108652382
+左最大打角 35度 0.6108652382
+
+#### 电调设置
+运行模式:直接正反转
+拖刹力度:100%
+电池低压保护阈值:3.0V/Cell
+启动模式:4级
+最大刹车力度:75%
+最大倒车力度:100%
+初始刹车力度:0%
+油门中立点区域宽度:6%(窄)
+进角:0.00度

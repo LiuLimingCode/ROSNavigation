@@ -6,14 +6,49 @@
 std::string odom_topic;
 std::string frame_id;
 std::string child_frame_id;
+int publish_frequency;
 
 serial::Serial ser;
 
 std::string serial_port;
 
 int count = 0;
-
 double speed = 0;
+ros::Publisher pub;
+
+void TimerCallBack(const ros::TimerEvent&)
+{
+    unsigned char data_size;
+    if(data_size = ser.available())
+    {
+        unsigned char tmpdata[data_size];
+
+        nav_msgs::Odometry odom;
+
+        ser.read(tmpdata,data_size);
+
+        odom.header.stamp = ros::Time::now();
+        odom.header.seq = count;
+        odom.header.frame_id = frame_id;
+        odom.child_frame_id = child_frame_id;
+
+        if((tmpdata[0] == 0x00) && (tmpdata[1] == 0xaa))
+        {
+            uint16_t check = 0,check_receive = 0;
+            check_receive = tmpdata[4];
+            check = (tmpdata[2] + tmpdata[3]) & 0xFF;
+            if((check == check_receive) && (tmpdata[5] == 0xBB))
+            {
+                speed =(((tmpdata[3] << 8) | tmpdata[2]) - 32767) / 100.0; 
+                odom.twist.twist.linear.x = speed;
+                pub.publish(odom);
+                //  ROS_INFO("ASDJFAJKSFD %f",speed);
+                count++;
+            }
+        }
+        ros::spinOnce();
+    }
+}
 
 int main(int argc,char **argv)
 {
@@ -24,7 +59,8 @@ int main(int argc,char **argv)
     n.param<std::string>("serial_port", serial_port, "/dev/car");
     n.param<std::string>("odom_frame_id", frame_id, "odom");
     n.param<std::string>("base_frame_id", child_frame_id, "base_footprint");
-    ros::Publisher pub = n.advertise<nav_msgs::Odometry>(odom_topic,500);
+    n.param<int>("publish_frequency", publish_frequency, 50);
+    pub = n.advertise<nav_msgs::Odometry>(odom_topic,500);
 
     try
     {
@@ -48,39 +84,7 @@ int main(int argc,char **argv)
         return -1;
     }
 
-    ros::Rate loop_rate(200);
+    ros::Timer timer = n.createTimer(ros::Duration((1.0) / publish_frequency), &TimerCallBack); // Duration(0.05) -> 20Hz
 
-    while(ros::ok())
-    {
-        unsigned char data_size;
-        if(data_size = ser.available())
-        {
-            unsigned char tmpdata[data_size];
-
-            nav_msgs::Odometry odom;
-
-            ser.read(tmpdata,data_size);
-
-            odom.header.stamp = ros::Time::now();
-            odom.header.seq = count;
-            odom.header.frame_id = frame_id;
-            odom.child_frame_id = child_frame_id;
-
-            if((tmpdata[0] == 0x00) && (tmpdata[1] == 0xaa))
-            {
-                uint16_t check = 0,check_receive = 0;
-                check_receive = tmpdata[4];
-                check = (tmpdata[2] + tmpdata[3]) & 0xFF;
-                if((check == check_receive) && (tmpdata[5] == 0xBB))
-                {
-                    speed =(((tmpdata[3] << 8) | tmpdata[2]) - 32767) / 100.0; 
-                    odom.twist.twist.linear.x = speed;
-                    pub.publish(odom);
-                    //  ROS_INFO("ASDJFAJKSFD %f",speed);
-                    count++;
-                }
-            }
-            ros::spinOnce();
-        }
-    }
+    ros::spin();
 }

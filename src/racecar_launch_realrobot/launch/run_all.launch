@@ -36,12 +36,6 @@ roslaunch racecar_launch_realrobot run_all.launch navigation:=true rviz_full:=tr
   <!-- realrobot -->
   <group if="$(arg realrobot)">
     <include file="$(find racecar_launch_realrobot)/launch/run_real_robot.launch">
-
-      <!-- <arg name="use_rf2o_odom" default="false"/>
-      <arg name="use_ekf_odom" default="true"/> -->
-
-      <arg name="odom_to_path" default="true"/>
-
       <arg name="base_frame" default="$(arg base_frame)"/>
       <arg name="imu_frame" default="$(arg imu_frame)"/>
       <arg name="imu_topic" default="$(arg imu_topic)"/>
