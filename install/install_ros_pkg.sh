@@ -105,6 +105,7 @@ sudo apt install -y ros-$rosversion-moveit-ros-visualization
 # hardware
 sudo apt install -y ros-$rosversion-rosserial
 sudo apt install -y ros-$rosversion-rosserial-arduino
+sudo apt install -y ros-$rosversion-serial
 
 # other (not ROS)
 sudo apt install -y chrony

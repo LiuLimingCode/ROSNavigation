@@ -55,13 +55,13 @@ bash install.sh
 
 - 1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
 
-- 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch/map/building.yaml,修改该文件第一行image:的文件地址)
+- 2 如果仿真，执行以下指令来打开Gazebo仿真环境(如果报错,找到racecar_launch_simulator/map/building.yaml,修改该文件第一行image:的文件地址)
 ```
-roslaunch racecar_launch run_all.launch simulator:=true world_name:=building
+roslaunch racecar_launch_simulator run_all.launch simulator:=true world_name:=building
 ```
 - 3 执行定位、导航功能包
 ```
-roslaunch racecar_launch run_all.launch navigation:=true world_name:=building rviz_full:=true speed:=1
+roslaunch racecar_launch_simulator run_all.launch navigation:=true world_name:=building rviz_full:=true speed:=1
 ```
 - 4 执行结果如下
 

@@ -1,0 +1,18 @@
+# 全局 costmap 参数，应该无需修改
+
+global_costmap:
+  #global_frame: map
+  #robot_base_frame: base_footprint
+  update_frequency: 10
+  publish_frequency: 10
+  static_map: false
+  rolling_window: true
+  width: 80
+  height: 20
+  transform_tolerance: 0.5
+ 
+  transform_tolerance: 0.5
+  plugins:
+    - {name: static_layer,            type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer,          type: "costmap_2d::VoxelLayer"}
+    - {name: inflation_layer,         type: "costmap_2d::InflationLayer"}

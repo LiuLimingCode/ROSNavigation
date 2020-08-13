@@ -1,4 +1,0 @@
-GlobalPlanner:
-    publish_potential: False
-    use_dijkstra: True
-    use_grid_path: False

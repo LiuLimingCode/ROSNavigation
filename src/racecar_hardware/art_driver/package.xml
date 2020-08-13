@@ -62,6 +62,14 @@
   <build_depend>ackermann_msgs</build_depend>
   <build_export_depend>ackermann_msgs</build_export_depend>
   <exec_depend>ackermann_msgs</exec_depend>
+  
+  <build_depend>nav_msgs</build_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  <exec_depend>nav_msgs</exec_depend>
+
+  <build_depend>serial</build_depend>
+  <build_export_depend>serial</build_export_depend>
+  <exec_depend>serial</exec_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

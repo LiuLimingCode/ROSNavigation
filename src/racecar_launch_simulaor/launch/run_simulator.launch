@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="origin_x" default="0"/>
+  <arg name="origin_y" default="0"/>
+
+  <!-- 由于本系统的Odometry数据可以由多个节点发布，而机器人运行只需要1个Odometry数据 -->
+  <!-- 当use_xxx_odom被选择为true时，只有该节点会发布(arg odom_frame)的tf数据，并且该节点发布的odom数据会被重新命名为(arg odom_topic) -->
+  <arg name="use_gazebo_odom" default="false"/>
+  <arg name="use_rf2o_odom" default="false"/>
+  <arg name="use_ekf_odom" default="true"/>
+  <arg name="odom_gazebo_topic" default="/odom_gazebo"/>
+  <arg name="odom_rf2o_topic" default="/odom_rf2o"/>
+  <arg name="odom_ekf_topic" default="/odom_ekf"/>
+
+  <arg name="ackermann_topic" default="/cmd_ackermann"/>
+  <arg name="base_frame" default="base_footprint"/>
+  <arg name="odom_frame" default="odom"/>
+  <arg name="map_frame" default="/map"/>
+  <arg name="odom_topic" default="/odom"/>
+  <arg name="scan_topic" default="/scan"/>
+  <arg name="imu_topic" default="/imu_data"/>
+  <arg name="world_name" default="building"/>
+
+  <!-- 打开gazebo并且设置机器人和仿真环境 -->
+  <include file="$(find racecar_gazebo)/launch/racecar_gazebo.launch">
+    <arg name="x_pos" default="$(arg origin_x)"/>
+    <arg name="y_pos" default="$(arg origin_y)"/>
+    <arg name="world_name" default="$(arg world_name)"/>
+  </include>
+
+  <!-- 从gazebo中得到机器人的准确定位数据，用作参考 -->
+  <node pkg="racecar_gazebo" name="gazebo_odometry_node" type="gazebo_odometry.py">
+    <param name="x_pos" value="$(arg origin_x)"/>
+    <param name="y_pos" value="$(arg origin_y)"/>
+    <param name="object_name" value="racecar"/>
+    <param name="update_rate" value="10"/>
+    <param name="publish_tf" value="$(arg use_gazebo_odom)"/>
+    <param name="odom_topic" value="$(arg odom_gazebo_topic)"/>
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+  </node>
+
+  <!-- http://wiki.ros.org/rf2o_laser_odometry -->
+  <!-- RF2O算法：从激光雷达的数据中得到机器人的线速度、角速度数据 -->
+  <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
+    <arg name="publish_tf" default="$(arg use_rf2o_odom)"/>
+    <arg name="odom_frame_id" default="$(arg odom_frame)"/>
+    <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
+    <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
+    <arg name="base_frame_id" default="$(arg base_frame)"/>
+  </include>
+
+  <!-- http://docs.ros.org/kinetic/api/robot_localization/html/index.html -->
+  <!-- 扩展卡尔曼滤波(EKF)：融合RF2O数据和IMU数据得到更加准确的定位数据 -->
+  <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
+    <arg name="publish_tf" default="$(arg use_ekf_odom)"/>
+    <arg name="odom_frame" default="$(arg odom_frame)"/>
+    <arg name="odom_pub_topic" default="$(arg odom_ekf_topic)"/>
+    <arg name="imu0_topic" default="$(arg imu_topic)"/>
+    <arg name="odom0_topic" default="$(arg odom_rf2o_topic)"/>
+    <arg name="map_frame" default="$(arg map_frame)"/>
+    <arg name="base_link_frame" default="$(arg base_frame)"/>
+    <arg name="world_frame" default="$(arg odom_frame)"/>
+    <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
+  </include>
+
+  <!-- 将$(arg odom_gazebo_topic)重命名为$(arg odom_topic)，方便系统使用 -->
+  <node name="odom_gazebo_relay" pkg="topic_tools" type="relay" if="$(arg use_gazebo_odom)"
+        args="$(arg odom_gazebo_topic) $(arg odom_topic)"/>
+  <node name="odom_rf2o_relay" pkg="topic_tools" type="relay" if="$(arg use_rf2o_odom)"
+        args="$(arg odom_rf2o_topic) $(arg odom_topic)"/>
+  <node name="odom_ekf_relay" pkg="topic_tools" type="relay" if="$(arg use_ekf_odom)"
+        args="$(arg odom_ekf_topic) $(arg odom_topic)"/>
+
+  <!-- 使用键盘发布cmd数据 -->
+  <node pkg="racecar_control" type="keyboard_teleop.py" name="keyboard_teleop">
+    <param name="speed" value="1"/>
+    <param name="max_steering_angle" value="0.785398163"/>
+    <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
+  </node>
+
+</launch>

@@ -2,7 +2,7 @@
 #coding:utf-8
 
 import rospy
-
+from std_msgs.msg import Int16
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -11,6 +11,7 @@ import sys, select, termios, tty
 import time
 
 state_pub = None
+Stop_Flag_pub = None
 
 speed_max = 0
 speed_min = 0
@@ -22,12 +23,16 @@ angle_t = 0
 
 def joy_callback(data):
     global state_pub
+    global Stop_Flag_pub
+
     global speed_set
     global speed_t
     global angle_t
+
     ack = AckermannDriveStamped()
     ack.header.stamp = rospy.Time.now()
 
+    Stop = Int16()
 
     if (data.buttons[10] == 1):         #速度切换键（SELECT）
         if (speed_set == speed_max):
@@ -49,13 +54,21 @@ def joy_callback(data):
     else:
         angle_t = 0
 
+    if(data.buttons[6] == 1 or data.buttons[8] == 1):
+        Stop.data = 1
+    if(data.buttons[7] == 1 or data.buttons[9] == 1):
+        Stop.data = 2
+
     ack.drive.speed = speed_t
     ack.drive.steering_angle = angle_t
-    print("speed=%d angle=%f"%(speed_t,angle_t))
+    print("speed=%f angle=%f"%(speed_t,angle_t))
     state_pub.publish(ack)
+    Stop_Flag_pub.publish(Stop)
 
 def main():
     global state_pub
+    global Stop_Flag_pub
+
     global speed_max
     global speed_min
     global speed_set
@@ -67,7 +80,7 @@ def main():
     speed_min = speed_max/2.0
     speed_set = speed_min
     state_pub = rospy.Publisher(ackermann_cmd_topic, AckermannDriveStamped, queue_size=1)
-
+    Stop_Flag_pub = rospy.Publisher("Car_Stop",Int16,queue_size=1)
 
 if __name__=="__main__":
     global state_pub

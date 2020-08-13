@@ -9,10 +9,12 @@ SET(CMAKE_EXE_LINKER_FLAGS " -no-pie")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  nav_msgs
   ackermann_msgs
   roscpp
   rospy
   std_msgs
+  serial
 )
 
 ## System dependencies are found with CMake's conventions
@@ -161,6 +163,10 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${PROJECT_SOURCE_DIR}/lib/libart_driver.a
 )
+
+add_executable(encoder_speed_node src/art_encoder.cpp)
+target_link_libraries(encoder_speed_node ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
