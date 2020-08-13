@@ -18,13 +18,13 @@
   <arg name="speed" default="3.5"/>
 
   <!-- 将已有的map文件发布map话题 -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find racecar_launch)/map/$(arg mapfile_name).yaml">
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find racecar_launch_simulator)/map/$(arg mapfile_name).yaml">
     <param name="frame_id" value="$(arg map_frame)"/>
   </node>
 
   <!-- http://wiki.ros.org/amcl -->
   <!-- 自适应蒙特卡洛定位(AMCL)：算法通过激光雷达的障碍物数据得到机器人在地图上的定位 -->
-  <include file="$(find racecar_launch)/launch/includes/amcl.launch.xml">
+  <include file="$(find racecar_launch_simulator)/launch/includes/amcl.launch.xml">
     <arg name="map_topic" default="$(arg map_topic)"/>
     <arg name="scan_topic" default="$(arg scan_topic)"/>
     <arg name="base_frame" default="$(arg base_frame)"/>
@@ -39,7 +39,7 @@
 
   <!-- http://wiki.ros.org/move_base -->
   <!-- 机器人的导航节点 -->
-  <include file="$(find racecar_launch)/launch/includes/move_base.launch.xml" >
+  <include file="$(find racecar_launch_simulator)/launch/includes/move_base.launch.xml" >
     <arg name="odom_topic" default="$(arg odom_topic)"/>
     <arg name="cmd_topic" default="$(arg cmd_topic)"/>
     <arg name="scan_topic" default="$(arg scan_topic)"/>
@@ -60,7 +60,7 @@
   <!-- 由于teb_local_planner会输出规划出来的路径，因此，通过跟随该路径完成导航 -->
   <!-- 评价：可能是最好的方案，但算法需要全部重写，难度最大 -->
   <!--node name="Pure_Pursuit" pkg="racecar_control" type="Pure_Pursuit" output="log" >
-    <rosparam file="$(find racecar_launch)/param/move_base/pure_pursuit_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch_simulator)/param/move_base/pure_pursuit_params.yaml" command="load"/>
     <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
     <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
     <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>
@@ -70,7 +70,7 @@
   <!-- 方案2： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，使用mpc算法进行路径跟踪 -->
   <!--node name="MPC_Node" pkg="racecar_control" type="MPC_Node" output="screen">
-    <rosparam file="$(find racecar_launch)/param/move_base/mpc_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch_simulator)/param/move_base/mpc_params.yaml" command="load"/>
     <remap from="/odom" to="$(arg odom_topic)"/>
     <remap from="/ackermann_cmd" to="$(arg ackermann_topic)"/>
     <param name="global_path_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
@@ -95,7 +95,7 @@
 
   <!-- 多点导航节点 -->
   <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
-    <rosparam file="$(find racecar_launch)/param/move_base/multi_goals_navigation_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch_simulator)/param/move_base/multi_goals_navigation_params.yaml" command="load"/>
     <param name="map_frame" value="$(arg map_frame)"/>
     <param name="amcl_pose_topic" value="/amcl_pose"/>
     <param name="init_pose_topic" value="/initialpose"/>

@@ -40,12 +40,12 @@
       <param name="controller_patience" value="5.0"/>
       <param name="clearing_rotation_allowed" value="false" />
 
-      <rosparam file="$(find racecar_launch)/param/move_base/global_planner_params.yaml" command="load"/>
+      <rosparam file="$(find racecar_launch_simulator)/param/move_base/global_planner_params.yaml" command="load"/>
 
-      <rosparam file="$(find racecar_launch)/param/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
-      <rosparam file="$(find racecar_launch)/param/move_base/costmap_common_params.yaml" command="load" ns="local_costmap" />
-      <rosparam file="$(find racecar_launch)/param/move_base/local_costmap_params.yaml" command="load" />
-      <rosparam file="$(find racecar_launch)/param/move_base/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find racecar_launch_simulator)/param/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find racecar_launch_simulator)/param/move_base/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find racecar_launch_simulator)/param/move_base/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find racecar_launch_simulator)/param/move_base/global_costmap_params.yaml" command="load" />
       <param name="global_costmap/origin_x" value="$(arg origin_x)"/>
       <param name="global_costmap/origin_y" value="$(arg origin_y)"/>
       <param name="global_costmap/global_frame" value="$(arg map_frame)"/>
@@ -55,7 +55,7 @@
       <param name="local_costmap/global_frame" value="$(arg map_frame)"/>
       <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
 
-      <rosparam file="$(find racecar_launch)/param/move_base/teb_local_planner_params.yaml" command="load" />
+      <rosparam file="$(find racecar_launch_simulator)/param/move_base/teb_local_planner_params.yaml" command="load" />
       <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
     </node>
 

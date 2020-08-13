@@ -44,7 +44,7 @@
 
   <!-- http://wiki.ros.org/rf2o_laser_odometry -->
   <!-- RF2O算法：从激光雷达的数据中得到机器人的线速度、角速度数据 -->
-  <include file="$(find racecar_launch)/launch/includes/rf2o_laser_odometry.launch.xml">
+  <include file="$(find racecar_launch_simulator)/launch/includes/rf2o_laser_odometry.launch.xml">
     <arg name="publish_tf" default="$(arg use_rf2o_odom)"/>
     <arg name="odom_frame_id" default="$(arg odom_frame)"/>
     <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
@@ -54,7 +54,7 @@
 
   <!-- http://docs.ros.org/kinetic/api/robot_localization/html/index.html -->
   <!-- 扩展卡尔曼滤波(EKF)：融合RF2O数据和IMU数据得到更加准确的定位数据 -->
-  <include file="$(find racecar_launch)/launch/includes/robot_localization.launch.xml">
+  <include file="$(find racecar_launch_simulator)/launch/includes/robot_localization.launch.xml">
     <arg name="publish_tf" default="$(arg use_ekf_odom)"/>
     <arg name="odom_frame" default="$(arg odom_frame)"/>
     <arg name="odom_pub_topic" default="$(arg odom_ekf_topic)"/>
@@ -63,7 +63,7 @@
     <arg name="map_frame" default="$(arg map_frame)"/>
     <arg name="base_link_frame" default="$(arg base_frame)"/>
     <arg name="world_frame" default="$(arg odom_frame)"/>
-    <arg name="param_file" default="$(find racecar_launch)/param/ekf_localization/ekf.yaml"/>
+    <arg name="param_file" default="$(find racecar_launch_simulator)/param/ekf_localization/ekf.yaml"/>
   </include>
 
   <!-- 将$(arg odom_gazebo_topic)重命名为$(arg odom_topic)，方便系统使用 -->

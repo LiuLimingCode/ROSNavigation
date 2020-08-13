@@ -118,7 +118,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/racecar_launch.cpp
+#   src/${PROJECT_NAME}/racecar_launch_simulator.cpp
 # )
 
 ## Add cmake target dependencies of the library

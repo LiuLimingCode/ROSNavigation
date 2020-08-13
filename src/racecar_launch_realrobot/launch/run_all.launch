@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
-<!-- roslaunch racecar_launch run_all.launch simulator:=true world_name:=racetrack
+<!-- roslaunch racecar_launch_realrobot run_all.launch simulator:=true world_name:=racetrack
 
-roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_name:=racetrack -->
+roslaunch racecar_launch_realrobot run_all.launch navigation:=true rviz_full:=true world_name:=racetrack -->
 
 <launch>
 
@@ -35,7 +35,7 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
 
   <!-- realrobot -->
   <group if="$(arg realrobot)">
-    <include file="$(find racecar_launch)/launch/run_real_robot.launch">
+    <include file="$(find racecar_launch_realrobot)/launch/run_real_robot.launch">
 
       <!-- <arg name="use_rf2o_odom" default="false"/>
       <arg name="use_ekf_odom" default="true"/> -->
@@ -57,7 +57,7 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
 
   <!-- gmapping -->
   <group if="$(arg gmapping)">
-    <include file="$(find racecar_launch)/launch/run_gmapping.launch">
+    <include file="$(find racecar_launch_realrobot)/launch/run_gmapping.launch">
       <arg name="scan_topic" default="$(arg scan_topic)"/>
       <arg name="base_frame" default="$(arg base_frame)"/>
       <arg name="map_frame" default="$(arg map_frame)"/>
@@ -69,14 +69,14 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
   <!-- savemap -->
   <group if="$(arg savemap)">
     <arg name="world_name" default="building"/>
-    <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch)/map/$(arg world_name)"/>
+    <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch_realrobot)/map/$(arg world_name)"/>
   </group>
 
 
   <!-- navigation -->
   <group if="$(arg navigation)">
     <arg name="world_name" default="building"/>
-    <include file="$(find racecar_launch)/launch/run_navigation.launch">
+    <include file="$(find racecar_launch_realrobot)/launch/run_navigation.launch">
       <arg name="map_topic" default="$(arg map_topic)"/>
       <arg name="scan_topic" default="$(arg scan_topic)"/>
       <arg name="ackermann_topic" default="$(arg ackermann_topic)"/>
@@ -94,7 +94,7 @@ roslaunch racecar_launch run_all.launch navigation:=true rviz_full:=true world_n
   </group>
 
   <!-- rviz -->
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_base.rviz" if="$(arg rviz_base)"/>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch)/rviz/racecar_full.rviz" if="$(arg rviz_full)"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch_realrobot)/rviz/racecar_base.rviz" if="$(arg rviz_base)"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find racecar_launch_realrobot)/rviz/racecar_full.rviz" if="$(arg rviz_full)"/>
 
 </launch>
