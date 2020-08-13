@@ -14,10 +14,6 @@
   <arg name="origin_x" default="0.0"/>
   <arg name="origin_y" default="0.0"/>
 
-  <arg name="use_real_param" default="false"/>
-  <arg name="param_folder" value="reality" if="$(arg use_real_param)"/>
-  <arg name="param_folder" value="simulator" unless="$(arg use_real_param)"/>
-
   <!-- costmap: http://wiki.ros.org/costmap_2d -->
   <!-- global_planner: http://wiki.ros.org/global_planner -->
   <!-- local_planner: http://wiki.ros.org/teb_local_planner -->
@@ -38,14 +34,18 @@
       <!--param name="base_local_planner" value="eband_local_planner/EBandPlannerROS"/-->
       <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
 
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/move_base_params.yaml" command="load"/>
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/global_planner_params.yaml" command="load"/>
+      <param name="planner_frequency" value="20.0"/>
+      <param name="planner_patience" value="5.0"/>
+      <param name="controller_frequency" value="20.0"/>
+      <param name="controller_patience" value="5.0"/>
       <param name="clearing_rotation_allowed" value="false" />
 
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="global_costmap" />
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/costmap_common_params.yaml" command="load" ns="local_costmap" />
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/local_costmap_params.yaml" command="load" />
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find racecar_launch)/param/move_base/global_planner_params.yaml" command="load"/>
+
+      <rosparam file="$(find racecar_launch)/param/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find racecar_launch)/param/move_base/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find racecar_launch)/param/move_base/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find racecar_launch)/param/move_base/global_costmap_params.yaml" command="load" />
       <param name="global_costmap/origin_x" value="$(arg origin_x)"/>
       <param name="global_costmap/origin_y" value="$(arg origin_y)"/>
       <param name="global_costmap/global_frame" value="$(arg map_frame)"/>
@@ -55,9 +55,8 @@
       <param name="local_costmap/global_frame" value="$(arg map_frame)"/>
       <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
 
-      <rosparam file="$(find racecar_launch)/param/move_base/$(arg param_folder)/teb_local_planner_params.yaml" command="load" />
+      <rosparam file="$(find racecar_launch)/param/move_base/teb_local_planner_params.yaml" command="load" />
       <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
     </node>
-
 
 </launch>

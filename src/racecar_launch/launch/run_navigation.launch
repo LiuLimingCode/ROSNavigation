@@ -60,7 +60,7 @@
   <!-- 由于teb_local_planner会输出规划出来的路径，因此，通过跟随该路径完成导航 -->
   <!-- 评价：可能是最好的方案，但算法需要全部重写，难度最大 -->
   <!--node name="Pure_Pursuit" pkg="racecar_control" type="Pure_Pursuit" output="log" >
-    <rosparam file="$(find racecar_launch)/param/move_base/simulator/pure_pursuit_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch)/param/move_base/pure_pursuit_params.yaml" command="load"/>
     <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
     <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
     <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>
@@ -70,7 +70,7 @@
   <!-- 方案2： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，使用mpc算法进行路径跟踪 -->
   <!--node name="MPC_Node" pkg="racecar_control" type="MPC_Node" output="screen">
-    <rosparam file="$(find racecar_launch)/param/move_base/simulator/mpc_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch)/param/move_base/mpc_params.yaml" command="load"/>
     <remap from="/odom" to="$(arg odom_topic)"/>
     <remap from="/ackermann_cmd" to="$(arg ackermann_topic)"/>
     <param name="global_path_topic" value="/move_base/TebLocalPlannerROS/local_plan"/>
@@ -95,7 +95,7 @@
 
   <!-- 多点导航节点 -->
   <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
-    <rosparam file="$(find racecar_launch)/param/move_base/simulator/multi_goals_navigation_params.yaml" command="load"/>
+    <rosparam file="$(find racecar_launch)/param/move_base/multi_goals_navigation_params.yaml" command="load"/>
     <param name="map_frame" value="$(arg map_frame)"/>
     <param name="amcl_pose_topic" value="/amcl_pose"/>
     <param name="init_pose_topic" value="/initialpose"/>

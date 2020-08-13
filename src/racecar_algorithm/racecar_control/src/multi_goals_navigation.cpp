@@ -17,119 +17,137 @@
 
 #define PI 3.1415926535898
 
-class MultiGoalsNavigation
+// 用于实现 Dijkstra 算法的类
+class Dijkstra
 {
-private:
-
-    class Dijskra
+public:
+    
+    // 用于表示两个坐标点直接的关系的类
+    struct LocationsRelation
     {
-    public:
+        int from; // from 坐标的序号
+        int to; // to 坐标的序号
+        const geometry_msgs::Point * fromPoint; // from 坐标的数据
+        const geometry_msgs::Point * toPoint; // to 坐标的数据
+        double punish = 1.0;
+        static double punishBend;
 
-        struct LocationsRelation
+        LocationsRelation (int fromIndex = 0, int toIndex = 0, const geometry_msgs::Point * pFromPoint = nullptr, const geometry_msgs::Point * pToPoint = nullptr, double punishRate = 1.0) :
+        from(fromIndex), to(toIndex), fromPoint(pFromPoint), toPoint(pToPoint), punish(punishRate) {}
+        double dist(void) const
         {
-            int from;
-            int to;
-            const geometry_msgs::Point * fromPoint;
-            const geometry_msgs::Point * toPoint;
-
-            LocationsRelation (int fromIndex = 0, int toIndex = 0, const geometry_msgs::Point * pFromPoint = nullptr, const geometry_msgs::Point * pToPoint = nullptr) :
-            from(fromIndex), to(toIndex), fromPoint(pFromPoint), toPoint(pToPoint) {}
-            double dist(void) const
-            {
-                double dx = fromPoint->x - toPoint->x;
-                double dy = fromPoint->y - toPoint->y;
-                return sqrt(dx * dx + dy * dy);
-            }
-            double angle(void) const { return atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x); }
-            double cost(const LocationsRelation* lastRelation = nullptr) const
-            {
-                return dist();
-            }
-        };
-
-        struct HeapNode // Dijkstra算法用到的优先队列的节点
-        {
-            int cost, index;
-            const LocationsRelation* relation;
-            std::vector<int> path;
-            HeapNode(int i, double c, const LocationsRelation* r = nullptr, std::vector<int> p = std::vector<int>()) : cost(c), index(i), relation(r), path(p) {}
-            bool operator < (const HeapNode &rhs) const
-            {
-                return cost > rhs.cost;
-            }
-        };
-
-        void init(int maxLocations,const std::vector<LocationsRelation>& lr)
-        {
-            maxLocationsNum = maxLocations;
-            reachableIndexs.clear();
-
-            for(int index = 0; index < maxLocationsNum; ++index) reachableIndexs.push_back(std::vector<int>());
-            
-            locationsRelation.clear();
-            for(int index = 0; index < lr.size(); ++index)
-            {
-                locationsRelation.push_back(lr[index]);
-                reachableIndexs[lr[index].from].push_back(locationsRelation.size() - 1);
-
-                locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint));
-                reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
-            }
+            double dx = fromPoint->x - toPoint->x;
+            double dy = fromPoint->y - toPoint->y;
+            return sqrt(dx * dx + dy * dy);
         }
-
-        void run(int startIndex, double * distance, std::vector<int> * bestPath)
+        double angle(void) const { return atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x); }
+        double cost(const LocationsRelation* lastRelation = nullptr) const
         {
-            std::priority_queue<HeapNode> heapNodeQueue;
-            const int maxCost = 10000;
-            bool reached[maxLocationsNum];
-
-            for(int index = 0; index < maxLocationsNum; ++index)
+            double distance = dist();
+            double costBend = 0;
+            if(!lastRelation)
             {
-                reached[index] = false;
-                distance[index] = maxCost;
+                double bend = angle() - lastRelation->angle();
+                if(bend > PI) bend -= (2 * PI);
+                if(bend < -PI) bend += (2 * PI);
+                costBend = fabs(bend) * punishBend;
             }
-            distance[startIndex] = 0;
-            HeapNode startNode(startIndex, 0);
-            startNode.path.clear();
-            startNode.path.push_back(startIndex);
-            bestPath[startIndex] = startNode.path;
-            heapNodeQueue.push(startNode);
+            return (dist() + costBend) * punish;
+        }
+    };
+    
 
-            while(!heapNodeQueue.empty())
+    // Dijkstra算法用到的优先队列的节点
+    struct HeapNode
+    {
+        int cost; // 从起点到当前点的 cost
+        int index; // 当前点的序号
+        const LocationsRelation* relation; // 当前的的 LocationsRelation
+        std::vector<int> path; // 记录从起点到当前点的路径
+        HeapNode(int i, double c, const LocationsRelation* r = nullptr, std::vector<int> p = std::vector<int>()) : cost(c), index(i), relation(r), path(p) {}
+        bool operator < (const HeapNode &rhs) const
+        {
+            return cost > rhs.cost;
+        }
+    };
+
+    // 初始化
+    void init(int maxLocations,const std::vector<LocationsRelation>& lr)
+    {
+        maxLocationsNum = maxLocations;
+        reachableIndexs.clear();
+
+        for(int index = 0; index < maxLocationsNum; ++index) reachableIndexs.push_back(std::vector<int>());
+        
+        locationsRelation.clear();
+        for(int index = 0; index < lr.size(); ++index)
+        {
+            locationsRelation.push_back(lr[index]);
+            reachableIndexs[lr[index].from].push_back(locationsRelation.size() - 1);
+
+            locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint));
+            reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
+        }
+    }
+
+    // 运行 Dijkstra 算法
+    void run(int startIndex, double * distance, std::vector<int> * bestPath)
+    {
+        std::priority_queue<HeapNode> heapNodeQueue;
+        const int maxCost = 10000;
+        bool reached[maxLocationsNum];
+
+        for(int index = 0; index < maxLocationsNum; ++index)
+        {
+            reached[index] = false;
+            distance[index] = maxCost;
+        }
+        distance[startIndex] = 0;
+        HeapNode startNode(startIndex, 0);
+        startNode.path.clear();
+        startNode.path.push_back(startIndex);
+        bestPath[startIndex] = startNode.path;
+        heapNodeQueue.push(startNode);
+
+        while(!heapNodeQueue.empty())
+        {
+            HeapNode currentNode = heapNodeQueue.top();
+            heapNodeQueue.pop();
+
+            int currentIndex = currentNode.index;
+            const LocationsRelation* lastRelation = currentNode.relation;
+            std::vector<int> currentPath = currentNode.path;
+
+            if(reached[currentIndex]) continue;
+            reached[currentIndex] = true;
+
+            for(int temp = 0; temp < reachableIndexs[currentIndex].size(); ++temp)
             {
-                HeapNode currentNode = heapNodeQueue.top();
-                heapNodeQueue.pop();
-
-                int currentIndex = currentNode.index;
-                const LocationsRelation* lastRelation = currentNode.relation;
-                std::vector<int> currentPath = currentNode.path;
-
-                if(reached[currentIndex]) continue;
-                reached[currentIndex] = true;
-
-                for(int temp = 0; temp < reachableIndexs[currentIndex].size(); ++temp)
+                const LocationsRelation* relation = &locationsRelation[reachableIndexs[currentIndex][temp]];
+                
+                if(distance[relation->to] > distance[relation->from] + relation->cost(lastRelation))
                 {
-                    const LocationsRelation* relation = &locationsRelation[reachableIndexs[currentIndex][temp]];
-                    
-                    if(distance[relation->to] > distance[relation->from] + relation->cost(lastRelation))
-                    {
-                        distance[relation->to] = distance[relation->from] + relation->cost(lastRelation);
-                        HeapNode nextNode(relation->to, distance[relation->to], relation, currentPath);
-                        nextNode.path.push_back(relation->to);
-                        bestPath[relation->to] = nextNode.path;
-                        heapNodeQueue.push(nextNode);
-                    }
+                    distance[relation->to] = distance[relation->from] + relation->cost(lastRelation);
+                    HeapNode nextNode(relation->to, distance[relation->to], relation, currentPath);
+                    nextNode.path.push_back(relation->to);
+                    bestPath[relation->to] = nextNode.path;
+                    heapNodeQueue.push(nextNode);
                 }
             }
         }
+    }
 
-    private:
+private:
 
     std::vector<LocationsRelation> locationsRelation; // 代表坐标点的关系
-    std::vector<std::vector<int> > reachableIndexs; // 代表每个坐标点的index可到达的其他坐标点index
-    int maxLocationsNum;
+    std::vector<std::vector<int> > reachableIndexs; // 代表每个坐标点可到达的其他坐标点的序号
+    int maxLocationsNum; // 坐标点的数量
+};
+double Dijkstra::LocationsRelation::punishBend = 0.0;
 
-    };
+class MultiGoalsNavigation
+{
+private:
 
     ros::NodeHandle nodeHandle;
     ros::Subscriber amclSubscriber, goalSubscriber, clickedPointSubscriber;
@@ -139,30 +157,30 @@ private:
 
     std::string mapFrame, clearCostmapsServer ,amclPoseTopic, initPoseTopic, goalTopic, clickedPointTopic;
 
-    double goalRadius, mapOffsetX, mapOffsetY, mapOffsetYaw;
+    double goalRadius, mapOffsetX, mapOffsetY, mapOffsetYaw, punishBend;
 
     bool debugMode, navigationStarted;
 
     XmlRpc::XmlRpcValue locationsXmlRpc, locationsRelationXmlRpc, goalsIndexXmlRpc, goalsStaticXmlRpc;
 
-    std::vector<geometry_msgs::Point> locationVector;
-    std::vector<Dijskra::LocationsRelation> locationRelationVector;
-    std::vector<int> goalsIndexVector;
-    std::vector<bool> goalsStaticVector;
-    std::vector<int> optimalGoalsIndexVector;
+    std::vector<geometry_msgs::Point> locationVector; // 记录各个坐标点的坐标数据,从param中读取
+    std::vector<Dijkstra::LocationsRelation> locationRelationVector; // 记录两两坐标点之间的关系,从param中读取
+    std::vector<int> goalsIndexVector; // 记录目标在 locationVector 中的序号,从param中读取
+    std::vector<bool> goalsStaticVector; // 根据该设置对目标点进行排序,从param中读取
+    std::vector<int> optimalGoalsIndexVector; // 优化后得到的目标店序列
 
-    int currentGoalIndex = 0;
-    const geometry_msgs::Point* currentGoal;
-    geometry_msgs::PoseStamped publishedGoal;
+    int currentGoalIndex = 0; // 当前目标的序号
+    const geometry_msgs::Point* currentGoal; // 当前坐标的数据
+    geometry_msgs::PoseStamped publishedGoal; // currentGoal 经过归一化操作(平移、旋转)后,真正发布的坐标信息
 
     #define NORMALIZED_POINTS_NUMBER 3
-    geometry_msgs::Point clickedPoints[NORMALIZED_POINTS_NUMBER];
-    int normalizedIndex = 0;
+    geometry_msgs::Point clickedPoints[NORMALIZED_POINTS_NUMBER]; // 进行归一化操作时,用于保存标定点数据
+    int normalizedIndex = 0; // 记录表定点个数,当该值等于 NORMALIZED_POINTS_NUMBER 时,开始归一化
     bool normalizeStarted = false;
 
-    Dijskra dijskra;
-    std::vector<double *> globalDistance;
-    std::vector<std::vector<int> *> globalBestPath;
+    Dijkstra dijkstra;
+    std::vector<double *> globalDistance; // 通过Dijkstra算法计算得到的两两坐标点之间的最小距离
+    std::vector<std::vector<int> *> globalBestPath; // 通过Dijkstra算法计算得到的两两坐标点之间的最优路径
 
 public:
     ~MultiGoalsNavigation() = default;
@@ -182,6 +200,8 @@ public:
         _n.param<double>("map_offset_x", mapOffsetX, 0.0);
         _n.param<double>("map_offset_y", mapOffsetY, 0.0);
         _n.param<double>("map_offset_yaw", mapOffsetYaw, 0.0);
+        _n.param<double>("punish_bend", punishBend, 0.0);
+        Dijkstra::LocationsRelation::punishBend = punishBend;
 
         _n.param<bool>("debug_mode", debugMode, false);
 
@@ -223,7 +243,7 @@ public:
             locationRelationVector[index].fromPoint = &locationVector[formIndex];
             checkCondition(toIndex > locationVector.size() - 1, "fatal error: locations_relation param is wrong");
             locationRelationVector[index].toPoint = &locationVector[toIndex];
-            if(debugMode) ROS_INFO("form: %d, to: %d", formIndex + 1, toIndex + 1);
+            if(debugMode) ROS_INFO("form: %d, to: %d, punish, %lf", formIndex + 1, toIndex + 1, locationRelationVector[index].punish);
         }
 
         if(debugMode) ROS_INFO("goals info:");
@@ -235,14 +255,15 @@ public:
                 locationVector[goalsIndexVector[index]].x, locationVector[goalsIndexVector[index]].y);
         }
 
-        if(debugMode) ROS_INFO("dijskra results:");
-        dijskra.init(locationVector.size(), locationRelationVector);
+        // 进行 Dijkstra 算法,初始化 globalDistance 和 globalBestPath 数据
+        if(debugMode) ROS_INFO("dijkstra results:");
+        dijkstra.init(locationVector.size(), locationRelationVector);
 
         for(int startIndex = 0; startIndex < locationVector.size(); ++startIndex)
         {
             globalDistance.push_back(new double[locationVector.size()]);
             globalBestPath.push_back(new std::vector<int>[locationVector.size()]);
-            dijskra.run(startIndex, globalDistance[startIndex], globalBestPath[startIndex]);
+            dijkstra.run(startIndex, globalDistance[startIndex], globalBestPath[startIndex]);
 
             if(debugMode)
             {
@@ -601,19 +622,36 @@ public:
         return pointVector;
     }
 
-    std::vector<Dijskra::LocationsRelation> getRelationVectorFromXMLRPC(XmlRpc::XmlRpcValue& xmlrpc, const std::string& full_param_name)
+    std::vector<Dijkstra::LocationsRelation> getRelationVectorFromXMLRPC(XmlRpc::XmlRpcValue& xmlrpc, const std::string& full_param_name)
     {
-        std::vector<Dijskra::LocationsRelation> relationVector;
-        Dijskra::LocationsRelation lr;
-
-        std::vector<std::vector<int> > result = getMultiNumberVectorFromXMLRPC<int, 2>(xmlrpc, full_param_name);
-        for(auto index = 0; index < result.size(); ++index)
+        if (xmlrpc.getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
-            lr.from = result[index][0];
-            lr.to = result[index][1];
-            relationVector.push_back(lr);
+            ROS_FATAL("The para must be specified as list of lists on the parameter server, %s was specified as %s",
+                        full_param_name.c_str(), std::string(xmlrpc).c_str());
+            throw std::runtime_error("The param must be specified as list of lists");
         }
 
+        std::vector<Dijkstra::LocationsRelation> relationVector;
+        relationVector.clear();
+        
+        for (int i = 0; i < xmlrpc.size(); ++i)
+        {
+            XmlRpc::XmlRpcValue point = xmlrpc[ i ];
+            if (point.getType() != XmlRpc::XmlRpcValue::TypeArray ||
+                point.size() != 3)
+            {
+            ROS_FATAL("The (parameter %s) must be specified as list of lists on the parameter server, but this spec is not of that form.",
+                        full_param_name.c_str());
+            throw std::runtime_error("The param must be specified as list of lists on the parameter server, but this spec is not of that form");
+            }
+
+            Dijkstra::LocationsRelation lr;
+            lr.from = getNumberFromXMLRPC<int>(point[ 0 ], full_param_name);
+            lr.to = getNumberFromXMLRPC<int>(point[ 1 ], full_param_name);
+            lr.punish = getNumberFromXMLRPC<double>(point[ 2 ], full_param_name);
+
+            relationVector.push_back(lr);
+        }
         return relationVector;
     }
 
