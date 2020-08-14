@@ -105,8 +105,8 @@ TebLocalPlannerROS:
 
  # Optimization 路径优化
     
- no_inner_iterations: 3
- no_outer_iterations: 2
+ no_inner_iterations: 5
+ no_outer_iterations: 4
  optimization_activate: True  
  optimization_verbose: False
  penalty_epsilon: 0.1      # 功能类似于 min_obstacle_dist
