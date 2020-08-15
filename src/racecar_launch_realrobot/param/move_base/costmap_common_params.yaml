@@ -1,7 +1,7 @@
 # costmap 参数
 # 该yaml下的所有参数会同时运用在 local_costmap 和 global_costmap 下
 
-footprint: [[-0.2, -0.2], [0.2, -0.2], [0.2, 0.2], [-0.2, 0.2]] # 机器人的 footprint
+footprint: [[-0.305, -0.18], [-0.305, 0.18], [0.305, 0.18], [0.305, -0.18]] # 机器人的 footprint
 
 transform_tolerance: 0.2
 map_type: costmap
@@ -21,7 +21,7 @@ obstacle_layer:
 inflation_layer:
   enabled: true
   cost_scaling_factor: 10.0 # 与单元的代价值成反比，设置高值将使衰减更陡峭 默认10
-  inflation_radius: 0.2 # 控制零成本点距离障碍物有多远 默认2.5
+  inflation_radius: 0.25   # 控制零成本点距离障碍物有多远 默认2.5
 
 static_layer:
   enabled: true

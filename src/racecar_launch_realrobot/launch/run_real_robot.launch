@@ -23,7 +23,6 @@
   <arg name="odom_frame" default="odom"/>
   <arg name="odom_topic" default="/odom"/>
   <arg name="odom_speed_std_msgs_topic" default="odom_speed_std_msgs"/>
-  <arg name="Motor_pid_Out_std_msgs_topic" default="Motor_pid_Out_std_msgs"/>
 
   <!-- <include file="$(find racecar_description)/launch/racecar_spawn.launch"/> -->
 
@@ -61,8 +60,9 @@
 
   <!-- 下位机控制节点 -->
   <node pkg="art_driver" name="art_driver" type="art_driver_node" output="screen">
+    <param name="Angle_P" value="1.0"/>
+    <param name="Angle_D" value="0.0"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-    <param name="topic_from_controller" value="$(arg Motor_pid_Out_std_msgs_topic)"/>
   </node>
 
   <!-- ！！！！！！！！！！！！！！！！！！！！以下为定位！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！ -->
@@ -89,7 +89,7 @@
       <param name="odom_frame_id" value="$(arg odom_frame)"/>
       <param name="base_frame_id" value="$(arg base_frame)"/>
       <param name="odom_pub_topic" value="$(arg odom_rf2o_topic)"/>
-      <param name="publish_frequency" value="40"/>
+      <param name="publish_frequency" value="50"/>
     </node>
   </group>
 
@@ -129,4 +129,3 @@
   <!-- <node name="odom_ekf_relay" pkg="topic_tools" type="relay" args="$(arg odom_ekf_topic) $(arg odom_topic)"/> -->
 
 </launch>
-

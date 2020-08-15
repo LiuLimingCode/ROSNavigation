@@ -38,15 +38,15 @@ TebLocalPlannerROS:
 
       
  #max_vel_x: 3.5 # 最大X轴线速度
- max_vel_x_backwards: 0.5   #最大允许倒退速度
+ max_vel_x_backwards: 1.0   #最大允许倒退速度
  max_vel_y: 0.0
  max_vel_theta: 5 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
  acc_lim_x: 3  #x轴加速度约束
  acc_lim_theta: 10 
 
  # ********************** Carlike robot parameters ********************
- min_turning_radius: 0.4784      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
- wheelbase: 0.335                # 前轮到后轮的距离
+ min_turning_radius: 1      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
+ wheelbase: 0.7                # 前轮到后轮的距离
  cmd_angle_instead_rotvel: True # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************
 
@@ -119,7 +119,7 @@ TebLocalPlannerROS:
  weight_kinematics_forward_drive: 1
  weight_kinematics_turning_radius: 50
  weight_optimaltime: 1 # must be > 0    #直道上快速加速，切线过弯
- weight_shortest_path: 0.0   # 寻找最短路径的权重
+ weight_shortest_path: 5.0   # 寻找最短路径的权重
  weight_obstacle: 100         # 躲避障碍物的权重
  weight_inflation: 0.4
  weight_dynamic_obstacle: 10 # not in use yet

@@ -61,7 +61,7 @@ def joy_callback(data):
 
     ack.drive.speed = speed_t
     ack.drive.steering_angle = angle_t
-    print("speed=%f angle=%f"%(speed_t,angle_t))
+    # print("speed=%f angle=%f"%(speed_t,angle_t))
     state_pub.publish(ack)
     Stop_Flag_pub.publish(Stop)
 
@@ -89,7 +89,6 @@ if __name__=="__main__":
     main()
 
     try:
-        while(1):
             rospy.Subscriber("joy", Joy, joy_callback)
             rospy.spin()
     except:
