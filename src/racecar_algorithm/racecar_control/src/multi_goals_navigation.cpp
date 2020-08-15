@@ -18,10 +18,9 @@
 #define PI 3.1415926535898
 
 // 用于实现 Dijkstra 算法的类
-class Dijkstra
+struct Dijkstra
 {
-public:
-    
+   
     // 用于表示两个坐标点直接的关系的类
     struct LocationsRelation
     {
@@ -30,7 +29,6 @@ public:
         const geometry_msgs::Point * fromPoint; // from 坐标的数据
         const geometry_msgs::Point * toPoint; // to 坐标的数据
         double punish = 1.0;
-        static double punishBend;
 
         LocationsRelation (int fromIndex = 0, int toIndex = 0, const geometry_msgs::Point * pFromPoint = nullptr, const geometry_msgs::Point * pToPoint = nullptr, double punishRate = 1.0) :
         from(fromIndex), to(toIndex), fromPoint(pFromPoint), toPoint(pToPoint), punish(punishRate) {}
@@ -41,30 +39,20 @@ public:
             return sqrt(dx * dx + dy * dy);
         }
         double angle(void) const { return atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x); }
-        double cost(const LocationsRelation* lastRelation = nullptr) const
-        {
-            double distance = dist();
-            double costBend = 0;
-            if(!lastRelation)
-            {
-                double bend = angle() - lastRelation->angle();
-                if(bend > PI) bend -= (2 * PI);
-                if(bend < -PI) bend += (2 * PI);
-                costBend = fabs(bend) * punishBend;
-            }
-            return (dist() + costBend) * punish;
-        }
     };
     
 
     // Dijkstra算法用到的优先队列的节点
     struct HeapNode
     {
-        int cost; // 从起点到当前点的 cost
+        double cost; // 从起点到当前点的 cost
+        double dist;
+        double angle;
         int index; // 当前点的序号
         const LocationsRelation* relation; // 当前的的 LocationsRelation
         std::vector<int> path; // 记录从起点到当前点的路径
-        HeapNode(int i, double c, const LocationsRelation* r = nullptr, std::vector<int> p = std::vector<int>()) : cost(c), index(i), relation(r), path(p) {}
+        HeapNode(int i, double c, double d, double a, const LocationsRelation* r = nullptr, std::vector<int> p = std::vector<int>()) :
+        index(i), cost(c), dist(d), angle(a), relation(r), path(p) {}
         bool operator < (const HeapNode &rhs) const
         {
             return cost > rhs.cost;
@@ -91,7 +79,7 @@ public:
     }
 
     // 运行 Dijkstra 算法
-    void run(int startIndex, double * distance, std::vector<int> * bestPath)
+    void run(int startIndex, double startAngle, double * distance, double * angle, double * cost, std::vector<int> * bestPath) const
     {
         std::priority_queue<HeapNode> heapNodeQueue;
         const int maxCost = 10000;
@@ -100,10 +88,12 @@ public:
         for(int index = 0; index < maxLocationsNum; ++index)
         {
             reached[index] = false;
-            distance[index] = maxCost;
+            cost[index] = maxCost;
         }
         distance[startIndex] = 0;
-        HeapNode startNode(startIndex, 0);
+        angle[startIndex] = 0;
+        cost[startIndex] = 0;
+        HeapNode startNode(startIndex, 0, 0, 0);
         startNode.path.clear();
         startNode.path.push_back(startIndex);
         bestPath[startIndex] = startNode.path;
@@ -124,11 +114,33 @@ public:
             for(int temp = 0; temp < reachableIndexs[currentIndex].size(); ++temp)
             {
                 const LocationsRelation* relation = &locationsRelation[reachableIndexs[currentIndex][temp]];
+                double relationAngle = 0;
                 
-                if(distance[relation->to] > distance[relation->from] + relation->cost(lastRelation))
+                if(lastRelation != nullptr)
                 {
-                    distance[relation->to] = distance[relation->from] + relation->cost(lastRelation);
-                    HeapNode nextNode(relation->to, distance[relation->to], relation, currentPath);
+                    if(lastRelation->from == relation->to) relationAngle = punishBackwards; // 如果是往返,直接等于2PI 
+                    else // 否则不会大于PI
+                    {
+                        relationAngle = fabs(relation->angle() - lastRelation->angle());
+                        if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
+                        if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
+                    }
+                }
+                else
+                {
+                    relationAngle = fabs(relation->angle() - startAngle);
+                    if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
+                    if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
+                    if(fabs(relationAngle) > PI - 0.000001) relationAngle *= punishBackwards; // 如果第一个点的转弯角度大于180,那么认为是倒退
+                }
+                
+                double relationCost = (relation->dist() + relationAngle * punishBent) * relation->punish;
+                if(cost[relation->to] > cost[relation->from] + relationCost)
+                {
+                    cost[relation->to] = cost[relation->from] + relationCost;
+                    distance[relation->to] = distance[relation->from] + relation->dist();
+                    angle[relation->to] = angle[relation->from] + relationAngle;
+                    HeapNode nextNode(relation->to, cost[relation->to], distance[relation->to], angle[relation->to], relation, currentPath);
                     nextNode.path.push_back(relation->to);
                     bestPath[relation->to] = nextNode.path;
                     heapNodeQueue.push(nextNode);
@@ -137,13 +149,12 @@ public:
         }
     }
 
-private:
-
     std::vector<LocationsRelation> locationsRelation; // 代表坐标点的关系
     std::vector<std::vector<int> > reachableIndexs; // 代表每个坐标点可到达的其他坐标点的序号
+    double punishBent = 0.0;
+    double punishBackwards = 0.0;
     int maxLocationsNum; // 坐标点的数量
 };
-double Dijkstra::LocationsRelation::punishBend = 0.0;
 
 class MultiGoalsNavigation
 {
@@ -157,7 +168,7 @@ private:
 
     std::string mapFrame, clearCostmapsServer ,amclPoseTopic, initPoseTopic, goalTopic, clickedPointTopic;
 
-    double goalRadius, mapOffsetX, mapOffsetY, mapOffsetYaw, punishBend;
+    double goalRadius, mapOffsetX, mapOffsetY, mapOffsetYaw, punishBend, punishBackwards;
 
     bool debugMode, navigationStarted;
 
@@ -179,8 +190,6 @@ private:
     bool normalizeStarted = false;
 
     Dijkstra dijkstra;
-    std::vector<double *> globalDistance; // 通过Dijkstra算法计算得到的两两坐标点之间的最小距离
-    std::vector<std::vector<int> *> globalBestPath; // 通过Dijkstra算法计算得到的两两坐标点之间的最优路径
 
 public:
     ~MultiGoalsNavigation() = default;
@@ -201,7 +210,9 @@ public:
         _n.param<double>("map_offset_y", mapOffsetY, 0.0);
         _n.param<double>("map_offset_yaw", mapOffsetYaw, 0.0);
         _n.param<double>("punish_bend", punishBend, 0.0);
-        Dijkstra::LocationsRelation::punishBend = punishBend;
+        _n.param<double>("punish_backwards", punishBackwards, 0.0);
+        dijkstra.punishBent = punishBend;
+        dijkstra.punishBackwards = punishBackwards;
 
         _n.param<bool>("debug_mode", debugMode, false);
 
@@ -243,7 +254,7 @@ public:
             locationRelationVector[index].fromPoint = &locationVector[formIndex];
             checkCondition(toIndex > locationVector.size() - 1, "fatal error: locations_relation param is wrong");
             locationRelationVector[index].toPoint = &locationVector[toIndex];
-            if(debugMode) ROS_INFO("form: %d, to: %d, punish, %lf", formIndex + 1, toIndex + 1, locationRelationVector[index].punish);
+            if(debugMode) ROS_INFO("form: %d, to: %d, punish: %lf", formIndex + 1, toIndex + 1, locationRelationVector[index].punish);
         }
 
         if(debugMode) ROS_INFO("goals info:");
@@ -255,43 +266,56 @@ public:
                 locationVector[goalsIndexVector[index]].x, locationVector[goalsIndexVector[index]].y);
         }
 
-        // 进行 Dijkstra 算法,初始化 globalDistance 和 globalBestPath 数据
-        if(debugMode) ROS_INFO("dijkstra results:");
         dijkstra.init(locationVector.size(), locationRelationVector);
-
-        for(int startIndex = 0; startIndex < locationVector.size(); ++startIndex)
+ 
+        if(debugMode)
         {
-            globalDistance.push_back(new double[locationVector.size()]);
-            globalBestPath.push_back(new std::vector<int>[locationVector.size()]);
-            dijkstra.run(startIndex, globalDistance[startIndex], globalBestPath[startIndex]);
-
-            if(debugMode)
+            ROS_INFO("dijkstra results:");
+            for(int startIndex = 0; startIndex < locationVector.size(); ++startIndex)
             {
-                ROS_INFO("#################################");
-                ROS_INFO("start point index: %d", startIndex + 1);
-                for(int endIndex = 0; endIndex < locationVector.size(); ++endIndex)
+                double testDistance[locationVector.size()];
+                double testAngle[locationVector.size()];
+                double testCost[locationVector.size()];
+                std::vector<int> bestPath[locationVector.size()];
+                for(int temp = 0; temp < dijkstra.reachableIndexs[startIndex].size(); ++temp)
                 {
-                    std::string str = std::string("end point index: ") + std::to_string(endIndex + 1) + std::string(" distance: ") + std::to_string(globalDistance[startIndex][endIndex]);
-                    str += std::string(" best path: ");
-                    for(int index = 0; index < globalBestPath[startIndex][endIndex].size(); ++index)
+                    const Dijkstra::LocationsRelation * relation = &dijkstra.locationsRelation[dijkstra.reachableIndexs[startIndex][temp]];
+                    double yaw = atan2(relation->fromPoint->y - relation->toPoint->y, relation->fromPoint->x - relation->toPoint->x);
+                    dijkstra.run(startIndex, yaw, testDistance, testAngle, testCost, bestPath);
+                    ROS_INFO("#################################");
+                    ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", startIndex + 1, relation->to + 1, relation->from + 1, yaw);
+                    for(int endIndex = 0; endIndex < locationVector.size(); ++endIndex)
                     {
-                        str = str + std::to_string(globalBestPath[startIndex][endIndex][index] + 1) + std::string(" -> ");
+                        std::string str = std::string("end point index: ") + std::to_string(endIndex + 1) + 
+                                        std::string(" distance: ") + std::to_string(testDistance[endIndex]) + 
+                                        std::string(" angle: ") + std::to_string(testAngle[endIndex]) + 
+                                        std::string(" cost: ") + std::to_string(testCost[endIndex]);
+                        str += std::string(" best path: ");
+                        for(int index = 0; index < bestPath[endIndex].size(); ++index)
+                        {
+                            str = str + std::to_string(bestPath[endIndex][index] + 1) + std::string(" -> ");
+                        }
+                        str += std::string("end");
+                        ROS_INFO_STREAM(str);
                     }
-                    str += std::string("end");
-                    ROS_INFO_STREAM(str);
                 }
             }
         }
 
-        optimalGoalsIndexVector = getOptimalGoalsIndex(geometry_msgs::Pose(), goalsIndexVector);
-        if(debugMode)
+        ROS_INFO("print optimal goals with all possible oriantations");
+        for(int index = 0; index < dijkstra.reachableIndexs[goalsIndexVector[0]].size(); ++index)
         {
-            ROS_INFO("feasible goals info:");
+            const Dijkstra::LocationsRelation * relation = &dijkstra.locationsRelation[dijkstra.reachableIndexs[goalsIndexVector[0]][index]];
+            double yaw = atan2(relation->fromPoint->y - relation->toPoint->y, relation->fromPoint->x - relation->toPoint->x);
+
+            std::vector<int> testOptimalGoals = getOptimalGoalsIndex(yaw, goalsIndexVector);
+
+            ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", goalsIndexVector[0] + 1, relation->to + 1, relation->from + 1, yaw);
             std::string str;
             str += std::string(" best path: ");
-            for(int index = 0; index < optimalGoalsIndexVector.size(); ++index)
+            for(int index = 0; index < testOptimalGoals.size(); ++index)
             {
-                str = str + std::to_string(optimalGoalsIndexVector[index] + 1) + std::string(" -> ");
+                str = str + std::to_string(testOptimalGoals[index] + 1) + std::string(" -> ");
             }
             str += std::string("end");
             ROS_INFO_STREAM(str);
@@ -360,7 +384,7 @@ public:
         goalPublisher.publish(publishedGoal);
     }
 
-    void numberPermutation(std::vector<int> numberVector, int begin, int end, std::vector<std::vector<int> > * resultVector)
+    void numberPermutation(std::vector<int> numberVector, int begin, int end, std::vector<std::vector<int> > * resultVector) const
     {
         if(begin == end) resultVector->push_back(numberVector);
 
@@ -378,24 +402,18 @@ public:
         }
     }
 
-    std::vector<int> choooceBestPath(int startIndex, int stopIndex, const std::vector<int>& goalsIndex)
+    std::vector<int> choooceBestPath(int startIndex, double startYaw, int stopIndex, const std::vector<int>& goalsIndex) const
     {
-       
-        if(goalsIndex.empty())
-        {
-            return globalBestPath[startIndex][startIndex];
-        }
-
         std::vector<std::vector<int> > goalsPermutation;
         std::vector<int> tempGoalsIndex = goalsIndex;
         numberPermutation(tempGoalsIndex, 0, tempGoalsIndex.size(), &goalsPermutation);
 
         double minCost = 1000000;
-        int minIndex = 1;
-        std::vector<int> bestPath;
-        for(int index = 0; index < goalsPermutation.size(); ++index)
+        int minIndex = 0;
+        std::vector<int> result;
+        for(int index = 0; index < goalsPermutation.size(); ++index) // 对所有可能性进行遍历
         {
-            std::vector<int> goalsSelected = goalsPermutation[index];
+            std::vector<int> goalsSelected = goalsPermutation[index]; // 得到排列组合后的序列,并加上起点终点信息
             goalsSelected.insert(goalsSelected.begin(), startIndex);
             goalsSelected.push_back(stopIndex);
 
@@ -405,12 +423,24 @@ public:
             {
                 const int begin = goalsSelected[alpha - 1];
                 const int end = goalsSelected[alpha];
-                costSum += globalDistance[begin][end];
-                std::vector<int> pathSegment = globalBestPath[begin][end];
-                
-                for(int beta = 1; beta < pathSegment.size(); ++beta)
+                double oriantation = startYaw;
+                if(alpha >= 2)
                 {
-                    pathSum.push_back(pathSegment[beta]);
+                    const geometry_msgs::Point * fromPoint = &locationVector[goalsSelected[alpha - 2]];
+                    const geometry_msgs::Point * toPoint = &locationVector[goalsSelected[alpha - 1]];
+                    oriantation = atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x);
+                }
+
+                double bestDistance[locationVector.size()];
+                double bestAngle[locationVector.size()];
+                double bestCost[locationVector.size()];
+                std::vector<int> bestPath[locationVector.size()];
+                dijkstra.run(begin, oriantation, bestDistance, bestAngle, bestCost, bestPath);
+
+                costSum += bestCost[end];
+                for(int beta = 1; beta < bestPath[end].size(); ++beta)
+                {
+                    pathSum.push_back(bestPath[end][beta]);
                 }
             }
 
@@ -418,15 +448,15 @@ public:
             {
                 minCost = costSum;
                 minIndex = index;
-                bestPath = pathSum;
+                result = pathSum;
             }
         }
 
-        bestPath.insert(bestPath.begin(), startIndex);
-        return bestPath;
+        result.insert(result.begin(), startIndex);
+        return result;
     }
 
-    std::vector<int> getOptimalGoalsIndex(geometry_msgs::Pose, const std::vector<int>& goalsIndex)
+    std::vector<int> getOptimalGoalsIndex(const double startYaw, const std::vector<int>& goalsIndex) const
     {
         std::vector<int> goalsNeedOptimize;
         std::vector<int> goalsOptimized;
@@ -442,7 +472,14 @@ public:
             {
                 int startIndex = goalsOptimized[goalsOptimized.size() - 1]; // 优化队列中最后一个值当做起点
                 int endIndex = goalsIndexVector[index]; // 当前值当做终点
-                std::vector<int> result = choooceBestPath(startIndex, endIndex, goalsNeedOptimize);
+                double oriantation = startYaw;
+                if(goalsOptimized.size() >= 2)
+                {
+                    const geometry_msgs::Point * fromPoint = &locationVector[goalsOptimized[goalsOptimized.size() - 2]];
+                    const geometry_msgs::Point * toPoint = &locationVector[goalsOptimized[goalsOptimized.size() - 1]];
+                    oriantation = atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x);
+                }
+                std::vector<int> result = choooceBestPath(startIndex, oriantation, endIndex, goalsNeedOptimize);
                 for(int temp = 1; temp < result.size(); ++temp) goalsOptimized.push_back(result[temp]);
                 goalsNeedOptimize.clear();
             }
