@@ -87,11 +87,10 @@ if __name__=="__main__":
 
     rospy.init_node('racecar_joy')
     main()
+    rospy.Subscriber("joy", Joy, joy_callback)
 
     try:
-        while(1):
-            rospy.Subscriber("joy", Joy, joy_callback)
-            rospy.spin()
+        rospy.spin()
     except:
         print "error"
     finally:
