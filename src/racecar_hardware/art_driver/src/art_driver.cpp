@@ -62,11 +62,10 @@ void AckermannCallback(const ackermann_msgs::AckermannDriveStamped::ConstPtr& Ac
     if(speed_set >= 0.0000001) speed_out = ceil(speed_set * 100) + speed_send_zero;
     if(speed_set <  0.0000001) speed_out = floor(speed_set * 100) + speed_send_zero;
     
-
     ROS_INFO("angle_ctrl_out = %f  angle_out = %d \n" , angle_ctrl_out , (uint16_t)angle_out);
     ROS_INFO("speed_set = %f  speed_out = %d \n" , speed_set , (uint16_t)speed_out);
 
-    //send_cmd(uint16_t(speed_out),uint16_t(angle_out));
+    send_cmd(uint16_t(speed_out),uint16_t(angle_out));
 }
 
 void Car_Stop_Callback(const std_msgs::Int16ConstPtr &Stop_Flag)
@@ -85,6 +84,7 @@ int main(int argc, char** argv)
     
     ros::init(argc, argv, "art_driver");
     ros::NodeHandle n("~");
+    ros::NodeHandle Car_Stop;
 
     n.param<double>("Angle_P", Angle_P, 1.0);
     n.param<double>("Angle_D", Angle_D, 0.0);
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
     ros::Subscriber sub_ack_angle = n.subscribe(ackermann_topic, 1, AckermannCallback);
 
-    ros::Subscriber sub_Stop_car = n.subscribe("Car_Stop",1,Car_Stop_Callback);
+    ros::Subscriber sub_Stop_car = Car_Stop.subscribe("Car_Stop",1,Car_Stop_Callback);
     ros::spin();
     send_cmd(uint16_t(speed_send_zero),uint16_t(angle_pwm_mid_us));
 }
