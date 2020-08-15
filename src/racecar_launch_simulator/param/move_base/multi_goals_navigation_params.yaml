@@ -10,11 +10,11 @@ debug_mode: true
 
 map_offset_x: 5.0
 map_offset_y: 0
-map_offset_yaw : 2.5
+map_offset_yaw : 2.55
 
 #            1           2           3         4          5         6           7           8              9            10             11         *12
 locations: [ [-7, 4.25], [-2, 4.25], [2.5, 3], [8, 4.25], [8, 0.1], [8, -4.75], [1, -4.75], [-3.5, -4.75], [-7, -4.75], [-0.5, -0.5], [1.6, 1.7], [3, 4.25] ]  # 坐标数据
-goals_id: [ 10, 4, 8, 1, 6, 11 ] # 目标点在 locations 参数上对应的索引
+goals_id: [ 10, 8, 6, 4, 1, 11 ] # 目标点在 locations 参数上对应的索引
 goals_static: [ true, false, false, false, false, true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
 
 locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 参数中的两两点之间是否可达, c表示选择该路径的惩罚,当路径上障碍物较多时,可以适当提高该参数
@@ -28,4 +28,5 @@ locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 
                       [10, 11, 1.0] ]
 
 punish_bend: 2.0  # 转弯惩罚
+punish_backwards: 100.0 # 倒退惩罚
 
