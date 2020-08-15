@@ -131,7 +131,7 @@ struct Dijkstra
                     relationAngle = fabs(relation->angle() - startAngle);
                     if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
                     if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
-                    if(fabs(relationAngle) > PI - 0.000001) relationAngle *= punishBackwards; // 如果第一个点的转弯角度大于180,那么认为是倒退
+                    if(fabs(relationAngle) > PI * 3.0 / 4.0) relationAngle *= punishBackwards; // 如果第一个点的转弯角度大于135,那么认为是倒退
                 }
                 
                 double relationCost = (relation->dist() + relationAngle * punishBent) * relation->punish;
@@ -585,6 +585,8 @@ public:
     void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
     {
         if(!navigationStarted) return;
+        ROS_INFO("amclPoseCallBack");
+
 
         double dx = amclMsg->pose.pose.position.x - publishedGoal.pose.position.x;
         double dy = amclMsg->pose.pose.position.y - publishedGoal.pose.position.y;
@@ -613,7 +615,10 @@ public:
         if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
 
         geometry_msgs::Point initPoint = data->pose.pose.position;
-        double initYaw = getYawFromPose(data->pose.pose);
+        double initYaw = getYawFromPose(data->pose.pose) + mapOffsetYaw;
+        if(initYaw >  PI) initYaw -= (2 * PI);
+        if(initYaw < -PI) initYaw += (2 * PI);
+        optimalGoalsIndexVector = getOptimalGoalsIndex(initYaw, goalsIndexVector);
  
         navigationStarted = true;
         ROS_INFO("received init pose msg, started multi navigation");
