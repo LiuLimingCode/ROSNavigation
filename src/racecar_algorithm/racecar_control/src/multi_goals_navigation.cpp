@@ -40,7 +40,6 @@ struct Dijkstra
         }
         double angle(void) const { return atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x); }
     };
-    
 
     // Dijkstra算法用到的优先队列的节点
     struct HeapNode
@@ -163,7 +162,7 @@ private:
     ros::NodeHandle nodeHandle;
     ros::Subscriber amclSubscriber, clickedPointSubscriber;
     ros::Publisher goalPublisher, markerPublisher;
-    ros::ServiceServer normalizeServer, startNavigationServer;
+    ros::ServiceServer normalizeServer, startNavigationServer, debugShowLocationsServer;
     ros::ServiceClient clearCostmapsClient;
 
     std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic;
@@ -230,6 +229,7 @@ public:
         markerPublisher = nodeHandle.advertise<visualization_msgs::Marker>(markerTopic, 10);
         normalizeServer = nodeHandle.advertiseService("start_normalize_map", &MultiGoalsNavigation::startNormalizeMapCallBack, this);
         startNavigationServer = nodeHandle.advertiseService("start_navigation", &MultiGoalsNavigation::startNavigationCallBack, this);
+        debugShowLocationsServer = nodeHandle.advertiseService("debug_show_locations", &MultiGoalsNavigation::debugShowLocationsCallBack, this);
         clearCostmapsClient = nodeHandle.serviceClient<std_srvs::Empty>(clearCostmapsServer);
 
         try
@@ -620,6 +620,18 @@ public:
         }
     }
 
+    bool debugShowLocationsCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    {
+        std::vector<int> allGoalsIndex;
+        for(int index = 0; index < locationVector.size(); ++index)
+        {
+            allGoalsIndex.push_back(index);
+        }
+        publishGoalMarker(allGoalsIndex);
+        return true;
+    }
+
+
     bool startNormalizeMapCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
     {
         if(!normalizeStarted)
@@ -674,7 +686,8 @@ public:
         currentGoalIndex = 1;
         publishGoal(currentGoalIndex);
         res.success = true;
-        res.message = "success"; 
+        res.message = "success";
+        return true;
     }
 
     void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
