@@ -4,6 +4,8 @@
 #goal_topic: /move_base_simple/goal
 #clicked_point_topic: /clicked_point
 #clear_costmaps_server: /move_base/clear_costmaps
+#global_costmap_topic: /move_base/global_costmap/costmap
+#marker_topic: visualization_marker
 
 goal_radius: 1.0
 debug_mode: true

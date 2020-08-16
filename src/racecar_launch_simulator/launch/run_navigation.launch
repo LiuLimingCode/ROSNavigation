@@ -102,6 +102,7 @@
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="clicked_point_topic" value="/clicked_point"/>
     <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
+    <param name="global_costmap_topic" value="/move_base/global_costmap/costmap"/>
   </node>
 
   <!-- 计时节点,计算导航所用时间 -->
