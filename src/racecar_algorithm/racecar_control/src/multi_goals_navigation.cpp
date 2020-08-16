@@ -12,7 +12,6 @@
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
-#include <nav_msgs/OccupancyGrid.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
 #include <visualization_msgs/Marker.h>
 
@@ -162,13 +161,13 @@ class MultiGoalsNavigation
 private:
 
     ros::NodeHandle nodeHandle;
-    ros::Subscriber amclSubscriber, goalSubscriber, clickedPointSubscriber, globalCostmapSubscriber;
+    ros::Subscriber amclSubscriber, clickedPointSubscriber;
     ros::Publisher goalPublisher, markerPublisher;
-    ros::ServiceServer normalizeServer;
+    ros::ServiceServer normalizeServer, startNavigationServer;
     ros::ServiceClient clearCostmapsClient;
 
-    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, initPoseTopic, goalTopic, markerTopic, clickedPointTopic, golbalCostmapTopic;
-    double goalRadius, mapOffsetX, mapOffsetY, mapOffsetYaw, punishBend, punishBackwards;
+    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic;
+    double goalRadius, goalExtension, mapOffsetX, mapOffsetY, mapOffsetYaw, punishBend, punishBackwards;
     bool debugMode, navigationStarted = false;
     visualization_msgs::Marker goalsMarker, roadMarker;
 
@@ -180,6 +179,7 @@ private:
     std::vector<bool> goalsStaticVector; // 根据该设置对目标点进行排序,从param中读取
     std::vector<int> optimalGoalsIndexVector; // 优化后得到的目标店序列
 
+    geometry_msgs::Pose robotPose;
     int currentGoalIndex = 0; // 当前目标的序号
     const geometry_msgs::Point* currentGoal; // 当前坐标的数据
     geometry_msgs::PoseStamped publishedGoal; // currentGoal 经过归一化操作(平移、旋转)后,真正发布的坐标信息
@@ -199,15 +199,14 @@ public:
         ros::NodeHandle _n("~");
 
         _n.param<std::string>("map_frame", mapFrame, "map");
-        _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
         _n.param<std::string>("amcl_pose_topic", amclPoseTopic, "/amcl_pose");
-        _n.param<std::string>("init_pose_topic", initPoseTopic, "/initialpose");
         _n.param<std::string>("goal_topic", goalTopic, "/move_base_simple/goal");
         _n.param<std::string>("marker_topic", markerTopic, "visualization_marker");
         _n.param<std::string>("clicked_point_topic", clickedPointTopic, "/clicked_point");
-        _n.param<std::string>("global_costmap_topic", golbalCostmapTopic, "/move_base/global_costmap/costmap");
+        _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
+        _n.param<double>("goal_extension", goalExtension, goalRadius);
         _n.param<double>("map_offset_x", mapOffsetX, 0.0);
         _n.param<double>("map_offset_y", mapOffsetY, 0.0);
         _n.param<double>("map_offset_yaw", mapOffsetYaw, 0.0);
@@ -226,12 +225,11 @@ public:
         initMarker();
 
         amclSubscriber = nodeHandle.subscribe(amclPoseTopic, 1, &MultiGoalsNavigation::amclPoseCallBack, this);
-        goalSubscriber = nodeHandle.subscribe(initPoseTopic, 1, &MultiGoalsNavigation::initPoseoalCallBack, this);
-        //globalCostmapSubscriber = nodeHandle.subscribe(golbalCostmapTopic, 1, &MultiGoalsNavigation::costmapCallBack, this);
         clickedPointSubscriber.shutdown();
         goalPublisher = nodeHandle.advertise<geometry_msgs::PoseStamped>(goalTopic, 10);
         markerPublisher = nodeHandle.advertise<visualization_msgs::Marker>(markerTopic, 10);
         normalizeServer = nodeHandle.advertiseService("start_normalize_map", &MultiGoalsNavigation::startNormalizeMapCallBack, this);
+        startNavigationServer = nodeHandle.advertiseService("start_navigation", &MultiGoalsNavigation::startNavigationCallBack, this);
         clearCostmapsClient = nodeHandle.serviceClient<std_srvs::Empty>(clearCostmapsServer);
 
         try
@@ -410,7 +408,7 @@ public:
     void publishGoal(int currentGoalIndex)
     {
         currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
-        if(debugMode) ROS_INFO("current goal info (before rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
+        ROS_INFO("current goal info (before rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
 
         const geometry_msgs::Point * lastGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex - 1]];
         double currentAngel = atan2(currentGoal->y - lastGoal->y, currentGoal->x - lastGoal->x);
@@ -420,8 +418,8 @@ public:
         {
             const geometry_msgs::Point * futureGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex + 1]];
             anglePublished = atan2(futureGoal->y - currentGoal->y, futureGoal->x - currentGoal->x);
-            xPublished += (cos(anglePublished) * goalRadius);
-            yPublished += (sin(anglePublished) * goalRadius);
+            xPublished += (cos(anglePublished) * goalExtension);
+            yPublished += (sin(anglePublished) * goalExtension);
         }
         
         geometry_msgs::Point normalizedResult = normalizePoint(xPublished, yPublished);
@@ -645,11 +643,44 @@ public:
         }
     }
 
+    bool startNavigationCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    {
+        double initYaw = getYawFromPose(robotPose) + mapOffsetYaw;
+        if(initYaw >  PI) initYaw -= (2 * PI);
+        if(initYaw < -PI) initYaw += (2 * PI);
+        ROS_INFO("received init pose msg, started multi navigation");
+        if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", robotPose.position.x, robotPose.position.y, initYaw);
+
+        std_srvs::Empty trigger;
+        if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
+        ros::Duration waitDuration(1.0);
+        waitDuration.sleep();
+        
+        optimalGoalsIndexVector = getOptimalGoalsIndex(initYaw, goalsIndexVector);
+        publishGoalMarker(goalsIndexVector);
+        publishRoadMarker(optimalGoalsIndexVector);
+
+        std::string str;
+        str += std::string("multi goals navigation started, choose path: ");
+        for(int index = 0; index < optimalGoalsIndexVector.size(); ++index)
+        {
+            str = str + std::to_string(optimalGoalsIndexVector[index] + 1) + std::string(" -> ");
+        }
+        str += std::string("end");
+        ROS_INFO_STREAM(str);
+
+        navigationStarted = true;
+
+        currentGoalIndex = 1;
+        publishGoal(currentGoalIndex);
+        res.success = true;
+        res.message = "success"; 
+    }
+
     void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
     {
+        robotPose = amclMsg->pose.pose;
         if(!navigationStarted) return;
-        ROS_INFO("amclPoseCallBack");
-
 
         double dx = amclMsg->pose.pose.position.x - publishedGoal.pose.position.x;
         double dy = amclMsg->pose.pose.position.y - publishedGoal.pose.position.y;
@@ -668,47 +699,6 @@ public:
                 navigationStarted = false;
             }
         }
-    }
-
-    void initPoseoalCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& data)
-    {
-        geometry_msgs::Point initPoint = data->pose.pose.position;
-        double initYaw = getYawFromPose(data->pose.pose) + mapOffsetYaw;
-        if(initYaw >  PI) initYaw -= (2 * PI);
-        if(initYaw < -PI) initYaw += (2 * PI);
-        ROS_INFO("received init pose msg, started multi navigation");
-        if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", initPoint.x, initPoint.y, initYaw);
-
-        ros::Duration waitDuration(1);
-        waitDuration.sleep();
-        std_srvs::Empty trigger;
-        if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
-        
-        optimalGoalsIndexVector = getOptimalGoalsIndex(initYaw, goalsIndexVector);
-        publishGoalMarker(goalsIndexVector);
-        publishRoadMarker(optimalGoalsIndexVector);
-
-        std::string str;
-        str += std::string("multi goals navigation started, choose path: ");
-        for(int index = 0; index < optimalGoalsIndexVector.size(); ++index)
-        {
-            str = str + std::to_string(optimalGoalsIndexVector[index] + 1) + std::string(" -> ");
-        }
-        str += std::string("end");
-        ROS_INFO_STREAM(str);
- 
-        navigationStarted = true;
-
-        currentGoalIndex = 1;
-        publishGoal(currentGoalIndex);
-    }
-
-    void costmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& data)
-    {
-        double x = data->info.origin.position.x;
-        double y = data->info.origin.position.y;
-        double yaw = getYawFromPose(data->info.origin);
-        ROS_INFO("global cost map x: %lf, y: %lf, yaw: %lf", x, y, yaw);
     }
 
     template<typename T>

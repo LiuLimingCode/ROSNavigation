@@ -98,7 +98,6 @@
     <rosparam file="$(find racecar_launch_simulator)/param/move_base/multi_goals_navigation_params.yaml" command="load"/>
     <param name="map_frame" value="$(arg map_frame)"/>
     <param name="amcl_pose_topic" value="/amcl_pose"/>
-    <param name="init_pose_topic" value="/initialpose"/>
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="clicked_point_topic" value="/clicked_point"/>
     <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
