@@ -60,8 +60,8 @@
   <!-- 方案1： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，因此，通过跟随该路径完成导航 -->
   <!-- 评价：可能是最好的方案，但算法需要全部重写，难度最大 -->
-  <!-- <node name="Pure_Pursuit" pkg="racecar_control" type="Pure_Pursuit" output="screen" >
-    <rosparam file="$(find racecar_launch_realrobot)/param/move_base/simulator/pure_pursuit_params.yaml" command="load"/>
+  <!-- <node name="pure_pursuit" pkg="racecar_control" type="pure_pursuit" output="screen" >
+    <rosparam file="$(find racecar_launch_realrobot)/param/move_base/pure_pursuit_params.yaml" command="load"/>
     <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
     <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
     <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>

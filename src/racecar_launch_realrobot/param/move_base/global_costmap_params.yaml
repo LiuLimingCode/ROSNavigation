@@ -8,6 +8,8 @@ global_costmap:
   static_map: true
   rolling_window: false
   transform_tolerance: 0.5
+  resolution: 0.1
+
  
   plugins:
     - {name: static_layer,            type: "costmap_2d::StaticLayer"}
