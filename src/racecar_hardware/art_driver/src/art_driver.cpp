@@ -11,9 +11,9 @@ std::string ackermann_topic;
 double Angle_P = 0;
 double Angle_D = 0;
 double angle_max_rad=0.6108652382;  //理论最大打角(国际单位制rad）
-uint16_t angle_pwm_max_us=2500;     //右打死
-uint16_t angle_pwm_mid_us=1850;     //居中(一般无需设置，自动换算)
-uint16_t angle_pwm_min_us=1200;     //左打死
+uint16_t angle_pwm_max_us=2333;     //右打死
+uint16_t angle_pwm_mid_us=1879;     //居中(一般无需设置，自动换算)
+uint16_t angle_pwm_min_us=1424;     //左打死
 uint16_t angle_out=angle_pwm_mid_us;
 
 
