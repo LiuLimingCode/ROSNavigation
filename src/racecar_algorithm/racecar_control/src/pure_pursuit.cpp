@@ -27,10 +27,11 @@
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
 #include <visualization_msgs/Marker.h>
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 #define PURE_PURSUIT_INFO ROS_ERROR
 #else
@@ -45,7 +46,7 @@ class PurePursuit
 {
 private:
     ros::NodeHandle n_;
-    ros::Subscriber odom_sub, path_sub, goal_sub, amcl_sub;
+    ros::Subscriber odom_sub, path_sub, goal_sub, amcl_sub, costmap_sub;
     ros::Publisher ackermann_pub, cmdvel_pub, marker_pub;
     ros::ServiceServer stop_robot_srv;
     ros::Timer timer1, timer2;
@@ -57,14 +58,15 @@ private:
     ackermann_msgs::AckermannDriveStamped ackermann_cmd;
     nav_msgs::Odometry odom;
     nav_msgs::Path map_path, odom_path;
+    boost::shared_ptr<const nav_msgs::OccupancyGrid> costmap;
 
     std::vector<geometry_msgs::Point> forwardPtVector;
 
-    double L, Lfw, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max, predicted_dist;
+    double L, Lfw, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y;
     double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
     int controller_freq;
-    bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot;
-    bool foundForwardPt, goal_received, goal_reached, transform_path_data;
+    bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot, enbale_safe_distance;
+    bool foundForwardPt, foundPredictedCarPt, goal_received, goal_reached, transform_path_data;
 
 
 public:
@@ -93,12 +95,16 @@ public:
         pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
         pn.param("stop_robot", stop_robot, false);
         pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
+        pn.param("enable_safe_distance", enbale_safe_distance, true);
+        pn.param("safe_distance_x", safe_distance_x, 0.1);
+        pn.param("safe_distance_y", safe_distance_y, 0.1);
 
         //Publishers and Subscribers
         odom_sub = n_.subscribe("/pure_pursuit/odom", 1, &PurePursuit::odomCB, this);
         path_sub = n_.subscribe("/pure_pursuit/global_planner", 1, &PurePursuit::pathCB, this);
         goal_sub = n_.subscribe("/pure_pursuit/goal", 1, &PurePursuit::goalCB, this);
         amcl_sub = n_.subscribe("/amcl_pose", 5, &PurePursuit::amclCB, this);
+        costmap_sub = n_.subscribe("/move_base/local_costmap/costmap", 1, &PurePursuit::costmapCB, this);
         marker_pub = n_.advertise<visualization_msgs::Marker>("/pure_pursuit/path_marker", 10);
         ackermann_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/pure_pursuit/ackermann_cmd", 1);
         if(cmd_vel_mode) cmdvel_pub = n_.advertise<geometry_msgs::Twist>("/pure_pursuit/cmd_vel", 1);
@@ -266,9 +272,32 @@ public:
         }
     }
 
+    double getCurvature(geometry_msgs::Point p1, geometry_msgs::Point p2, geometry_msgs::Point p3)
+    {
+        double curvature = 0;
+        if((p1.x == p2.x && p2.x == p3.x) || (fabs((p2.y - p1.y) / (p2.x - p1.x) - (p3.y - p2.y) / (p3.x - p2.x))) < 0.000001)
+        {
+            curvature = 0; 
+        }
+        else
+        {
+            double radius;//曲率半径
+            double dis, dis1, dis2, dis3;//距离
+            double cosA;//ab确定的边所对应的角A的cos值
+            dis1 = getDistanceBetweenPoints(p1, p2);
+            dis2 = getDistanceBetweenPoints(p1, p3);
+            dis3 = getDistanceBetweenPoints(p2, p3);
+            dis = dis2 * dis2 + dis3 * dis3 - dis1 * dis1;
+            cosA = dis / ( 2 * dis2 * dis3);//余弦定理
+            radius = 0.5 * dis1 / cosA;
+            curvature = 1 / radius;
+        }
+        return curvature;
+    }
+
     bool findPredictedCarPose(const geometry_msgs::Pose& carPose, geometry_msgs::Pose & carPosePredicted)
     {
-        bool foundPredictedCarPt = false;
+        foundPredictedCarPt = false;
         geometry_msgs::Point carPose_pos = carPose.position;
         double carPose_yaw = getYawFromPose(carPose);
 
@@ -380,12 +409,56 @@ public:
                 this->goal_received = false;
                 ROS_INFO("Goal Reached !");
             }
+            if(enbale_safe_distance && isRobotCollided(amclMsg->pose.pose.position))
+            {
+                ROS_ERROR("robot hit the obstacle");
+                std_srvs::SetBool trigger;
+                trigger.request.data = true;
+                stopRobotCB(trigger.request, trigger.response);
+            }
         }
+    }
+
+    void costmapCB(const nav_msgs::OccupancyGrid::ConstPtr& data)
+    {
+        costmap = data;
+    }
+
+    bool isRobotCollided(geometry_msgs::Point carPointMap)
+    {
+        bool result = false;
+        //ROS_ERROR("costmap->data.size(): %ld", costmap->data.size());
+        double resolution = costmap->info.resolution;
+        int dx = (int)((carPointMap.x - costmap->info.origin.position.x) / resolution + 0.5);
+        int dxMax = std::min(dx + (int)(safe_distance_x / resolution + 0.5), (int)costmap->info.width - 1);
+        int dxMin = std::max(dx - (int)(safe_distance_x / resolution + 0.5), (int)0);
+        //ROS_ERROR("dx: %d, dxMax: %d, dxMin: %d", dx, dxMax, dxMin);
+
+        int dy = (int)((carPointMap.y - costmap->info.origin.position.y) / resolution + 0.5);
+        int dyMax = std::min(dy + (int)(safe_distance_y / resolution + 0.5), (int)costmap->info.height - 1);
+        int dyMin = std::max(dy - (int)(safe_distance_y / resolution + 0.5), (int)0);
+        //ROS_ERROR("dy: %d, dyMax: %d, dyMin: %d", dy, dyMax, dyMin);
+
+        for(long y = dyMin; y <= dyMax; ++y)
+        {
+            for(long x = dxMin; x <= dxMax; ++x)
+            {
+                long index = y * costmap->info.width + x;
+                if(costmap->data[index] > 0)
+                {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        
+        return result;
     }
 
     // 控制周期
     void controlLoopCB(const ros::TimerEvent&)
     {
+        if(!goal_received) return;
 
         geometry_msgs::Pose carPose = this->odom.pose.pose;
         geometry_msgs::Twist carVel = this->odom.twist.twist;
@@ -414,7 +487,7 @@ public:
 
             speed_expected = Vcmd_min;
             
-            if(foundForwardPt)
+            if(foundPredictedCarPt && foundForwardPt)
             {
                 this->steering = this->base_angle + getSteering(eta)*this->steering_gain; // 计算舵机转角
 
@@ -459,6 +532,14 @@ public:
 
     bool stopRobotCB(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
     {
+        if(!stop_robot && req.data)
+        {
+            this->ackermann_cmd.header.stamp = ros::Time::now();
+            this->ackermann_cmd.drive.steering_angle = this->steering;
+            this->ackermann_cmd.drive.speed = 0;
+            this->ackermann_pub.publish(this->ackermann_cmd);
+        }
+
         stop_robot = req.data;
         res.success = stop_robot;
         res.message = "success"; 

@@ -101,8 +101,8 @@ TebLocalPlannerROS:
 
  # Homotopy Class Planner
 
- enable_homotopy_class_planning: True
- enable_multithreading: True
+ enable_homotopy_class_planning: True #激活并行规划（因为一次优化多个轨迹，占用更多的CPU资源
+ enable_multithreading: True 
  max_number_classes: 4
  selection_cost_hysteresis: 1.0
  selection_prefer_initial_plan: 0.95
