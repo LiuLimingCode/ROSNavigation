@@ -37,7 +37,7 @@ publish_acceleration: false
 # if unspecified, effectively making this parameter required for each sensor.
 odom0_config: [false, false, false,  #x, y, z
                false, false, false,  #roll, pitch, yaw
-               true , true , false,  #vx, vy, vz
+               true , false , false,  #vx, vy, vz
                false, false, false,  #vroll, vpitch, vyaw
                false, false, false]  #ax, ay, az
 
