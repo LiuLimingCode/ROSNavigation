@@ -3,7 +3,7 @@
 
   <arg name="x_pos" default="0"/>
   <arg name="y_pos" default="0"/>
-  <arg name="yaw" default="-2.1"/>
+  <arg name="yaw" default="0"/>
 
   <arg name="model_file" default="$(find racecar_description)/urdf/racecar.urdf.xacro"/>
 

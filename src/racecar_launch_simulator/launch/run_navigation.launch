@@ -59,13 +59,13 @@
   <!-- 方案1： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，因此，通过跟随该路径完成导航 -->
   <!-- 评价：可能是最好的方案，但算法需要全部重写，难度最大 -->
-  <!--node name="Pure_Pursuit" pkg="racecar_control" type="Pure_Pursuit" output="log" >
+  <node name="pure_pursuit" pkg="racecar_control" type="pure_pursuit" output="screen" >
     <rosparam file="$(find racecar_launch_simulator)/param/move_base/pure_pursuit_params.yaml" command="load"/>
     <remap from="/pure_pursuit/odom" to="$(arg odom_topic)"/>
     <remap from="/pure_pursuit/global_planner" to="/move_base/TebLocalPlannerROS/local_plan"/>
     <remap from="/pure_pursuit/goal" to="/move_base_simple/goal"/>
     <remap from="/pure_pursuit/ackermann_cmd" to="$(arg ackermann_topic)"/>
-  </node-->
+  </node>
 
   <!-- 方案2： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，使用mpc算法进行路径跟踪 -->
@@ -83,10 +83,10 @@
   <!-- 方案3： -->
   <!-- 使用一个节点对move_base的/cmd_vel数据进行转换，完成导航，具体转换方式见cmd_to_ackermann.py -->
   <!-- 评价：不同的转换方式都存在一定的局限性，速度不快 -->
-  <node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
+  <!--node name="path_pursuit_node" pkg="racecar_control" type="cmd_to_ackermann.py">
     <param name="twist_cmd_topic" value="$(arg cmd_topic)"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
-  </node>
+  </node-->
 
   <!-- 方案3的debug节点，可以看到teb_local_planner的feedback信息，使用前将teb的publish_feedback参数置true -->
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">
@@ -94,15 +94,15 @@
   </node-->
 
   <!-- 多点导航节点 -->
-  <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
+  <!--node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
     <rosparam file="$(find racecar_launch_simulator)/param/move_base/multi_goals_navigation_params.yaml" command="load"/>
     <param name="map_frame" value="$(arg map_frame)"/>
     <param name="amcl_pose_topic" value="/amcl_pose"/>
-    <param name="init_pose_topic" value="/initialpose"/>
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="clicked_point_topic" value="/clicked_point"/>
     <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
-  </node>
+    <param name="global_costmap_topic" value="/move_base/global_costmap/costmap"/>
+  </node-->
 
   <!-- 计时节点,计算导航所用时间 -->
   <!--node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">

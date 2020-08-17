@@ -32,7 +32,7 @@
     <param name="kld_err" value="0.01"/>           #Maximum error between the true distribution and the estimated distribution. (default: 0.01)
     <param name="kld_z" value="0.99"/>             #Upper standard normal quantile for (1 - p), where p is the probability that the error on the estimated distrubition will be less than kld_err. (default: 0.99)
 
-    <param name="update_min_d" value="0.1"/>       #Translational movement required before performing a filter update. (default: 0.2 meters)
+    <param name="update_min_d" value="0.0"/>       #Translational movement required before performing a filter update. (default: 0.2 meters)
     <param name="update_min_a" value="0.1"/>       #Rotational movement required before performing a filter update. (default: π/6.0 radians)
     <param name="resample_interval" value="2"/>    #Number of filter updates required before resampling. (default: 2)
     <param name="transform_tolerance" value="0.1"/>#Time with which to post-date the transform that is published, to indicate that this transform is valid into the future. (0.1 seconds)
