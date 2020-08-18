@@ -117,7 +117,7 @@ struct Dijkstra
                 
                 if(lastRelation != nullptr)
                 {
-                    if(lastRelation->from == relation->to) relationAngle = punishBackwards; // 如果是往返,直接等于2PI 
+                    if(lastRelation->from == relation->to) relationAngle = PI * punishBackwards; // 如果是往返,直接等于PI 
                     else // 否则不会大于PI
                     {
                         relationAngle = fabs(relation->angle() - lastRelation->angle());
@@ -315,7 +315,7 @@ public:
 
             ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", goalsIndexVector[0] + 1, relation->to + 1, relation->from + 1, yaw);
             std::string str;
-            str += std::string(" best path: ");
+            str += std::string("best path: ");
             for(int index = 0; index < testOptimalGoals.size(); ++index)
             {
                 str = str + std::to_string(testOptimalGoals[index] + 1) + std::string(" -> ");
@@ -455,7 +455,7 @@ public:
             goalsSelected.push_back(stopIndex);
 
             double costSum = 0;
-            std::vector<int> pathSum;
+            std::vector<int> pathSum, lastBestPath;
             for(int alpha = 1; alpha < goalsSelected.size(); ++alpha)
             {
                 const int begin = goalsSelected[alpha - 1];
@@ -463,8 +463,8 @@ public:
                 double oriantation = startYaw;
                 if(alpha >= 2)
                 {
-                    const geometry_msgs::Point * fromPoint = &locationVector[goalsSelected[alpha - 2]];
-                    const geometry_msgs::Point * toPoint = &locationVector[goalsSelected[alpha - 1]];
+                    const geometry_msgs::Point * fromPoint = &locationVector[lastBestPath[lastBestPath.size() - 2]];
+                    const geometry_msgs::Point * toPoint = &locationVector[lastBestPath[lastBestPath.size() - 1]];
                     oriantation = atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x);
                 }
 
@@ -475,6 +475,7 @@ public:
                 dijkstra.run(begin, oriantation, bestDistance, bestAngle, bestCost, bestPath);
 
                 costSum += bestCost[end];
+                lastBestPath = bestPath[end];
                 for(int beta = 1; beta < bestPath[end].size(); ++beta)
                 {
                     pathSum.push_back(bestPath[end][beta]);
@@ -537,27 +538,33 @@ public:
     geometry_msgs::Point normalizedLocationWithThreePoints(const geometry_msgs::Point * points)
     {
         geometry_msgs::Point result;
-        double d = 0, yaw = 0;
         if(points[0].x == points[1].x)
         {
-            d = points[2].x - points[0].x;
-            if(points[2].y > points[0].y) yaw = 
+            result.x = (points[0].x + points[2].x) / 2.0;
+            result.y = (points[0].y + points[1].y) / 2.0;
         }
-        else if(points[0].y == points[1].y) d = points[2].y - points[0].y;
+        else if(points[0].y == points[1].y)
+        {
+            result.x = (points[0].x + points[1].x) / 2.0;
+            result.y = (points[0].y + points[2].y) / 2.0;
+        }
         else
         {
-            double yaw = atan2(points[0].y - points[1].y, points[0].x - points[1].x);
-            double k = (points[0].y - points[1].y) / (points[0].x - points[1].x);
-            double b = points[0].y - k * points[0].x; // y = kx + b
-            d = ((points[2].y - k * points[2].x) - b) * cos(yaw);
-        }
-        
-        geometry_msgs::Point middlePoint;
-        middlePoint.x = (points[0].x + points[1].x) / 2.0;
-        middlePoint.y = (points[0].y + points[1].y) / 2.0;
+            geometry_msgs::Point middlePoint, endPoint;
+            middlePoint.x = (points[0].x + points[1].x) / 2.0;
+            middlePoint.y = (points[0].y + points[1].y) / 2.0;
 
-        result.x = middlePoint.x + d * 0.5 * cos(yaw - PI / 2.0);
-        result.y = middlePoint.y + d * 0.5 * sin(yaw - PI / 2.0);
+            double yaw = atan2(points[0].y - points[1].y, points[0].x - points[1].x);
+            double k1 = tan(yaw);
+            double k2 = tan(yaw - PI / 2.0);
+            double b1 = points[2].y - k1 * points[2].x; // y = kx + b
+            double b2 = middlePoint.y - k2 * middlePoint.x;
+            endPoint.x = (b2 - b1) / (k1 - k2);
+            endPoint.y = (k1 * b2 - k2 * b1) / (k1 - k2);
+
+            result.x = (middlePoint.x + endPoint.x) / 2.0;
+            result.y = (middlePoint.y + endPoint.y) / 2.0;
+        }
 
         return result;
     }
@@ -672,6 +679,8 @@ public:
             {
                 clickedPoints[index] = geometry_msgs::Point();
             }
+            std_srvs::Trigger trigger;
+            debugShowLocationsCallBack(trigger.request, trigger.response);
             normalizedIndex = 0;
             clickedPointsNumber = 0;
             normalizeStarted = true;
