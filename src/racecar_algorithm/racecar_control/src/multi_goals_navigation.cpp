@@ -166,7 +166,7 @@ private:
     ros::ServiceClient clearCostmapsClient;
 
     std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic;
-    double goalRadius, goalExtension, mapOffsetX, mapOffsetY, mapOffsetYaw, punishBend, punishBackwards;
+    double goalRadius, goalExtension, punishBend, punishBackwards;
     bool debugMode, navigationStarted = false;
     visualization_msgs::Marker goalsMarker, roadMarker;
 
@@ -183,10 +183,12 @@ private:
     const geometry_msgs::Point* currentGoal; // 当前坐标的数据
     geometry_msgs::PoseStamped publishedGoal; // currentGoal 经过归一化操作(平移、旋转)后,真正发布的坐标信息
 
-    #define NORMALIZED_POINTS_NUMBER 3
+    #define NORMALIZED_POINTS_NUMBER 4
     geometry_msgs::Point clickedPoints[NORMALIZED_POINTS_NUMBER]; // 进行归一化操作时,用于保存标定点数据
-    int normalizedIndex = 0; // 记录表定点个数,当该值等于 NORMALIZED_POINTS_NUMBER 时,开始归一化
+    int clickedPointsNumber = 0;
+    int normalizedIndex = 0; // 记录当前归一化的区域
     bool normalizeStarted = false;
+    geometry_msgs::Point (MultiGoalsNavigation::*normalizedFunction)(const geometry_msgs::Point *);
 
     Dijkstra dijkstra;
 
@@ -206,9 +208,6 @@ public:
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
         _n.param<double>("goal_extension", goalExtension, goalRadius);
-        _n.param<double>("map_offset_x", mapOffsetX, 0.0);
-        _n.param<double>("map_offset_y", mapOffsetY, 0.0);
-        _n.param<double>("map_offset_yaw", mapOffsetYaw, 0.0);
         _n.param<double>("punish_bend", punishBend, 0.0);
         _n.param<double>("punish_backwards", punishBackwards, 0.0);
         dijkstra.punishBent = punishBend;
@@ -331,7 +330,6 @@ public:
         goalsMarker.header.frame_id = roadMarker.header.frame_id = mapFrame;
         goalsMarker.ns = roadMarker.ns = "multi_goals_navigation";
         goalsMarker.action = roadMarker.action = visualization_msgs::Marker::ADD;
-        tf::Quaternion quaternion = tf::createQuaternionFromYaw(-mapOffsetYaw);
         goalsMarker.pose.orientation.w = roadMarker.pose.orientation.w = 1;
 
         goalsMarker.id = 0;
@@ -342,7 +340,7 @@ public:
         goalsMarker.color.r = 1.0;
         goalsMarker.color.g = 1.0;
         goalsMarker.color.b = 0.0;
-        goalsMarker.color.a = 0.3;
+        goalsMarker.color.a = 0.5;
 
         roadMarker.id = 1;
         roadMarker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -356,8 +354,7 @@ public:
         goalsMarker.points.clear();
         for(auto index = 0; index < goalsIndex.size(); ++index)
         {
-            geometry_msgs::Point goal = normalizePoint(locationVector[goalsIndex[index]].x, locationVector[goalsIndex[index]].y);
-            goalsMarker.points.push_back(goal);
+            goalsMarker.points.push_back(locationVector[goalsIndex[index]]);
         }
         markerPublisher.publish(goalsMarker);
     }
@@ -367,8 +364,7 @@ public:
         roadMarker.points.clear();
         for(auto index = 0; index < optimalGoalsIndex.size(); ++index)
         {
-            geometry_msgs::Point road = normalizePoint(locationVector[optimalGoalsIndex[index]].x, locationVector[optimalGoalsIndex[index]].y);
-            roadMarker.points.push_back(road);
+            roadMarker.points.push_back(locationVector[optimalGoalsIndex[index]]);
         }
         markerPublisher.publish(roadMarker);
     }
@@ -391,20 +387,6 @@ public:
         return psi;
     }
 
-    geometry_msgs::Point normalizePoint(const double xorigin, const double yOrigin) const
-    {
-        geometry_msgs::Point result;
-
-        double x = xorigin - mapOffsetX;
-        double y = yOrigin - mapOffsetY;
-        double radius = sqrt(x * x + y * y);
-        double yaw = atan2(y, x);
-        result.x = radius * cos(yaw) * cos(-mapOffsetYaw) - radius * sin(yaw) * sin(-mapOffsetYaw);
-        result.y = radius * sin(yaw) * cos(-mapOffsetYaw) + radius * cos(yaw) * sin(-mapOffsetYaw);
-        
-        return result;
-    }
-
     void publishGoal(int currentGoalIndex)
     {
         currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
@@ -421,25 +403,20 @@ public:
             xPublished += (cos(anglePublished) * goalExtension);
             yPublished += (sin(anglePublished) * goalExtension);
         }
-        
-        geometry_msgs::Point normalizedResult = normalizePoint(xPublished, yPublished);
-        double rotatedYaw = anglePublished - mapOffsetYaw;
-        if(rotatedYaw > PI) rotatedYaw -= (2 * PI);
-        if(rotatedYaw < -PI) rotatedYaw += (2 * PI);
 
         publishedGoal = geometry_msgs::PoseStamped();
-        tf::Quaternion q = tf::createQuaternionFromYaw(rotatedYaw);
+        tf::Quaternion q = tf::createQuaternionFromYaw(anglePublished);
 
         publishedGoal.header.frame_id = mapFrame;
         publishedGoal.header.stamp = ros::Time::now();
-        publishedGoal.pose.position.x = normalizedResult.x;
-        publishedGoal.pose.position.y = normalizedResult.y;
+        publishedGoal.pose.position.x = xPublished;
+        publishedGoal.pose.position.y = yPublished;
         publishedGoal.pose.position.z = 0;
         publishedGoal.pose.orientation.w = q.w();
         publishedGoal.pose.orientation.x = q.x();
         publishedGoal.pose.orientation.y = q.y();
         publishedGoal.pose.orientation.z = q.z();
-        if(debugMode) ROS_INFO("current goal info (after rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, normalizedResult.x, normalizedResult.y);
+        if(debugMode) ROS_INFO("current goal info (after rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, xPublished, yPublished);
 
         goalPublisher.publish(publishedGoal);
     }
@@ -548,75 +525,128 @@ public:
         return goalsOptimized;
     }
 
+    geometry_msgs::Point normalizedLocationWithTowPoints(const geometry_msgs::Point * points)
+    {
+        geometry_msgs::Point result;
+        result.x = (points[0].x + points[1].x) / 2.0;
+        result.y = (points[0].y + points[1].y) / 2.0;
+        
+        return result;
+    }
+
+    geometry_msgs::Point normalizedLocationWithThreePoints(const geometry_msgs::Point * points)
+    {
+        geometry_msgs::Point result;
+        double d = 0, yaw = 0;
+        if(points[0].x == points[1].x)
+        {
+            d = points[2].x - points[0].x;
+            if(points[2].y > points[0].y) yaw = 
+        }
+        else if(points[0].y == points[1].y) d = points[2].y - points[0].y;
+        else
+        {
+            double yaw = atan2(points[0].y - points[1].y, points[0].x - points[1].x);
+            double k = (points[0].y - points[1].y) / (points[0].x - points[1].x);
+            double b = points[0].y - k * points[0].x; // y = kx + b
+            d = ((points[2].y - k * points[2].x) - b) * cos(yaw);
+        }
+        
+        geometry_msgs::Point middlePoint;
+        middlePoint.x = (points[0].x + points[1].x) / 2.0;
+        middlePoint.y = (points[0].y + points[1].y) / 2.0;
+
+        result.x = middlePoint.x + d * 0.5 * cos(yaw - PI / 2.0);
+        result.y = middlePoint.y + d * 0.5 * sin(yaw - PI / 2.0);
+
+        return result;
+    }
+
+    geometry_msgs::Point normalizedLocationWithFourPoints(const geometry_msgs::Point * points)
+    {
+        geometry_msgs::Point result;
+        double k1 = 0, k2 = 0, b1 = 0, b2 = 0;
+        bool f1 = false, f2 = false;
+        if(points[0].x == points[1].x)
+        {
+            f1 = true;
+            b1 = points[0].x;
+        }
+        else
+        {
+            k1 = (points[0].y - points[1].y) / (points[0].x - points[1].x);
+            b1 = points[0].y - k1 * points[0].x;
+        }
+        
+        if(points[2].x == points[3].x)
+        {
+            f2 = true;
+            b2 = points[2].x;
+        }
+        else
+        {
+            k2 = (points[2].y - points[3].y) / (points[2].x - points[3].x);
+            b2 = points[2].y - k2 * points[2].x;
+        }
+
+        if(f1)
+        {
+            result.x = b1;
+            result.y = k2 * b1 + b2;
+        }
+        if(f2)
+        {
+            result.x = b2;
+            result.y = k1 * b2 + b1;
+        }
+        else
+        {
+            result.x = (b2 - b1) / (k1 - k2);
+            result.y = (k1 * b2 - k2 * b1) / (k1 - k2);
+        }
+
+        return result;
+    }
+
     void clickedPointCallBack(const geometry_msgs::PointStamped::ConstPtr& point)
     {
-        clickedPoints[normalizedIndex] = point->point;
-        ROS_INFO("normalized info: points, index: %d, x: %lf, y: %lf", normalizedIndex, point->point.x, point->point.y);
-        ++normalizedIndex;
+        if(!normalizeStarted) return;
 
-        if(normalizedIndex == NORMALIZED_POINTS_NUMBER)
+        clickedPoints[clickedPointsNumber] = point->point;
+        ROS_INFO("clicked info: points, index: %d, x: %lf, y: %lf", clickedPointsNumber, point->point.x, point->point.y);
+        ++clickedPointsNumber;
+        int clickedPointsNeed = 0;
+
+        if(normalizedIndex == 0 || normalizedIndex == 3 ||  normalizedIndex == 5 || normalizedIndex == 8)
         {
-            clickedPointSubscriber.shutdown();
-            geometry_msgs::Point idealPoints[NORMALIZED_POINTS_NUMBER];
-            idealPoints[0].x = -8, idealPoints[0].y = 5;
-            idealPoints[1].x = 9,  idealPoints[1].y = 5;
-            idealPoints[2].x = 9,  idealPoints[2].y = -5.5;
+            clickedPointsNeed = 2;
+            normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithTowPoints;
+        }
+        else if(normalizedIndex == 1 || normalizedIndex == 2 ||normalizedIndex == 4 || normalizedIndex == 6 || normalizedIndex == 7 || normalizedIndex == 10 || normalizedIndex == 11)
+        {
+            clickedPointsNeed = 3;
+            normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithThreePoints;
+        }
+        else if(normalizedIndex == 9)
+        {
+            clickedPointsNeed = 4;
+            normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithFourPoints;
+        }
+        ROS_INFO("clickedPointsNeed: %d, clickedPointsNumber: %d", clickedPointsNeed, clickedPointsNumber);
 
-            double idealYaw[NORMALIZED_POINTS_NUMBER], clickedYaw[NORMALIZED_POINTS_NUMBER];
-            idealYaw[0] = atan2(idealPoints[1].y - idealPoints[0].y, idealPoints[1].x - idealPoints[0].x);
-            clickedYaw[0] = atan2(clickedPoints[1].y - clickedPoints[0].y, clickedPoints[1].x - clickedPoints[0].x);
-            idealYaw[1] = atan2(idealPoints[2].y - idealPoints[1].y, idealPoints[2].x - idealPoints[1].x);
-            clickedYaw[1] = atan2(clickedPoints[2].y - clickedPoints[1].y, clickedPoints[2].x - clickedPoints[1].x);
-            idealYaw[2] = atan2(idealPoints[0].y - idealPoints[2].y, idealPoints[0].x - idealPoints[2].x);
-            clickedYaw[2] = atan2(clickedPoints[0].y - clickedPoints[2].y, clickedPoints[0].x - clickedPoints[2].x);
-
-            double yawDiff[NORMALIZED_POINTS_NUMBER], yawSum = 0.0;
-            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+        if(clickedPointsNumber == clickedPointsNeed)
+        {
+            clickedPointsNumber = 0;
+            locationVector[normalizedIndex] = (this->*normalizedFunction)(clickedPoints);
+            ROS_INFO("normalization info: index = %d, x: %lf, %lf", normalizedIndex + 1, locationVector[normalizedIndex].x, locationVector[normalizedIndex].y);
+            std_srvs::Trigger trigger;
+            debugShowLocationsCallBack(trigger.request, trigger.response);
+            ++normalizedIndex;
+            if(normalizedIndex == locationVector.size())
             {
-                yawDiff[index] = idealYaw[index] - clickedYaw[index];
-                if(yawDiff[index] > PI) yawDiff[index] -= (2 * PI);
-                if(yawDiff[index] < -PI) yawDiff[index] += (2 * PI);
-                ROS_INFO("nomalized info yaw_diff, index: %d, yaw: %lf", index, yawDiff[index]);
-                yawSum += yawDiff[index];
+                clickedPointSubscriber.shutdown();
+                normalizeStarted = false;
             }
-            double normalizedYaw = yawSum / (double)NORMALIZED_POINTS_NUMBER;
-            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
-            {
-                if(fabs(normalizedYaw - yawDiff[index]) >= 0.1) ROS_ERROR("normalized failed!");
-            }
-            ROS_INFO("nomalized info: yaw: %lf", normalizedYaw);
-
-            double xDiff[NORMALIZED_POINTS_NUMBER], yDiff[NORMALIZED_POINTS_NUMBER], xSum = 0, ySum = 0;
-            geometry_msgs::Point RotatedPoint[NORMALIZED_POINTS_NUMBER];
-            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
-            {
-                double clickedX = clickedPoints[index].x;
-                double clickedY = clickedPoints[index].y;
-                double radius = sqrt(clickedX * clickedX + clickedY * clickedY);
-                double alpha = atan2(clickedY, clickedX);
-
-                double rotatedX = radius * cos(alpha) * cos(normalizedYaw) - radius * sin(alpha) * sin(normalizedYaw);
-                double rotatedY = radius * sin(alpha) * cos(normalizedYaw) + radius * cos(alpha) * sin(normalizedYaw);
-                xDiff[index] = idealPoints[index].x - rotatedX;
-                yDiff[index] = idealPoints[index].y - rotatedY;
-                xSum += xDiff[index];
-                ySum += yDiff[index];
-
-                ROS_INFO("nomalized info: index: %d, x_diff: %lf, y_diff: %lf", index, xDiff[index], yDiff[index]);
-            }
-            double normalizedX = xSum / (double)NORMALIZED_POINTS_NUMBER;
-            double normalizedY = ySum / (double)NORMALIZED_POINTS_NUMBER;
-            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
-            {
-                if(fabs(normalizedX - xDiff[index]) >= 0.1) ROS_ERROR("normalized failed!");
-                if(fabs(normalizedY - yDiff[index] >= 0.1)) ROS_ERROR("normalized failed!");
-            }
-            ROS_INFO("nomalized info: x: %lf, y: %lf", normalizedX, normalizedY);
-            ROS_INFO("mapOffsetX = %lf, mapOffsetY = %lf, mapOffsetYaw = %lf", mapOffsetX, mapOffsetY, mapOffsetYaw);
-
-            mapOffsetX = normalizedX;
-            mapOffsetY = normalizedY;
-            mapOffsetYaw = normalizedYaw;
         }
     }
 
@@ -628,20 +658,23 @@ public:
             allGoalsIndex.push_back(index);
         }
         publishGoalMarker(allGoalsIndex);
+        res.success = true;
         return true;
     }
-
 
     bool startNormalizeMapCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
     {
         if(!normalizeStarted)
         {
-            clickedPointSubscriber = nodeHandle.subscribe(clickedPointTopic, 3, &MultiGoalsNavigation::clickedPointCallBack, this);
+            clickedPointSubscriber = nodeHandle.subscribe(clickedPointTopic, NORMALIZED_POINTS_NUMBER, &MultiGoalsNavigation::clickedPointCallBack, this);
+            ROS_INFO("start normalization");
             for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
             {
                 clickedPoints[index] = geometry_msgs::Point();
             }
             normalizedIndex = 0;
+            clickedPointsNumber = 0;
+            normalizeStarted = true;
 
             res.success = true;
             res.message = "success"; 
@@ -657,9 +690,7 @@ public:
 
     bool startNavigationCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
     {
-        double initYaw = getYawFromPose(robotPose) + mapOffsetYaw;
-        if(initYaw >  PI) initYaw -= (2 * PI);
-        if(initYaw < -PI) initYaw += (2 * PI);
+        double initYaw = getYawFromPose(robotPose);
         ROS_INFO("received init pose msg, started multi navigation");
         if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", robotPose.position.x, robotPose.position.y, initYaw);
 

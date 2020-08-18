@@ -31,7 +31,7 @@ TebLocalPlannerROS:
  ######################### 参数调试经验 #########################
  # 车模属于阿克曼转向模型，根据几何关系：当前转弯半径 = 当前速度 / 当前角速度, 当前打角 = atan(wheelbase / 当前转弯半径)
 
- max_vel_x: 0.4  # 最大X轴线速度
+ max_vel_x: 0.2  # 最大X轴线速度
  max_vel_x_backwards: 1.0   #最大允许倒退速度
  max_vel_y: 0.0
  max_vel_theta: 5 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
