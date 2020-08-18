@@ -52,7 +52,7 @@ private:
     ros::Timer timer1, timer2;
     tf::TransformListener tf_listener;
 
-    visualization_msgs::Marker points, goal_circle;
+    visualization_msgs::Marker lines, points, goal_circle;
     geometry_msgs::Point odom_goal_pos, goal_pos;
     geometry_msgs::Twist cmd_vel;
     ackermann_msgs::AckermannDriveStamped ackermann_cmd;
@@ -60,9 +60,7 @@ private:
     nav_msgs::Path map_path, odom_path;
     boost::shared_ptr<const nav_msgs::OccupancyGrid> costmap;
 
-    std::vector<geometry_msgs::Point> forwardPtVector;
-
-    double L, Lfw, Vcmd_max, Vcmd_min, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y;
+    double L, Lfw, Vcmd_max, Vcmd_min, steering_max, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_min, slowdown_dist_max;
     double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
     int controller_freq;
     bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot, enbale_safe_distance;
@@ -80,6 +78,7 @@ public:
         pn.param("L", L, 0.26); // length of car
         pn.param("Vcmd_max", Vcmd_max, 1.0);// reference speed (m/s)
         pn.param("Vcmd_min", Vcmd_min, 1.0);// reference speed (m/s)
+        pn.param("steering_max", steering_max, 1.0);
         pn.param("Lfw", Lfw, 3.0); // forward look ahead distance (m)
         pn.param("predicted_dist", predicted_dist, 0.1);
         pn.param("lfw", lfw, 0.13); // distance between front the center of car
@@ -95,6 +94,8 @@ public:
         pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
         pn.param("stop_robot", stop_robot, false);
         pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
+        pn.param("slowdown_dist_min", slowdown_dist_min, 1.0);
+        pn.param("slowdown_dist_max", slowdown_dist_max, 3.0);
         pn.param("enable_safe_distance", enbale_safe_distance, true);
         pn.param("safe_distance_x", safe_distance_x, 0.1);
         pn.param("safe_distance_y", safe_distance_y, 0.1);
@@ -138,18 +139,22 @@ public:
     // 初始化 visualization_msgs::Marker points, goal_circle;
     void initMarker()
     {
-        points.header.frame_id = goal_circle.header.frame_id = "odom";
-        points.ns = goal_circle.ns = "Markers";
-        points.action = goal_circle.action = visualization_msgs::Marker::ADD;
-        points.pose.orientation.w = goal_circle.pose.orientation.w = 1.0;
+        points.header.frame_id = lines.header.frame_id = goal_circle.header.frame_id = "odom";
+        points.ns = lines.ns = goal_circle.ns = "Markers";
+        points.action = lines.action = goal_circle.action = visualization_msgs::Marker::ADD;
+        points.pose.orientation.w = lines.pose.orientation.w = goal_circle.pose.orientation.w = 1.0;
         points.id = 0;
+        lines.id = 1;
         goal_circle.id = 2;
 
         points.type = visualization_msgs::Marker::POINTS;
+        lines.type = visualization_msgs::Marker::LINE_STRIP;
         goal_circle.type = visualization_msgs::Marker::CYLINDER;
         // POINTS markers use x and y scale for width/height respectively
         points.scale.x = 0.2;
         points.scale.y = 0.2;
+
+        lines.scale.x = 0.05;
 
         goal_circle.scale.x = goal_radius;
         goal_circle.scale.y = goal_radius;
@@ -158,6 +163,9 @@ public:
         // Points are green
         points.color.g = 1.0f;
         points.color.a = 1.0;
+
+        lines.color.b = 1.0;
+        lines.color.a = 1.0;
 
         //goal_circle is yellow
         goal_circle.color.r = 1.0;
@@ -323,6 +331,54 @@ public:
         return foundPredictedCarPt;
     }
 
+    // 找到规划出来的路径中转角与机器人的距离
+    double findDistanceToBend(const geometry_msgs::Pose& carPose)
+    {
+        double distance = 0;
+        points.points.clear();
+        double cost = 0, x_diff, y_diff, yaw, yaw_last;
+
+        if(!goal_reached)
+        {
+            for(int index = 2; index < odom_path.poses.size(); index++)
+            {
+                geometry_msgs::PoseStamped odom_path_pose = odom_path.poses[index];
+                geometry_msgs::Point odom_path_wayPt = odom_path_pose.pose.position;
+
+                if(isForwardWayPt(odom_path_wayPt, carPose))
+                {
+                    yaw_last = atan2(odom_path.poses[index -1].pose.position.y - odom_path.poses[index - 2].pose.position.y, odom_path.poses[index - 1].pose.position.x - odom_path.poses[index - 2].pose.position.x);
+                    x_diff = odom_path.poses[index].pose.position.x - odom_path.poses[index - 1].pose.position.x;
+                    y_diff = odom_path.poses[index].pose.position.y - odom_path.poses[index - 1].pose.position.y;
+                    yaw = atan2(y_diff, x_diff);
+
+                    if(fabs(yaw + 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw + 2 * PI - yaw_last));
+                    else if(fabs(yaw - 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw -  2 * PI - yaw_last));
+                    else cost += fabs(yaw - yaw_last);
+                    distance = getDistanceBetweenPoints(odom_path_wayPt, carPose.position);
+
+                    if(cost < cost_max) points.points.push_back(odom_path_wayPt);
+                    else break;
+                }
+            }
+        }
+        marker_pub.publish(points);
+
+        return distance;
+    }
+
+    double getExpectedSpeed(double distance)
+    {
+        double result;
+
+        if(distance >= slowdown_dist_max) result = Vcmd_max;
+        if(distance <= slowdown_dist_min) result = Vcmd_min;
+
+        result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min); 
+
+        return result;
+    }
+
     geometry_msgs::Point get_odom_car2WayPtVec(const geometry_msgs::Pose& carPose)
     {
         geometry_msgs::Point carPose_pos = carPose.position;
@@ -330,7 +386,7 @@ public:
         geometry_msgs::Point forwardPt;
         geometry_msgs::Point odom_car2WayPtVec;
         foundForwardPt = false;
-        forwardPtVector.clear();
+        int index = 0;
 
         double cost = 0, x_diff, y_diff, yaw, yaw_last;
 
@@ -346,10 +402,7 @@ public:
                 
                 if(_isForwardWayPt)
                 {
-                    forwardPtVector.push_back(odom_path_wayPt);
-                    int index = forwardPtVector.size() - 1;
-
-                    double dist = getDistanceBetweenPoints(forwardPtVector[index], carPose_pos);
+                    double dist = getDistanceBetweenPoints(odom_path_wayPt, carPose_pos);
 
                     if(!foundForwardPt) // 如果 odom_path_wayPt 在 carPosePredicted 的前面
                     {
@@ -359,8 +412,9 @@ public:
                             foundForwardPt = true;
                             PURE_PURSUIT_INFO("found the forwardPt, index: %d, x: %lf, y: %lf", index, forwardPt.x, forwardPt.y);
                             break;
-                        }                            
+                        }
                     }
+                    index++;
                 }
             }
         }
@@ -373,16 +427,16 @@ public:
 
         /*Visualized Target Point on RVIZ*/
         /*Clear former target point Marker*/
-        points.points.clear();
+        lines.points.clear();
         
         if(foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
         {
-            if(forwardPtVector.size() == 0) ROS_ERROR("forwardPtVector.size() == 0");
-            points.points = (forwardPtVector);
+            lines.points.push_back(carPose_pos);
+            lines.points.push_back(forwardPt);
         }
         else ROS_ERROR("foundForwardPt%d", (int)foundForwardPt);
 
-        marker_pub.publish(points);
+        marker_pub.publish(lines);
         
         odom_car2WayPtVec.x = cos(carPose_yaw)*(forwardPt.x - carPose_pos.x) + sin(carPose_yaw)*(forwardPt.y - carPose_pos.y);
         odom_car2WayPtVec.y = -sin(carPose_yaw)*(forwardPt.x - carPose_pos.x) + cos(carPose_yaw)*(forwardPt.y - carPose_pos.y);
@@ -397,9 +451,10 @@ public:
     // 接受到机器人在 map 坐标系下的坐标,判断机器人是否已经到达目标点
     void amclCB(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
     {
-
         if(this->goal_received)
         {
+            std_srvs::SetBool trigger;
+            trigger.request.data = true;
             double car2goal_x = this->goal_pos.x - amclMsg->pose.pose.position.x;
             double car2goal_y = this->goal_pos.y - amclMsg->pose.pose.position.y;
             double dist2goal = sqrt(car2goal_x*car2goal_x + car2goal_y*car2goal_y);
@@ -412,8 +467,6 @@ public:
             if(enbale_safe_distance && isRobotCollided(amclMsg->pose.pose.position))
             {
                 ROS_ERROR("robot hit the obstacle");
-                std_srvs::SetBool trigger;
-                trigger.request.data = true;
                 stopRobotCB(trigger.request, trigger.response);
             }
         }
@@ -481,15 +534,19 @@ public:
                 carPosePredicted = carPose;
             }
 
+            double bendDistance = findDistanceToBend(carPose);
+            speed_expected = getExpectedSpeed(bendDistance);
+
+
             /*Estimate Steering Angle*/
             geometry_msgs::Point odom_car2WayPtVec = get_odom_car2WayPtVec(carPosePredicted);
             double eta = atan2(odom_car2WayPtVec.y,odom_car2WayPtVec.x); // 计算 forwardPt 与 carPose_pos 的角度
-
-            speed_expected = Vcmd_min;
             
             if(foundPredictedCarPt && foundForwardPt)
             {
-                this->steering = this->base_angle + getSteering(eta)*this->steering_gain; // 计算舵机转角
+                this->steering = this->base_angle + getSteering(eta) * this->steering_gain; // 计算舵机转角
+                this->steering = std::min(this->steering,  steering_max);
+                this->steering = std::max(this->steering, -steering_max);
 
                 /*Estimate Gas Input*/
                 if(!this->goal_reached)
