@@ -757,8 +757,8 @@ public:
         robotPose = amclMsg->pose.pose;
         if(!navigationStarted) return;
 
-        double dx = amclMsg->pose.pose.position.x - publishedGoal.pose.position.x;
-        double dy = amclMsg->pose.pose.position.y - publishedGoal.pose.position.y;
+        double dx = amclMsg->pose.pose.position.x - locationVector[optimalGoalsIndexVector[currentGoalIndex]].x;
+        double dy = amclMsg->pose.pose.position.y - locationVector[optimalGoalsIndexVector[currentGoalIndex]].y;
         double dist = sqrt(dx * dx + dy * dy);
 
         if(dist < goalRadius)

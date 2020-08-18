@@ -62,14 +62,14 @@ roslaunch racecar_launch_realrobot run_all.launch navigation:=true rviz_full:=tr
 
   <!-- savemap -->
   <group if="$(arg savemap)">
-    <arg name="world_name" default="building"/>
+    <arg name="world_name" default="warehouse"/>
     <node pkg="map_server" type="map_saver" name="map_saver" args="-f $(find racecar_launch_realrobot)/map/$(arg world_name)"/>
   </group>
 
 
   <!-- navigation -->
   <group if="$(arg navigation)">
-    <arg name="world_name" default="building"/>
+    <arg name="world_name" default="warehouse"/>
     <include file="$(find racecar_launch_realrobot)/launch/run_navigation.launch">
       <arg name="map_topic" default="$(arg map_topic)"/>
       <arg name="scan_topic" default="$(arg scan_topic)"/>

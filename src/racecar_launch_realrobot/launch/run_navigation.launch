@@ -69,7 +69,7 @@
   </node>
 
   <!-- 多点导航节点 -->
-  <!-- <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
+  <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
     <rosparam file="$(find racecar_launch_realrobot)/param/move_base/multi_goals_navigation_params.yaml" command="load"/>
     <param name="map_frame" value="$(arg map_frame)"/>
     <param name="amcl_pose_topic" value="/amcl_pose"/>
@@ -77,7 +77,7 @@
     <param name="clicked_point_topic" value="/clicked_point"/>
     <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
     <param name="global_costmap_topic" value="/move_base/global_costmap/costmap"/>
-  </node> -->
+  </node>
 
   <!-- 方案2： -->
   <!-- 由于teb_local_planner会输出规划出来的路径，使用mpc算法进行路径跟踪 -->

@@ -8,7 +8,7 @@
 
 #clear_costmaps_server: /move_base/clear_costmaps
 
-goal_radius: 1.0     # 当机器人位置与坐标点距离小于该值时,判定机器人已经到达目标点
+goal_radius: 1.5     # 当机器人位置与坐标点距离小于该值时,判定机器人已经到达目标点
 goal_extension: 2.0  # 每一次所设置的坐标点都会在当前目标位置延伸至下一个目标位置多少距离
 debug_mode: true
 
@@ -20,8 +20,8 @@ locations: [ [-6.350986, -10.111509], [-5.072535, -4.822593], [-2.727613, -0.220
 #            9                       10                     11                      *12
              [3.027502, -12.470995], [0.291542, -4.501868], [-1.696454, -1.642891], [-3.772390, 0.202378] ]
              
-goals_id: [ 10, 8, 6, 4, 1, 11 ] # 目标点在 locations 参数上对应的索引
-goals_static: [ true, false, false, false, false, true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
+goals_id: [ 6, 2, 10, 4, 7] # 目标点在 locations 参数上对应的索引
+goals_static: [ true, false, false, false , true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
 
 locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 参数中的两两点之间是否可达, c表示选择该路径的惩罚,当路径上障碍物较多时,可以适当提高该参数
                       [2, 10, 1.0], [2, 12, 1.0], 
