@@ -60,7 +60,8 @@
       <param name="local_costmap/global_frame" value="$(arg map_frame)"/>
       <param name="local_costmap/robot_base_frame" value="$(arg base_frame)"/>
 
-      <rosparam file="$(find racecar_launch_realrobot)/param/move_base/teb_local_planner_params.yaml" command="load" />
+      <!-- <rosparam file="$(find racecar_launch_realrobot)/param/move_base/teb_local_planner_params.yaml" command="load" /> -->
+      <rosparam file="$(find racecar_launch_realrobot)/param/move_base/teb_local_planner_params_pure.yaml" command="load" />
       <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
       <param name="TebLocalPlannerROS/max_vel_x" value="$(arg speed)"/>
     </node>

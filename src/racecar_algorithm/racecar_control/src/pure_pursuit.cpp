@@ -403,17 +403,20 @@ public:
             double car2goal_x = this->goal_pos.x - amclMsg->pose.pose.position.x;
             double car2goal_y = this->goal_pos.y - amclMsg->pose.pose.position.y;
             double dist2goal = sqrt(car2goal_x*car2goal_x + car2goal_y*car2goal_y);
+
+
+            std_srvs::SetBool trigger;
+            trigger.request.data = true;
             if(dist2goal < this->goal_radius)
             {
                 this->goal_reached = true;
                 this->goal_received = false;
                 ROS_INFO("Goal Reached !");
+                stopRobotCB(trigger.request, trigger.response);
             }
             if(enbale_safe_distance && isRobotCollided(amclMsg->pose.pose.position))
             {
                 ROS_ERROR("robot hit the obstacle");
-                std_srvs::SetBool trigger;
-                trigger.request.data = true;
                 stopRobotCB(trigger.request, trigger.response);
             }
         }
