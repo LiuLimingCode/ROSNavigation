@@ -27,11 +27,15 @@ double PID_Local(double Aid,double Measure,double P,double D)
 {
     double PID_OUT = 0;
     double Error = 0;
+    double D_Data = 0;
     static double Error_Last = 0;
+    static double D_Data_Last = 0;
     Error = Aid - Measure;
+    D_Data = Error - Error_Last;
     PID_OUT = P * Error
-             +D * (Error - Error_Last);
+             +D * (1.0*D_Data + 0.0*D_Data_Last);
     Error_Last = Error;
+    D_Data_Last = D_Data;
     return PID_OUT;
 }
 

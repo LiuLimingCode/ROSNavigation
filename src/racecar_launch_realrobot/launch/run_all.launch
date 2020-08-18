@@ -31,7 +31,7 @@ roslaunch racecar_launch_realrobot run_all.launch navigation:=true rviz_full:=tr
   <arg name="rviz_base" default="false"/>   <!-- 打开Rviz -->
   <arg name="rviz_full" default="false"/>   <!-- 打开Rviz -->
 
-  <arg name="speed" default="1"/>
+  <arg name="speed" default="0.4"/>
 
   <!-- realrobot -->
   <group if="$(arg realrobot)">
