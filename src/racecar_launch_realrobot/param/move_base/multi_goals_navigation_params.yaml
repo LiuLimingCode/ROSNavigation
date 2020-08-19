@@ -33,6 +33,6 @@ locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 
                       [8, 9, 1.0], [8, 10, 1.0],
                       [10, 11, 1.0] ]
 
-punish_bend: 2.0  # 转弯惩罚
+punish_bend: 1.0  # 转弯惩罚
 punish_backwards: 100.0 # 倒退惩罚
 punish_fristlarge_bend: 10.0

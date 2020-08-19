@@ -410,7 +410,7 @@ public:
         double currentAngel = atan2(currentGoal->y - lastGoal->y, currentGoal->x - lastGoal->x);
 
         double xPublished = currentGoal->x, yPublished = currentGoal->y, anglePublished = currentAngel;
-        if(currentGoalIndex + 1 < optimalGoalsIndexVector.size() - 1)
+        if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
         {
             const geometry_msgs::Point * futureGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex + 1]];
             anglePublished = atan2(futureGoal->y - currentGoal->y, futureGoal->x - currentGoal->x);

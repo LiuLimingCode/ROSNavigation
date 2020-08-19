@@ -27,9 +27,9 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true rviz_full:=tr
   <arg name="simulator" default="false"/>   <!-- 开启gazebo仿真 -->
   <arg name="gmapping" default="false"/>    <!-- 使用gmapping建图 -->
   <arg name="savemap" default="false"/>     <!-- 保存gmapping的建图结果 -->
-  <arg name="navigation" default="true"/>  <!-- 在有地图的情况下进行导航 -->
+  <arg name="navigation" default="false"/>  <!-- 在有地图的情况下进行导航 -->
   <arg name="rviz_base" default="false"/>   <!-- 打开Rviz -->
-  <arg name="rviz_full" default="true"/>   <!-- 打开Rviz -->
+  <arg name="rviz_full" default="false"/>   <!-- 打开Rviz -->
 
   <arg name="speed" default="3.5"/>
 
