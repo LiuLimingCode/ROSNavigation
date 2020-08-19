@@ -31,6 +31,12 @@ void TimerCallBack(const ros::TimerEvent&)
         odom.header.seq = count;
         odom.header.frame_id = frame_id;
         odom.child_frame_id = child_frame_id;
+        odom.pose.covariance[0] = 0.00001;
+        odom.pose.covariance[7] = 0.00001;
+        odom.pose.covariance[14] = 1000000000000.0;
+        odom.pose.covariance[21] = 1000000000000.0;
+        odom.pose.covariance[28] = 1000000000000.0;
+        odom.pose.covariance[35] = 0.001;
 
         if((tmpdata[0] == 0x00) && (tmpdata[1] == 0xaa))
         {

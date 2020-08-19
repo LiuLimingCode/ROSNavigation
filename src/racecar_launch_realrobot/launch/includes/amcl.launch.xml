@@ -27,7 +27,7 @@
     <param name="first_map_only" value="$(arg first_map_only)"/>#When set to true, AMCL will only use the first map it subscribes to, rather than updating each time a new one is received. (default: false)
 
     <!-- Overall filter parameters -->
-    <param name="min_particles" value="100"/>      #Minimum allowed number of particles. (default: 100)
+    <param name="min_particles" value="500"/>      #Minimum allowed number of particles. (default: 100)
     <param name="max_particles" value="5000"/>     #Maximum allowed number of particles. (default: 5000)
     <param name="kld_err" value="0.01"/>           #Maximum error between the true distribution and the estimated distribution. (default: 0.01)
     <param name="kld_z" value="0.99"/>             #Upper standard normal quantile for (1 - p), where p is the probability that the error on the estimated distrubition will be less than kld_err. (default: 0.99)
@@ -53,7 +53,7 @@
     <!-- Laser model parameters -->
     <param name="laser_min_range" value="-1.0"/>  #Minimum scan range to be considered; -1.0 will cause the laser's reported minimum range to be used. (default: -1.0)
     <param name="laser_max_range" value="-1.0"/>  #Maximum scan range to be considered; -1.0 will cause the laser's reported maximum range to be used. (default: -1.0)
-    <param name="laser_max_beams" value="30"/>    #How many evenly-spaced beams in each scan to be used when updating the filter. (default: 30)
+    <param name="laser_max_beams" value="90"/>    #How many evenly-spaced beams in each scan to be used when updating the filter. (default: 30)
     <param name="laser_z_hit" value="0.5"/>       #Mixture weight for the z_hit part of the model. (default: 0.95)
     <param name="laser_z_short" value="0.05"/>    #Mixture weight for the z_short part of the model. (default: 0.1)
     <param name="laser_z_max" value="0.05"/>      #Mixture weight for the z_max part of the model. (default: 0.05)
@@ -65,7 +65,7 @@
 
 
     <!-- Odometry model parameters -->
-    <param name="odom_model_type" value="diff"/> #Which model to use, either "diff", "omni", "diff-corrected" or "omni-corrected". (default: "diff")
+    <param name="odom_model_type" value="diff-corrected"/> #Which model to use, either "diff", "omni", "diff-corrected" or "omni-corrected". (default: "diff")
     <param name="odom_alpha1" value="0.2"/>      #Specifies the expected noise in odometry's rotation estimate from the rotational component of the robot's motion. (default: 0.2)
     <param name="odom_alpha2" value="0.2"/>      #Specifies the expected noise in odometry's rotation estimate from translational component of the robot's motion. (default: 0.2)
     <param name="odom_alpha3" value="0.8"/>      #Specifies the expected noise in odometry's translation estimate from the translational component of the robot's motion. (default: 0.2)
