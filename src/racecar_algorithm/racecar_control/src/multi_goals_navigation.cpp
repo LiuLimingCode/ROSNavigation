@@ -86,7 +86,7 @@ struct Dijkstra
     }
 
     // 运行 Dijkstra 算法
-    std::vector<Result> run(int startIndex, double startAngle) const
+    std::vector<Result> run(int startIndex, double startAngle, bool isFirstBend) const
     {
         std::vector<Result> result;
         std::priority_queue<HeapNode> heapNodeQueue;
@@ -124,6 +124,8 @@ struct Dijkstra
             {
                 const LocationsRelation* relation = &locationsRelation[reachableIndexs[currentIndex][temp]];
                 double relationAngle = 0;
+                double relationCostBackwards = 0;
+                double relationCostFirLargeBend = 0;
                 
                 if(lastRelation != nullptr)
                 {
@@ -140,11 +142,11 @@ struct Dijkstra
                     relationAngle = fabs(relation->angle() - startAngle);
                     if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
                     if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
-                    if(fabs(relationAngle) > PI * 0.75) relationAngle *= punishBackwards; // 如果第一个点的转弯角度大于135,那么认为是倒退
-                    else if(fabs(relationAngle) > PI * 0.25) relationAngle *= punishFristLargeBend; // 如果第一个弯转向过大,同样施加惩罚
+                    if(fabs(relationAngle) > PI * 0.75) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于135,那么认为是倒退
+                    else if(fabs(relationAngle) > PI * 0.5 && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
                 
-                double relationCost = (relation->dist() + relationAngle * punishBent) * relation->punish;
+                double relationCost = (relation->dist() + relationAngle * punishBent + relationCostBackwards + relationCostFirLargeBend) * relation->punish;
                 if(result[relation->to].cost > result[relation->from].cost + relationCost)
                 {
                     result[relation->to].cost = result[relation->from].cost + relationCost;
@@ -165,7 +167,7 @@ struct Dijkstra
     std::vector<std::vector<int> > reachableIndexs; // 代表每个坐标点可到达的其他坐标点的序号
     double punishBent = 1.0;
     double punishBackwards = 1.0;
-    double punishFristLargeBend = 1.0;
+    double punishFirstLargeBend = 1.0;
     int maxLocationsNum; // 坐标点的数量
 };
 
@@ -180,7 +182,7 @@ private:
     ros::ServiceClient clearCostmapsClient;
 
     std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic;
-    double goalRadius, goalExtension, punishBend, punishBackwards, punishFristLargeBend;
+    double goalRadius, goalExtension, punishBend, punishBackwards, punishFirstLargeBend;
     bool debugMode, navigationStarted = false;
     visualization_msgs::Marker goalsMarker, roadMarker;
 
@@ -224,10 +226,10 @@ public:
         _n.param<double>("goal_extension", goalExtension, goalRadius);
         _n.param<double>("punish_bend", punishBend, 1.0);
         _n.param<double>("punish_backwards", punishBackwards, 1.0);
-        _n.param<double>("punish_fristlarge_bend", punishFristLargeBend, 1.0);
+        _n.param<double>("punish_firstlarge_bend", punishFirstLargeBend, 1.0);
         dijkstra.punishBent = punishBend;
         dijkstra.punishBackwards = punishBackwards;
-        dijkstra.punishFristLargeBend = punishFristLargeBend;
+        dijkstra.punishFirstLargeBend = punishFirstLargeBend;
 
         _n.param<bool>("debug_mode", debugMode, false);
 
@@ -296,7 +298,7 @@ public:
                 {
                     const Dijkstra::LocationsRelation * relation = &dijkstra.locationsRelation[dijkstra.reachableIndexs[startIndex][temp]];
                     double yaw = atan2(relation->fromPoint->y - relation->toPoint->y, relation->fromPoint->x - relation->toPoint->x);
-                    std::vector<Dijkstra::Result> dijkstraResult = dijkstra.run(startIndex, yaw);
+                    std::vector<Dijkstra::Result> dijkstraResult = dijkstra.run(startIndex, yaw, true);
                     ROS_INFO("#################################");
                     ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", startIndex + 1, relation->to + 1, relation->from + 1, yaw);
                     for(int endIndex = 0; endIndex < locationVector.size(); ++endIndex)
@@ -477,14 +479,16 @@ public:
                 const int begin = goalsSelected[alpha - 1];
                 const int end = goalsSelected[alpha];
                 double oriantation = startYaw;
+                bool isFirstBend = true;
                 if(alpha >= 2)
                 {
                     const geometry_msgs::Point * fromPoint = &locationVector[lastBestPath[lastBestPath.size() - 2]];
                     const geometry_msgs::Point * toPoint = &locationVector[lastBestPath[lastBestPath.size() - 1]];
                     oriantation = atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x);
+                    isFirstBend = false;
                 }
 
-                auto dijkstraResult = dijkstra.run(begin, oriantation);
+                auto dijkstraResult = dijkstra.run(begin, oriantation, isFirstBend);
 
                 lastBestPath = dijkstraResult[end].bestPath;
                 costSum += dijkstraResult[end].cost;
