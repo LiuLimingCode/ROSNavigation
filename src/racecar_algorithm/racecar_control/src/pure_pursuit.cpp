@@ -95,8 +95,8 @@ public:
         pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
         pn.param("stop_robot", stop_robot, false);
         pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
-        pn.param("slowdown_dist_min", slowdown_dist_min, 1.0);
-        pn.param("slowdown_dist_max", slowdown_dist_max, 3.0);
+        pn.param("slowdown_dist_min", slowdown_dist_min, 0.3);
+        pn.param("slowdown_dist_max", slowdown_dist_max, 1.0);
         pn.param("enable_safe_distance", enbale_safe_distance, true);
         pn.param("safe_distance_x", safe_distance_x, 0.1);
         pn.param("safe_distance_y", safe_distance_y, 0.1);
