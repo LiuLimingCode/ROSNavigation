@@ -19,6 +19,7 @@
 #include <iostream>
 #include "ros/ros.h"
 #include <std_srvs/SetBool.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
@@ -46,7 +47,7 @@ class PurePursuit
 {
 private:
     ros::NodeHandle n_;
-    ros::Subscriber odom_sub, path_sub, goal_sub, amcl_sub, costmap_sub;
+    ros::Subscriber odom_sub, path_sub, goal_sub, amcl_sub, costmap_sub, speed_factor_sub;
     ros::Publisher ackermann_pub, cmdvel_pub, marker_pub;
     ros::ServiceServer stop_robot_srv;
     ros::Timer timer1, timer2;
@@ -60,7 +61,7 @@ private:
     nav_msgs::Path map_path, odom_path;
     boost::shared_ptr<const nav_msgs::OccupancyGrid> costmap;
 
-    double L, Lfw, Vcmd_max, Vcmd_min, steering_max, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_min, slowdown_dist_max;
+    double L, Lfw, Vcmd_max, Vcmd_min, steering_max, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_min, slowdown_dist_max, speed_factor = 1.0;
     double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
     int controller_freq;
     bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot, enbale_safe_distance;
@@ -106,6 +107,7 @@ public:
         goal_sub = n_.subscribe("/pure_pursuit/goal", 1, &PurePursuit::goalCB, this);
         amcl_sub = n_.subscribe("/amcl_pose", 5, &PurePursuit::amclCB, this);
         costmap_sub = n_.subscribe("/move_base/local_costmap/costmap", 1, &PurePursuit::costmapCB, this);
+        speed_factor_sub = n_.subscribe("/multi_goals_navigation_node/speed_factor", 1, &PurePursuit::speedFactorCB, this);
         marker_pub = n_.advertise<visualization_msgs::Marker>("/pure_pursuit/path_marker", 10);
         ackermann_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/pure_pursuit/ackermann_cmd", 1);
         if(cmd_vel_mode) cmdvel_pub = n_.advertise<geometry_msgs::Twist>("/pure_pursuit/cmd_vel", 1);
@@ -374,7 +376,7 @@ public:
         if(distance >= slowdown_dist_max) result = Vcmd_max;
         else if(distance <= slowdown_dist_min) result = Vcmd_min;
         else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);                                                                                                                                                                                                                                                                                                                  
-        return result;
+        return result * speed_factor;
     }
 
     geometry_msgs::Point get_odom_car2WayPtVec(const geometry_msgs::Pose& carPose)
@@ -474,6 +476,11 @@ public:
     void costmapCB(const nav_msgs::OccupancyGrid::ConstPtr& data)
     {
         costmap = data;
+    }
+
+    void speedFactorCB(const std_msgs::Float32::ConstPtr& data)
+    {
+        speed_factor = data->data;
     }
 
     bool isRobotCollided(geometry_msgs::Point carPointMap)

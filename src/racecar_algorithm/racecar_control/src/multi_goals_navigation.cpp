@@ -4,6 +4,7 @@
 #include "ros/ros.h"
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
@@ -28,10 +29,10 @@ struct Dijkstra
         int to; // to 坐标的序号
         const geometry_msgs::Point * fromPoint; // from 坐标的数据
         const geometry_msgs::Point * toPoint; // to 坐标的数据
-        double punish = 1.0;
+        double speedFactor = 1.0;
 
-        LocationsRelation (int fromIndex = 0, int toIndex = 0, const geometry_msgs::Point * pFromPoint = nullptr, const geometry_msgs::Point * pToPoint = nullptr, double punishRate = 1.0) :
-        from(fromIndex), to(toIndex), fromPoint(pFromPoint), toPoint(pToPoint), punish(punishRate) {}
+        LocationsRelation (int fromIndex = 0, int toIndex = 0, const geometry_msgs::Point * pFromPoint = nullptr, const geometry_msgs::Point * pToPoint = nullptr, double factor = 1.0) :
+        from(fromIndex), to(toIndex), fromPoint(pFromPoint), toPoint(pToPoint), speedFactor(factor) {}
         double dist(void) const
         {
             double dx = fromPoint->x - toPoint->x;
@@ -80,7 +81,7 @@ struct Dijkstra
             locationsRelation.push_back(lr[index]);
             reachableIndexs[lr[index].from].push_back(locationsRelation.size() - 1);
 
-            locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint));
+            locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint, lr[index].speedFactor));
             reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
         }
     }
@@ -146,7 +147,7 @@ struct Dijkstra
                     else if(fabs(relationAngle) > PI * 0.5 && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
                 
-                double relationCost = (relation->dist() + relationAngle * punishBent + relationCostBackwards + relationCostFirLargeBend) * relation->punish;
+                double relationCost = relation->dist() + relationAngle * punishBent + relationCostBackwards + relationCostFirLargeBend;
                 if(result[relation->to].cost > result[relation->from].cost + relationCost)
                 {
                     result[relation->to].cost = result[relation->from].cost + relationCost;
@@ -177,18 +178,19 @@ private:
 
     ros::NodeHandle nodeHandle;
     ros::Subscriber amclSubscriber, clickedPointSubscriber;
-    ros::Publisher goalPublisher, markerPublisher;
+    ros::Publisher goalPublisher, markerPublisher, speedFactorPublisher;
     ros::ServiceServer normalizeServer, startNavigationServer, debugShowLocationsServer;
     ros::ServiceClient clearCostmapsClient;
 
-    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic;
-    double goalRadius, goalExtension, punishBend, punishBackwards, punishFirstLargeBend;
-    bool debugMode, navigationStarted = false;
+    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic, speedFactorTopic;
+    double goalRadius, goalExtension, speedFactorStart, punishBend, punishBackwards, punishFirstLargeBend;
+    bool debugMode, navigationStarted = false, isRobotInJunction = false, enableSpeedFactor;
     visualization_msgs::Marker goalsMarker, roadMarker;
 
-    XmlRpc::XmlRpcValue locationsXmlRpc, locationsRelationXmlRpc, goalsIndexXmlRpc, goalsStaticXmlRpc;
+    XmlRpc::XmlRpcValue locationsXmlRpc, locationsRelationXmlRpc, goalsIndexXmlRpc, goalsStaticXmlRpc, speedFactorXmlRpc;
 
     std::vector<geometry_msgs::Point> locationVector; // 记录各个坐标点的坐标数据,从param中读取
+    std::vector<double> speedFactorLocationsVector;
     std::vector<Dijkstra::LocationsRelation> locationRelationVector; // 记录两两坐标点之间的关系,从param中读取
     std::vector<int> goalsIndexVector; // 记录目标在 locationVector 中的序号,从param中读取
     std::vector<bool> goalsStaticVector; // 根据该设置对目标点进行排序,从param中读取
@@ -219,11 +221,13 @@ public:
         _n.param<std::string>("amcl_pose_topic", amclPoseTopic, "/amcl_pose");
         _n.param<std::string>("goal_topic", goalTopic, "/move_base_simple/goal");
         _n.param<std::string>("marker_topic", markerTopic, "visualization_marker");
+        _n.param<std::string>("speed_factor_topic", speedFactorTopic, "speed_factor");
         _n.param<std::string>("clicked_point_topic", clickedPointTopic, "/clicked_point");
         _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
         _n.param<double>("goal_extension", goalExtension, goalRadius);
+        _n.param<double>("speed_factor_start", speedFactorStart, 1.0);
         _n.param<double>("punish_bend", punishBend, 1.0);
         _n.param<double>("punish_backwards", punishBackwards, 1.0);
         _n.param<double>("punish_firstlarge_bend", punishFirstLargeBend, 1.0);
@@ -232,8 +236,10 @@ public:
         dijkstra.punishFirstLargeBend = punishFirstLargeBend;
 
         _n.param<bool>("debug_mode", debugMode, false);
+        _n.param<bool>("enable_speed_factor", enableSpeedFactor, false);
 
         _n.getParam("locations", locationsXmlRpc);
+        _n.getParam("speed_factor_locations", speedFactorXmlRpc);
         _n.getParam("locations_relation", locationsRelationXmlRpc);
         _n.getParam("goals_id", goalsIndexXmlRpc);
         _n.getParam("goals_static", goalsStaticXmlRpc);
@@ -244,6 +250,7 @@ public:
         clickedPointSubscriber.shutdown();
         goalPublisher = nodeHandle.advertise<geometry_msgs::PoseStamped>(goalTopic, 10);
         markerPublisher = nodeHandle.advertise<visualization_msgs::Marker>(markerTopic, 10);
+        if(enableSpeedFactor) speedFactorPublisher = nodeHandle.advertise<std_msgs::Float32>(speedFactorTopic, 10);
         normalizeServer = nodeHandle.advertiseService("start_normalize_map", &MultiGoalsNavigation::startNormalizeMapCallBack, this);
         startNavigationServer = nodeHandle.advertiseService("start_navigation", &MultiGoalsNavigation::startNavigationCallBack, this);
         debugShowLocationsServer = nodeHandle.advertiseService("debug_show_locations", &MultiGoalsNavigation::debugShowLocationsCallBack, this);
@@ -252,6 +259,7 @@ public:
         try
         {
             locationVector = getPointVectorFromXMLRPC(locationsXmlRpc, "locations");
+            if(enableSpeedFactor) speedFactorLocationsVector = getNumberVectorFromXMLRPC<double>(speedFactorXmlRpc, "speed_factor_locations");
             locationRelationVector = getRelationVectorFromXMLRPC(locationsRelationXmlRpc, "locations_relation");
             goalsIndexVector = getNumberVectorFromXMLRPC<int>(goalsIndexXmlRpc, "goals_id");
             goalsStaticVector = getNumberVectorFromXMLRPC<bool>(goalsStaticXmlRpc, "goals_static");
@@ -262,6 +270,7 @@ public:
         }
 
         checkCondition(goalsIndexVector.size() != goalsStaticVector.size(), "fatal error: the size of goals_id array param is not equal to the size of goals_static array param");
+        if(enableSpeedFactor) checkCondition(locationVector.size() != speedFactorLocationsVector.size(), "fatal error: the size of locations array param is not equal to the size of speed_factor_locations array param");
         checkCondition(goalsIndexVector.size() == 0, "fatal error: the size of goals_id array param is 0");
         checkCondition(!(goalsStaticVector[0] && goalsStaticVector[goalsStaticVector.size() - 1]), "fatal error: the begin and the end of goals_static array param must be true");
 
@@ -275,7 +284,7 @@ public:
             locationRelationVector[index].fromPoint = &locationVector[formIndex];
             checkCondition(toIndex > locationVector.size() - 1, "fatal error: locations_relation param is wrong");
             locationRelationVector[index].toPoint = &locationVector[toIndex];
-            if(debugMode) ROS_INFO("form: %d, to: %d, punish: %lf", formIndex + 1, toIndex + 1, locationRelationVector[index].punish);
+            if(debugMode) ROS_INFO("form: %d, to: %d", formIndex + 1, toIndex + 1);
         }
 
         if(debugMode) ROS_INFO("goals info:");
@@ -406,7 +415,7 @@ public:
     void publishGoal(int currentGoalIndex)
     {
         currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
-        ROS_INFO("current goal info (before rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
+        ROS_INFO("current goal info (before extension) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, currentGoal->x, currentGoal->y);
 
         const geometry_msgs::Point * lastGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex - 1]];
         double currentAngel = atan2(currentGoal->y - lastGoal->y, currentGoal->x - lastGoal->x);
@@ -432,7 +441,7 @@ public:
         publishedGoal.pose.orientation.x = q.x();
         publishedGoal.pose.orientation.y = q.y();
         publishedGoal.pose.orientation.z = q.z();
-        if(debugMode) ROS_INFO("current goal info (after rotation) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, xPublished, yPublished);
+        if(debugMode) ROS_INFO("current goal info (after extension) index: %d, id: %d, x: %lf, y: %lf", currentGoalIndex, optimalGoalsIndexVector[currentGoalIndex] + 1, xPublished, yPublished);
 
         goalPublisher.publish(publishedGoal);
     }
@@ -728,6 +737,13 @@ public:
         ROS_INFO("received init pose msg, started multi navigation");
         if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", robotPose.position.x, robotPose.position.y, initYaw);
 
+        if(enableSpeedFactor)
+        {
+            std_msgs::Float32 speedFactor;
+            speedFactor.data = speedFactorStart;
+            speedFactorPublisher.publish(speedFactor);
+        }
+
         std_srvs::Empty trigger;
         if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
         ros::Duration waitDuration(1.0);
@@ -761,12 +777,26 @@ public:
         robotPose = amclMsg->pose.pose;
         if(!navigationStarted) return;
 
-        double dx = amclMsg->pose.pose.position.x - locationVector[optimalGoalsIndexVector[currentGoalIndex]].x;
-        double dy = amclMsg->pose.pose.position.y - locationVector[optimalGoalsIndexVector[currentGoalIndex]].y;
-        double dist = sqrt(dx * dx + dy * dy);
+        std_msgs::Float32 speedFactor;
+        const int lastPublishedGoalIndex = optimalGoalsIndexVector[currentGoalIndex - 1];
+        const int currentPublishedGoalIndex = optimalGoalsIndexVector[currentGoalIndex];
+        double dx = amclMsg->pose.pose.position.x - locationVector[currentPublishedGoalIndex].x;
+        double dy = amclMsg->pose.pose.position.y - locationVector[currentPublishedGoalIndex].y;
+        double goalDistance = sqrt(dx * dx + dy * dy);
+        dx = amclMsg->pose.pose.position.x - locationVector[lastPublishedGoalIndex].x;
+        dy = amclMsg->pose.pose.position.y - locationVector[lastPublishedGoalIndex].y;
+        double goalDistanceLast = sqrt(dx * dx + dy * dy);
 
-        if(dist < goalRadius)
+        if(goalDistance < goalRadius)
         {
+            if(enableSpeedFactor && isRobotInJunction)
+            {
+                isRobotInJunction = false;
+                speedFactor.data = speedFactorLocationsVector[currentPublishedGoalIndex];
+                ROS_INFO("robot in location %d, speed factor is %lf", currentPublishedGoalIndex + 1, speedFactor.data);
+                speedFactorPublisher.publish(speedFactor);
+            }
+
             if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
             {
                 currentGoalIndex++;
@@ -777,6 +807,18 @@ public:
                 ROS_INFO("all goals reached, multi navigation finished.");
                 navigationStarted = false;
             }
+        }
+        else if(enableSpeedFactor && goalDistanceLast > goalRadius && !isRobotInJunction)
+        {
+            isRobotInJunction = true;
+            speedFactor.data = 1.0;
+            for(int index = 0; index < dijkstra.reachableIndexs[lastPublishedGoalIndex].size(); ++index)
+            {
+                if(dijkstra.locationsRelation[dijkstra.reachableIndexs[lastPublishedGoalIndex][index]].to == currentPublishedGoalIndex)
+                    speedFactor.data = dijkstra.locationsRelation[dijkstra.reachableIndexs[lastPublishedGoalIndex][index]].speedFactor;
+            }
+            ROS_INFO("robot in junction %d -> %d, speed factor is %lf", lastPublishedGoalIndex + 1, currentPublishedGoalIndex + 1, speedFactor.data);
+            speedFactorPublisher.publish(speedFactor);
         }
     }
 
@@ -842,7 +884,7 @@ public:
             Dijkstra::LocationsRelation lr;
             lr.from = getNumberFromXMLRPC<int>(point[ 0 ], full_param_name);
             lr.to = getNumberFromXMLRPC<int>(point[ 1 ], full_param_name);
-            lr.punish = getNumberFromXMLRPC<double>(point[ 2 ], full_param_name);
+            lr.speedFactor = getNumberFromXMLRPC<double>(point[ 2 ], full_param_name);
 
             relationVector.push_back(lr);
         }
