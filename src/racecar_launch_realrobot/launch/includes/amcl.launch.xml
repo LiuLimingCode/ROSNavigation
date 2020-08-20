@@ -35,7 +35,7 @@
     <param name="update_min_d" value="0.0"/>       #Translational movement required before performing a filter update. (default: 0.2 meters)
     <param name="update_min_a" value="0.1"/>       #Rotational movement required before performing a filter update. (default: π/6.0 radians)
     <param name="resample_interval" value="2"/>    #Number of filter updates required before resampling. (default: 2)
-    <param name="transform_tolerance" value="0.1"/>#Time with which to post-date the transform that is published, to indicate that this transform is valid into the future. (0.1 seconds)
+    <param name="transform_tolerance" value="0.2"/>#Time with which to post-date the transform that is published, to indicate that this transform is valid into the future. (0.1 seconds)
     <param name="recovery_alpha_slow" value="0.0"/>#Exponential decay rate for the slow average weight filter, used in deciding when to recover by adding random poses. A good value might be 0.001. (default: 0.0 (disabled))
     <param name="recovery_alpha_fast" value="0.1"/>#Exponential decay rate for the fast average weight filter, used in deciding when to recover by adding random poses. A good value might be 0.1. (default: 0.0 (disabled))
 
@@ -68,7 +68,7 @@
     <param name="odom_model_type" value="diff-corrected"/> #Which model to use, either "diff", "omni", "diff-corrected" or "omni-corrected". (default: "diff")
     <param name="odom_alpha1" value="0.2"/>      #Specifies the expected noise in odometry's rotation estimate from the rotational component of the robot's motion. (default: 0.2)
     <param name="odom_alpha2" value="0.2"/>      #Specifies the expected noise in odometry's rotation estimate from translational component of the robot's motion. (default: 0.2)
-    <param name="odom_alpha3" value="0.8"/>      #Specifies the expected noise in odometry's translation estimate from the translational component of the robot's motion. (default: 0.2)
+    <param name="odom_alpha3" value="0.2"/>      #Specifies the expected noise in odometry's translation estimate from the translational component of the robot's motion. (default: 0.2)
     <param name="odom_alpha4" value="0.2"/>      #Specifies the expected noise in odometry's translation estimate from the rotational component of the robot's motion. (default: 0.2)
     <param name="odom_alpha5" value="0.2"/>      #Translation-related noise parameter (only used if model is "omni"). (default: 0.2)
 

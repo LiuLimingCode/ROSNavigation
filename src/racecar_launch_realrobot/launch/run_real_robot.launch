@@ -89,7 +89,7 @@
       <param name="odom_frame_id" value="$(arg odom_frame)"/>
       <param name="base_frame_id" value="$(arg base_frame)"/>
       <param name="odom_pub_topic" value="$(arg odom_rf2o_topic)"/>
-      <param name="publish_frequency" value="20"/>
+      <param name="publish_frequency" value="25"/>
     </node>
   </group>
 
