@@ -10,6 +10,8 @@
 
 goal_radius: 1.5     # 当机器人位置与坐标点距离小于该值时,判定机器人已经到达目标点
 goal_extension: 2.0  # 每一次所设置的坐标点都会在当前目标位置延伸至下一个目标位置多少距离
+destination_extension_x: 0.0  # 多点导航的最后一个目标点设定位置在x轴上的延伸
+destination_extension_y: 0.0  # 多点导航的最后一个目标点设定位置在y轴上的延伸
 debug_mode: true
 
 # 坐标数据
@@ -26,8 +28,8 @@ speed_factor_locations: [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 speed_factor_start: 0.5   # 起始点的速度
 enable_speed_factor: false
              
-goals_id: [ 5,8,6,10,9,3,7] # 目标点在 locations 参数上对应的索引
-goals_static: [ true, false ,false ,false, false, false , true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
+goals_id: [ 5, 8, 6, 10, 9, 3, 7 ] # 目标点在 locations 参数上对应的索引
+goals_static: [ true, false, false, false, false, false , true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
 
 locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 参数中的两两点之间是否可达, c表示选择该路径的速度,当路径上障碍物较多时,可以适当减少该参数
                       [2, 10, 1.0], [2, 12, 1.0], 
@@ -41,4 +43,5 @@ locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 
 
 punish_bend: 1.0  # 转弯惩罚
 punish_backwards: 100.0 # 倒退惩罚
-punish_firstlarge_bend: 10.0
+punish_firstlarge_bend: 10.0 # 如果起点的转弯大于90°,则施加惩罚
+first_bend_threshold: 90.0  # 当起点的转角大于该值时,判定转角过大,施加惩罚,单位:度
