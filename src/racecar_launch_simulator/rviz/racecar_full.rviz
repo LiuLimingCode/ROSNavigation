@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /OdomEKFGreen1
         - /OdomEKFGreen1/Shape1
         - /OdomRf2oBlue1/Shape1
       Splitter Ratio: 0.602305472
@@ -185,7 +186,7 @@ Visualization Manager:
         Shaft Length: 0.0500000007
         Shaft Radius: 0.0500000007
         Value: Arrow
-      Topic: /odom_ekf
+      Topic: /odom
       Unreliable: false
       Value: true
     - Angle Tolerance: 0.100000001
@@ -205,7 +206,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 200
       Name: OdomRf2oBlue
       Position Tolerance: 0.100000001
@@ -221,123 +222,22 @@ Visualization Manager:
         Value: Arrow
       Topic: /odom_rf2o
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        laser_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_battery:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_battery_offset:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_front_axle_carrier:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_front_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_rear_axle_carrier:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_rear_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        left_steering_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        lidar_platform_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        platform_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_battery:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_battery_offset:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_front_axle_carrier:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_front_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_rear_axle_carrier:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_rear_wheel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_steering_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
       Name: RobotModel
       Robot Description: /robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Alpha: 0.699999988
       Class: rviz/Map
@@ -456,12 +356,35 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /pure_pursuit/path_marker
       Name: PursuitMarker
       Namespaces:
         {}
       Queue Size: 100
+      Value: false
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: PursuitPath
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /pursuit_path
+      Unreliable: false
       Value: true
     - Alpha: 1
       Arrow Length: 0.300000012
@@ -499,7 +422,7 @@ Visualization Manager:
       Marker Topic: /multi_goals_navigation_node/visualization_marker
       Name: MultiNavMarker
       Namespaces:
-        {}
+        multi_goals_navigation: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -527,16 +450,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 19.8694458
+      Distance: 5.58417416
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 8.38134193
-        Y: 0.98286593
-        Z: 4.33931351
+        X: 8.01716805
+        Y: -1.47807491
+        Z: 4.34029245
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
@@ -545,7 +468,7 @@ Visualization Manager:
       Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.16727614
+      Yaw: 4.70228386
     Saved: ~
 Window Geometry:
   Displays:

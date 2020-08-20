@@ -48,7 +48,7 @@ class PurePursuit
 private:
     ros::NodeHandle n_;
     ros::Subscriber odom_sub, path_sub, goal_sub, amcl_sub, costmap_sub, speed_factor_sub;
-    ros::Publisher ackermann_pub, cmdvel_pub, marker_pub;
+    ros::Publisher ackermann_pub, cmdvel_pub, marker_pub, pursuit_path_pub;
     ros::ServiceServer stop_robot_srv;
     ros::Timer timer1, timer2;
     tf::TransformListener tf_listener;
@@ -111,6 +111,7 @@ public:
         marker_pub = n_.advertise<visualization_msgs::Marker>("/pure_pursuit/path_marker", 10);
         ackermann_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/pure_pursuit/ackermann_cmd", 1);
         if(cmd_vel_mode) cmdvel_pub = n_.advertise<geometry_msgs::Twist>("/pure_pursuit/cmd_vel", 1);
+        pursuit_path_pub = n_.advertise<nav_msgs::Path>("pursuit_path", 1);
         stop_robot_srv = n_.advertiseService("/pure_pursuit/stop_robot", &PurePursuit::stopRobotCB, this);
 
         //Timer
@@ -269,7 +270,19 @@ public:
                     return;
                 }
             }
-            odom_path = path;
+
+            odom_path.poses.clear();
+            for(int index = 1; index < path.poses.size(); ++index)
+            {
+                if(isForwardWayPt(path.poses[index].pose.position, path.poses[index - 1].pose))
+                {
+                    if(odom_path.poses.empty()) odom_path.poses.push_back(path.poses[index - 1]);
+                    odom_path.poses.push_back(path.poses[index]);
+                }
+            }
+            odom_path.header.frame_id = "odom";
+            odom_path.header.stamp = ros::Time::now();
+            pursuit_path_pub.publish(odom_path);
         }
 
         if(debug_mode) // 输出路径信息
@@ -305,11 +318,13 @@ public:
         return curvature;
     }
 
-    bool findPredictedCarPose(const geometry_msgs::Pose& carPose, geometry_msgs::Pose & carPosePredicted)
+    bool findPredictedCarPose(const geometry_msgs::Pose& carPose, geometry_msgs::Pose & carPosePredicted, geometry_msgs::Pose & distance)
     {
         foundPredictedCarPt = false;
         geometry_msgs::Point carPose_pos = carPose.position;
         double carPose_yaw = getYawFromPose(carPose);
+        bool foundCarInWay = false;
+        geometry_msgs::Pose carPoseInWay;
 
         if(!goal_reached)
         {
@@ -320,11 +335,26 @@ public:
 
                 if(isForwardWayPt(odom_path_wayPt, carPose))
                 {
+                    if(!foundCarInWay)
+                    {
+                        foundCarInWay = true;
+                        carPoseInWay = odom_path.poses[i].pose;
+                        ROS_ERROR("carPoseInWay: x = %lf, y = %lf, yaw = %lf", carPoseInWay.position.x, carPoseInWay.position.y, getYawFromPose(carPoseInWay));
+                    }
                     double dist = getDistanceBetweenPoints(odom_path_wayPt, carPose_pos);
                     if(dist > predicted_dist)
                     {
                         foundPredictedCarPt = true;
                         carPosePredicted = odom_path.poses[i].pose;
+                        ROS_ERROR("carPosePredicted: x = %lf, y = %lf, yaw = %lf", carPosePredicted.position.x, carPosePredicted.position.y, getYawFromPose(carPosePredicted));
+                        distance.position.x = carPosePredicted.position.x - carPoseInWay.position.x;
+                        distance.position.y = carPosePredicted.position.y - carPoseInWay.position.y;
+                        double yaw = getYawFromPose(carPosePredicted) - getYawFromPose(carPoseInWay);
+                        tf::Quaternion quaternion = tf::createQuaternionFromYaw(yaw);
+                        distance.orientation.w = quaternion.w();
+                        distance.orientation.x = quaternion.x();
+                        distance.orientation.y = quaternion.y();
+                        distance.orientation.z = quaternion.z();
                         break;
                     }
                 }
@@ -379,7 +409,7 @@ public:
         return result * speed_factor;
     }
 
-    geometry_msgs::Point get_odom_car2WayPtVec(const geometry_msgs::Pose& carPose)
+    geometry_msgs::Point findForwardPoint(const geometry_msgs::Pose& carPose)
     {
         geometry_msgs::Point carPose_pos = carPose.position;
         double carPose_yaw = getYawFromPose(carPose);
@@ -424,23 +454,8 @@ public:
             foundForwardPt = false;
             //ROS_INFO("goal REACHED!");
         }
-
-        /*Visualized Target Point on RVIZ*/
-        /*Clear former target point Marker*/
-        lines.points.clear();
         
-        if(foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
-        {
-            lines.points.push_back(carPose_pos);
-            lines.points.push_back(forwardPt);
-        }
-        else ROS_ERROR("foundForwardPt%d", (int)foundForwardPt);
-
-        marker_pub.publish(lines);
-        
-        odom_car2WayPtVec.x = cos(carPose_yaw)*(forwardPt.x - carPose_pos.x) + sin(carPose_yaw)*(forwardPt.y - carPose_pos.y);
-        odom_car2WayPtVec.y = -sin(carPose_yaw)*(forwardPt.x - carPose_pos.x) + cos(carPose_yaw)*(forwardPt.y - carPose_pos.y);
-        return odom_car2WayPtVec; // 返回 forwardPt 与 carPose_pos 的距离并转换到机器人的坐标系下
+        return forwardPt; // 返回 forwardPt 与 carPose_pos 的距离并转换到机器人的坐标系下
     }
 
     double getSteering(double eta)
@@ -521,6 +536,7 @@ public:
 
         geometry_msgs::Pose carPose = this->odom.pose.pose;
         geometry_msgs::Twist carVel = this->odom.twist.twist;
+        double carPoseYaw = getYawFromPose(carPose);
 
         if(this->goal_received)
         {
@@ -528,24 +544,47 @@ public:
             PURE_PURSUIT_INFO("current car pose: x: %lf, y: %lf, vx: %lf, vyaw: %lf", carPose.position.x, carPose.position.y, carVel.linear.x, carVel.angular.z);
             transformPathData();
 
-            geometry_msgs::Pose carPosePredicted;
-            if(findPredictedCarPose(carPose, carPosePredicted))
+            geometry_msgs::Pose carPosePredicted, predictedDistance, carPoseCorrected;
+            if(findPredictedCarPose(carPose, carPosePredicted, predictedDistance))
             {
                 PURE_PURSUIT_INFO("found the predicted car pose, x: %lf, y: %lf", carPosePredicted.position.x, carPosePredicted.position.y);
                 carPosePredicted.orientation = carPose.orientation;
+                carPoseCorrected = carPose;
+                carPoseCorrected.position.x += (cos(carPoseYaw) * predictedDistance.position.x + sin(carPoseYaw) * predictedDistance.position.y);
+                carPoseCorrected.position.y += (-sin(carPoseYaw) * predictedDistance.position.x + cos(carPoseYaw) * predictedDistance.position.y);
             }
             else 
             {
                 PURE_PURSUIT_INFO("didn't find the predicted car pose!!!!!!!!!!!");
                 carPosePredicted = carPose;
+                carPoseCorrected = carPose;
             }
+
+            ROS_ERROR("predicted_dist = %f", predicted_dist);
+            ROS_ERROR("carPose: x = %lf, y = %lf, yaw = %lf", carPose.position.x, carPose.position.y, carPoseYaw);
+            ROS_ERROR("predictedDistance: x = %lf, y = %lf, yaw = %lf", predictedDistance.position.x, predictedDistance.position.y, getYawFromPose(predictedDistance));
+            ROS_ERROR("carPoseCorrected: x = %lf, y = %lf", carPoseCorrected.position.x, carPoseCorrected.position.y);
 
             double bendDistance = findDistanceToBend(carPose);
             speed_expected = getExpectedSpeed(bendDistance);
 
-
             /*Estimate Steering Angle*/
-            geometry_msgs::Point odom_car2WayPtVec = get_odom_car2WayPtVec(carPosePredicted);
+            geometry_msgs::Point odom_car2WayPtVec, forwardPt = findForwardPoint(carPosePredicted);
+
+            /*Visualized Target Point on RVIZ*/
+            /*Clear former target point Marker*/
+            lines.points.clear();
+            
+            if(foundForwardPt && !goal_reached) // 使用 Marker 将 forwardPt 和 carPose_pos 标记出来
+            {
+                lines.points.push_back(carPoseCorrected.position);
+                lines.points.push_back(forwardPt);
+            }
+            else ROS_ERROR("foundForwardPt%d", (int)foundForwardPt);
+            marker_pub.publish(lines);
+
+            odom_car2WayPtVec.x = cos(carPoseYaw)*(forwardPt.x - carPoseCorrected.position.x) + sin(carPoseYaw) * (forwardPt.y - carPoseCorrected.position.y);
+            odom_car2WayPtVec.y = -sin(carPoseYaw)*(forwardPt.x - carPoseCorrected.position.x) + cos(carPoseYaw) * ( forwardPt.y - carPoseCorrected.position.y);
             double eta = atan2(odom_car2WayPtVec.y,odom_car2WayPtVec.x); // 计算 forwardPt 与 carPose_pos 的角度
             
             if(foundPredictedCarPt && foundForwardPt)

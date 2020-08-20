@@ -53,7 +53,7 @@
     <!-- Laser model parameters -->
     <param name="laser_min_range" value="-1.0"/>  #Minimum scan range to be considered; -1.0 will cause the laser's reported minimum range to be used. (default: -1.0)
     <param name="laser_max_range" value="-1.0"/>  #Maximum scan range to be considered; -1.0 will cause the laser's reported maximum range to be used. (default: -1.0)
-    <param name="laser_max_beams" value="90"/>    #How many evenly-spaced beams in each scan to be used when updating the filter. (default: 30)
+    <param name="laser_max_beams" value="30"/>    #How many evenly-spaced beams in each scan to be used when updating the filter. (default: 30)
     <param name="laser_z_hit" value="0.5"/>       #Mixture weight for the z_hit part of the model. (default: 0.95)
     <param name="laser_z_short" value="0.05"/>    #Mixture weight for the z_short part of the model. (default: 0.1)
     <param name="laser_z_max" value="0.05"/>      #Mixture weight for the z_max part of the model. (default: 0.05)
