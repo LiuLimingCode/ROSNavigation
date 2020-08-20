@@ -133,16 +133,19 @@ struct Dijkstra
                     if(lastRelation->from == relation->to) relationAngle = PI * punishBackwards; // 如果是往返,直接等于PI 
                     else // 否则不会大于PI
                     {
-                        relationAngle = fabs(relation->angle() - lastRelation->angle());
-                        if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
-                        if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
+                        relationAngle = relation->angle() - lastRelation->angle();
+                        if(relationAngle >  (PI + 0.000001)) relationAngle -= (PI * 2);
+                        if(relationAngle < -(PI + 0.000001)) relationAngle += (PI * 2);
+                        relationAngle = fabs(relationAngle);
                     }
                 }
                 else
                 {
-                    relationAngle = fabs(relation->angle() - startAngle);
-                    if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
-                    if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
+                    relationAngle = relation->angle() - startAngle;
+                    if(relationAngle >  (PI + 0.000001)) relationAngle -= (PI * 2);
+                    if(relationAngle < -(PI + 0.000001)) relationAngle += (PI * 2);
+                    relationAngle = fabs(relationAngle);
+                    
                     if(fabs(relationAngle) > PI * 0.75) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于135,那么认为是倒退
                     else if(fabs(relationAngle) > PI * 0.5 && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
