@@ -70,7 +70,7 @@ struct Dijkstra
     };
 
     // 初始化
-    void init(int maxLocations,const std::vector<LocationsRelation>& lr)
+    void init(int maxLocations, const std::vector<LocationsRelation>& lr)
     {
         maxLocationsNum = maxLocations;
         reachableIndexs.clear();
@@ -148,8 +148,8 @@ struct Dijkstra
                     if(relationAngle < -(PI + 0.000001)) relationAngle += (PI * 2);
                     relationAngle = fabs(relationAngle);
 
-                    if(fabs(relationAngle) > PI * 0.75) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于135,那么认为是倒退
-                    else if(fabs(relationAngle) > PI * 0.5 && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
+                    if(fabs(relationAngle) > PI * 0.8) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于144,那么认为是倒退,因为赛道上没有这么大的弯
+                    else if(fabs(relationAngle) > firstBendThreshold / 180.0 * PI && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
                 
                 double relationCost = relation->dist() + relationAngle * punishBent + relationCostBackwards + relationCostFirLargeBend;
@@ -175,6 +175,7 @@ struct Dijkstra
     double punishBackwards = 1.0;
     double punishFirstLargeBend = 1.0;
     int maxLocationsNum; // 坐标点的数量
+    double firstBendThreshold = 180.0;
 };
 
 class MultiGoalsNavigation
@@ -182,13 +183,13 @@ class MultiGoalsNavigation
 private:
 
     ros::NodeHandle nodeHandle;
-    ros::Subscriber amclSubscriber, clickedPointSubscriber, globalcostmapSubscriber, moveBaseFeedbackSubscriber;
+    ros::Subscriber amclSubscriber, clickedPointSubscriber, globalcostmapSubscriber, moveBaseStatusSubscriber;
     ros::Publisher goalPublisher, markerPublisher, speedFactorPublisher;
     ros::ServiceServer normalizeServer, startNavigationServer, debugShowLocationsServer;
     ros::ServiceClient clearCostmapsClient;
 
-    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic, speedFactorTopic, globalCostmapTopic, moveBaseFeedbackTopic;
-    double goalRadius, goalExtension, speedFactorStart, punishBend, punishBackwards, punishFirstLargeBend;
+    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic, speedFactorTopic, globalCostmapTopic, moveBaseStatusTopic;
+    double goalRadius, goalExtension, destinationExtensionX, destinationExtensionY, speedFactorStart, punishBend, punishBackwards, punishFirstLargeBend, firstBendThreshold;
     bool debugMode, navigationStarted = false, isRobotInJunction = false, enableSpeedFactor;
     visualization_msgs::Marker goalsMarker, roadMarker;
 
@@ -231,17 +232,22 @@ public:
         _n.param<std::string>("clicked_point_topic", clickedPointTopic, "/clicked_point");
         // _n.param<std::string>("global_costmap_topic", globalCostmapTopic, "/move_base/global_costmap/costmap");
         _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
-        _n.param<std::string>("move_base_feedback_topic", moveBaseFeedbackTopic, "/move_base/feedback");
+        _n.param<std::string>("move_base_status_topic", moveBaseStatusTopic, "/move_base/status");
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
         _n.param<double>("goal_extension", goalExtension, goalRadius);
+        _n.param<double>("destination_extension_x", destinationExtensionX, 0.0);
+        _n.param<double>("destination_extension_y", destinationExtensionY, 0.0);
         _n.param<double>("speed_factor_start", speedFactorStart, 1.0);
         _n.param<double>("punish_bend", punishBend, 1.0);
         _n.param<double>("punish_backwards", punishBackwards, 1.0);
         _n.param<double>("punish_firstlarge_bend", punishFirstLargeBend, 1.0);
+        _n.param<double>("first_bend_threshold", firstBendThreshold, 180);
         dijkstra.punishBent = punishBend;
         dijkstra.punishBackwards = punishBackwards;
         dijkstra.punishFirstLargeBend = punishFirstLargeBend;
+        checkCondition(firstBendThreshold < 0, "fatal error: param first_bend_threshold must > 0");
+        dijkstra.firstBendThreshold = firstBendThreshold;
 
         _n.param<bool>("debug_mode", debugMode, false);
         _n.param<bool>("enable_speed_factor", enableSpeedFactor, false);
@@ -256,7 +262,7 @@ public:
 
         amclSubscriber = nodeHandle.subscribe(amclPoseTopic, 1, &MultiGoalsNavigation::amclPoseCallBack, this);
         // globalcostmapSubscriber = nodeHandle.subscribe(globalCostmapTopic, 1, &MultiGoalsNavigation::globalCostmapCallBack, this);
-        moveBaseFeedbackSubscriber = nodeHandle.subscribe(moveBaseFeedbackTopic, 1, &MultiGoalsNavigation::moveBaseFeedbacCallBack, this);
+        moveBaseStatusSubscriber = nodeHandle.subscribe(moveBaseStatusTopic, 1, &MultiGoalsNavigation::moveBaseStatusCallBack, this);
         clickedPointSubscriber.shutdown();
         goalPublisher = nodeHandle.advertise<geometry_msgs::PoseStamped>(goalTopic, 10);
         markerPublisher = nodeHandle.advertise<visualization_msgs::Marker>(markerTopic, 10);
@@ -342,11 +348,11 @@ public:
         for(int index = 0; index < dijkstra.reachableIndexs[goalsIndexVector[0]].size(); ++index)
         {
             const Dijkstra::LocationsRelation * relation = &dijkstra.locationsRelation[dijkstra.reachableIndexs[goalsIndexVector[0]][index]];
-            double yaw = atan2(relation->fromPoint->y - relation->toPoint->y, relation->fromPoint->x - relation->toPoint->x);
+            double yaw = atan2(relation->toPoint->y - relation->fromPoint->y, relation->toPoint->x - relation->fromPoint->x);
 
             auto testOptimalResult = getOptimalGoalsIndex(yaw, goalsIndexVector);
 
-            ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", goalsIndexVector[0] + 1, relation->to + 1, relation->from + 1, yaw);
+            ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", goalsIndexVector[0] + 1, relation->from + 1, relation->to + 1, yaw);
             std::string str = std::string(" distance: ") + std::to_string(testOptimalResult.distance) + 
                               std::string(" angle: ") + std::to_string(testOptimalResult.angle) + 
                               std::string(" cost: ") + std::to_string(testOptimalResult.cost);
@@ -431,12 +437,17 @@ public:
         double currentAngel = atan2(currentGoal->y - lastGoal->y, currentGoal->x - lastGoal->x);
 
         double xPublished = currentGoal->x, yPublished = currentGoal->y, anglePublished = currentAngel;
-        if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
+        if(currentGoalIndex < optimalGoalsIndexVector.size() - 1) // 如果不是最后一个目标点,将发布坐标延伸 goalExtension
         {
             const geometry_msgs::Point * futureGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex + 1]];
             anglePublished = atan2(futureGoal->y - currentGoal->y, futureGoal->x - currentGoal->x);
             xPublished += (cos(anglePublished) * goalExtension);
             yPublished += (sin(anglePublished) * goalExtension);
+        }
+        else // 最后一个点特殊处理
+        {
+            xPublished += (cos(anglePublished) * destinationExtensionX + sin(anglePublished) * destinationExtensionY);
+            yPublished += (sin(anglePublished) * destinationExtensionX - cos(anglePublished) * destinationExtensionY);
         }
 
         publishedGoal = geometry_msgs::PoseStamped();
@@ -839,7 +850,7 @@ public:
     //         globalCostmap->info.origin.position.x, globalCostmap->info.origin.position.y, (long)globalCostmap->info.width, (long)globalCostmap->info.height, globalCostmap->info.resolution);
     // }
 
-    void moveBaseFeedbacCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
+    void moveBaseStatusCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
     {
         for(int index = 0; index < data->status_list.size(); ++index)
         {
