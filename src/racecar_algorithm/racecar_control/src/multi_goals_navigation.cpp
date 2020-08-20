@@ -13,6 +13,8 @@
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/OccupancyGrid.h>
+#include <actionlib_msgs/GoalStatusArray.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
 #include <visualization_msgs/Marker.h>
 
@@ -133,16 +135,19 @@ struct Dijkstra
                     if(lastRelation->from == relation->to) relationAngle = PI * punishBackwards; // 如果是往返,直接等于PI 
                     else // 否则不会大于PI
                     {
-                        relationAngle = fabs(relation->angle() - lastRelation->angle());
-                        if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
-                        if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
+                        relationAngle = relation->angle() - lastRelation->angle();
+                        if(relationAngle >  (PI + 0.000001)) relationAngle -= (PI * 2);
+                        if(relationAngle < -(PI + 0.000001)) relationAngle += (PI * 2);
+                        relationAngle = fabs(relationAngle);
                     }
                 }
                 else
                 {
-                    relationAngle = fabs(relation->angle() - startAngle);
-                    if(relationAngle >  (PI + 0.000001)) relationAngle -= PI;
-                    if(relationAngle < -(PI + 0.000001)) relationAngle += PI;
+                    relationAngle = relation->angle() - startAngle;
+                    if(relationAngle >  (PI + 0.000001)) relationAngle -= (PI * 2);
+                    if(relationAngle < -(PI + 0.000001)) relationAngle += (PI * 2);
+                    relationAngle = fabs(relationAngle);
+
                     if(fabs(relationAngle) > PI * 0.75) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于135,那么认为是倒退
                     else if(fabs(relationAngle) > PI * 0.5 && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
@@ -177,12 +182,12 @@ class MultiGoalsNavigation
 private:
 
     ros::NodeHandle nodeHandle;
-    ros::Subscriber amclSubscriber, clickedPointSubscriber;
+    ros::Subscriber amclSubscriber, clickedPointSubscriber, globalcostmapSubscriber, moveBaseFeedbackSubscriber;
     ros::Publisher goalPublisher, markerPublisher, speedFactorPublisher;
     ros::ServiceServer normalizeServer, startNavigationServer, debugShowLocationsServer;
     ros::ServiceClient clearCostmapsClient;
 
-    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic, speedFactorTopic;
+    std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic, speedFactorTopic, globalCostmapTopic, moveBaseFeedbackTopic;
     double goalRadius, goalExtension, speedFactorStart, punishBend, punishBackwards, punishFirstLargeBend;
     bool debugMode, navigationStarted = false, isRobotInJunction = false, enableSpeedFactor;
     visualization_msgs::Marker goalsMarker, roadMarker;
@@ -208,6 +213,7 @@ private:
     bool normalizeStarted = false;
     geometry_msgs::Point (MultiGoalsNavigation::*normalizedFunction)(const geometry_msgs::Point *);
 
+    // nav_msgs::OccupancyGrid::ConstPtr globalCostmap = nullptr;
     Dijkstra dijkstra;
 
 public:
@@ -223,7 +229,9 @@ public:
         _n.param<std::string>("marker_topic", markerTopic, "visualization_marker");
         _n.param<std::string>("speed_factor_topic", speedFactorTopic, "speed_factor");
         _n.param<std::string>("clicked_point_topic", clickedPointTopic, "/clicked_point");
+        // _n.param<std::string>("global_costmap_topic", globalCostmapTopic, "/move_base/global_costmap/costmap");
         _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
+        _n.param<std::string>("move_base_feedback_topic", moveBaseFeedbackTopic, "/move_base/feedback");
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
         _n.param<double>("goal_extension", goalExtension, goalRadius);
@@ -247,6 +255,8 @@ public:
         initMarker();
 
         amclSubscriber = nodeHandle.subscribe(amclPoseTopic, 1, &MultiGoalsNavigation::amclPoseCallBack, this);
+        // globalcostmapSubscriber = nodeHandle.subscribe(globalCostmapTopic, 1, &MultiGoalsNavigation::globalCostmapCallBack, this);
+        moveBaseFeedbackSubscriber = nodeHandle.subscribe(moveBaseFeedbackTopic, 1, &MultiGoalsNavigation::moveBaseFeedbacCallBack, this);
         clickedPointSubscriber.shutdown();
         goalPublisher = nodeHandle.advertise<geometry_msgs::PoseStamped>(goalTopic, 10);
         markerPublisher = nodeHandle.advertise<visualization_msgs::Marker>(markerTopic, 10);
@@ -819,6 +829,25 @@ public:
             }
             ROS_INFO("robot in junction %d -> %d, speed factor is %lf", lastPublishedGoalIndex + 1, currentPublishedGoalIndex + 1, speedFactor.data);
             speedFactorPublisher.publish(speedFactor);
+        }
+    }
+
+    // void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& data)
+    // {
+    //     globalCostmap = data;
+    //     ROS_INFO("get the global costmap, origin_x: %lf, origin_y: %lf, width: %ld, height: %ld, resolution: %lf", 
+    //         globalCostmap->info.origin.position.x, globalCostmap->info.origin.position.y, (long)globalCostmap->info.width, (long)globalCostmap->info.height, globalCostmap->info.resolution);
+    // }
+
+    void moveBaseFeedbacCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
+    {
+        for(int index = 0; index < data->status_list.size(); ++index)
+        {
+            if(data->status_list[index].status == actionlib_msgs::GoalStatus::ABORTED
+            || data->status_list[index].status == actionlib_msgs::GoalStatus::REJECTED)
+            {
+                ROS_ERROR("multi navigation failed!");
+            }
         }
     }
 
