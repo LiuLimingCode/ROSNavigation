@@ -119,7 +119,7 @@ TebLocalPlannerROS:
  weight_kinematics_forward_drive: 1000
  weight_kinematics_turning_radius: 500
  weight_optimaltime: 1 # must be > 0    #直道上快速加速，切线过弯
- weight_shortest_path: 30.0   # 寻找最短路径的权重
+ weight_shortest_path: 10.0   # 寻找最短路径的权重
  weight_obstacle: 100         # 躲避障碍物的权重
  weight_inflation: 0.4
  weight_dynamic_obstacle: 10 # not in use yet
