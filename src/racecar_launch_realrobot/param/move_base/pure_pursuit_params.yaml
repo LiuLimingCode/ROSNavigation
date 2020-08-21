@@ -16,7 +16,7 @@ speed_incremental: 0.35 # speed incremental value (discrete acceleraton), unit: 
 debug_mode: false
 stop_robot: false # 仅仅计算,不输出运动控制指令,用于调试
 cost_max: 0.15
-predicted_dist: 0.0
+predicted_dist: 0.1
 
 enable_safe_distance: false
 safe_distance_x: 0.2

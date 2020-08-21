@@ -45,7 +45,7 @@ TebLocalPlannerROS:
  acc_lim_theta: 4 
 
  # ********************** Carlike robot parameters ********************
- min_turning_radius: 0.335      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
+ min_turning_radius: 0.4      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
  wheelbase: 0.335                # 前轮到后轮的距离
  cmd_angle_instead_rotvel: True # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************
@@ -71,8 +71,8 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.3 # 障碍物到机器人的 footprint 的最小距离
- inflation_dist: 0.0  # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
+ min_obstacle_dist: 0.5 # 障碍物到机器人的 footprint 的最小距离
+ inflation_dist: 0.5  # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
  include_costmap_obstacles: True  
  costmap_obstacles_behind_robot_dist: 3  # 考虑机器人身后障碍物的范围
  obstacle_poses_affected: 10    #障碍造成影响系数，系统性能不佳则减少此参数
