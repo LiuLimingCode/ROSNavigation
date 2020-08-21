@@ -77,7 +77,7 @@ def main():
     max_steering_angle = rospy.get_param("~max_steering_angle", 0.34)
     ackermann_cmd_topic = rospy.get_param("~ackermann_cmd_topic", "/cmd_ackermann")
 
-    speed_min = 0.5
+    speed_min = 1.0
     speed_set = speed_min
     state_pub = rospy.Publisher(ackermann_cmd_topic, AckermannDriveStamped, queue_size=1)
     Stop_Flag_pub = rospy.Publisher("Car_Stop",Int16,queue_size=1)

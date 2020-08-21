@@ -1,11 +1,11 @@
 # Parameters for pure pursuit controller
 L: 0.335 # Length of car (m) 机器人前轮和后轮的距离
 lfw: 0.1675 # distance between the front of the vehicle and its center of gravity
-Vcmd_max: 2.0 # reference speed (m/s)
-Vcmd_min: 1.0 # reference speed (m/s)
+Vcmd_max: 2 # reference speed (m/s)
+Vcmd_min: 2 # reference speed (m/s)
 slowdown_dist_min: 0.5
 slowdown_dist_max: 1.0
-Lfw: 0.3  # forward look ahead distance (m)
+Lfw: 0.4  # forward look ahead distance (m)
 goal_radius: 1.0 # unit: m
 controller_freq: 20 # unit: Hz
 steering_gain: 1.0
