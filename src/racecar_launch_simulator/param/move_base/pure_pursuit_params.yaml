@@ -17,12 +17,12 @@ stop_robot: true # 仅仅计算,不输出运动控制指令,用于调试
 predicted_dist: 0.0
 
 # 减速参数
-cost_max: 0.3 # 程序会计算规划路径上每个点的角度变化,当角度变化总和大于该值时判断为转弯点,并记录转弯点与机器人的距离,该参数太大会造成弯道减速过弯,太小会导致直道误判而出现直道减速
+deviation_y: 0.15 # 以机器人坐标系为准,当规划出来的曲线的y轴偏移大于该值时,判断为转弯点
 slowdown_dist_min: 0.5 # 当判断到的转弯点距离小于该值时,机器人降到最低速度
 slowdown_dist_max: 3.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
 Vcmd_stop: 0.5
 stop_interval: 0.5
-slowdown_dist_stop: 0.2
+slowdown_dist_stop: 0.4
 
 enable_safe_distance: true
 safe_distance_x: 0.2

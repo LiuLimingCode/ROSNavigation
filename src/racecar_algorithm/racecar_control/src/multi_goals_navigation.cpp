@@ -929,7 +929,7 @@ public:
             if(data->status_list[index].status == actionlib_msgs::GoalStatus::ABORTED
             || data->status_list[index].status == actionlib_msgs::GoalStatus::REJECTED)
             {
-                ROS_ERROR("multi navigation failed!");
+                ROS_ERROR("multi navigation failed! id: %d", (int)data->status_list[index].status);
             }
         }
     }
