@@ -13,7 +13,6 @@
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
-#include <nav_msgs/OccupancyGrid.h>
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
 #include <visualization_msgs/Marker.h>
@@ -127,6 +126,7 @@ struct Dijkstra
             {
                 const LocationsRelation* relation = &locationsRelation[reachableIndexs[currentIndex][temp]];
                 double relationAngle = 0;
+                double relationCostBend = 0;
                 double relationCostBackwards = 0;
                 double relationCostFirLargeBend = 0;
                 
@@ -149,10 +149,13 @@ struct Dijkstra
                     relationAngle = fabs(relationAngle);
 
                     if(fabs(relationAngle) > PI * 0.8) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于144,那么认为是倒退,因为赛道上没有这么大的弯
-                    else if(fabs(relationAngle) > firstBendThreshold / 180.0 * PI && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
+                    else if(fabs(relationAngle) >= thresholdFirstBend / 180.0 * PI && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
+
+                if(relationAngle >= thresholdBend / 180.0 * PI) relationCostBend = relationAngle * punishBendLarge;
+                else relationCostBend = relationAngle * punishBendLittle;
                 
-                double relationCost = relation->dist() + relationAngle * punishBent + relationCostBackwards + relationCostFirLargeBend;
+                double relationCost = relation->dist() + relationCostBend + relationCostBackwards + relationCostFirLargeBend;
                 if(result[relation->to].cost > result[relation->from].cost + relationCost)
                 {
                     result[relation->to].cost = result[relation->from].cost + relationCost;
@@ -171,11 +174,13 @@ struct Dijkstra
 
     std::vector<LocationsRelation> locationsRelation; // 代表坐标点的关系
     std::vector<std::vector<int> > reachableIndexs; // 代表每个坐标点可到达的其他坐标点的序号
-    double punishBent = 1.0;
+    int maxLocationsNum; // 坐标点的数量
+    double punishBendLittle = 1.0;
+    double punishBendLarge = 1.0;
     double punishBackwards = 1.0;
     double punishFirstLargeBend = 1.0;
-    int maxLocationsNum; // 坐标点的数量
-    double firstBendThreshold = 180.0;
+    double thresholdBend = 90.0;
+    double thresholdFirstBend = 180.0;
 };
 
 class MultiGoalsNavigation
@@ -185,11 +190,11 @@ private:
     ros::NodeHandle nodeHandle;
     ros::Subscriber amclSubscriber, clickedPointSubscriber, globalcostmapSubscriber, moveBaseStatusSubscriber;
     ros::Publisher goalPublisher, markerPublisher, speedFactorPublisher;
-    ros::ServiceServer normalizeServer, startNavigationServer, debugShowLocationsServer;
+    ros::ServiceServer normalizeMapServer, normalizeLocationsServer, startNavigationServer, debugShowLocationsServer;
     ros::ServiceClient clearCostmapsClient;
 
     std::string mapFrame, clearCostmapsServer ,amclPoseTopic, goalTopic, markerTopic, clickedPointTopic, speedFactorTopic, globalCostmapTopic, moveBaseStatusTopic;
-    double goalRadius, goalExtension, destinationExtensionX, destinationExtensionY, speedFactorStart, punishBend, punishBackwards, punishFirstLargeBend, firstBendThreshold;
+    double goalRadius, goalExtension, mapOffserYaw, destinationExtensionX, destinationExtensionY, speedFactorStart, punishBendLittle, punishBendLarge, thresholdBend, punishBackwards, punishFirstLargeBend, thresholdFirstBend;
     bool debugMode, navigationStarted = false, isRobotInJunction = false, enableSpeedFactor;
     visualization_msgs::Marker goalsMarker, roadMarker;
 
@@ -211,10 +216,10 @@ private:
     geometry_msgs::Point clickedPoints[NORMALIZED_POINTS_NUMBER]; // 进行归一化操作时,用于保存标定点数据
     int clickedPointsNumber = 0;
     int normalizedIndex = 0; // 记录当前归一化的区域
-    bool normalizeStarted = false;
+    bool normalizeMapStarted = false;
+    bool normalizeLocationStarted = false;
     geometry_msgs::Point (MultiGoalsNavigation::*normalizedFunction)(const geometry_msgs::Point *);
 
-    // nav_msgs::OccupancyGrid::ConstPtr globalCostmap = nullptr;
     Dijkstra dijkstra;
 
 public:
@@ -230,24 +235,30 @@ public:
         _n.param<std::string>("marker_topic", markerTopic, "visualization_marker");
         _n.param<std::string>("speed_factor_topic", speedFactorTopic, "speed_factor");
         _n.param<std::string>("clicked_point_topic", clickedPointTopic, "/clicked_point");
-        // _n.param<std::string>("global_costmap_topic", globalCostmapTopic, "/move_base/global_costmap/costmap");
-        _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
         _n.param<std::string>("move_base_status_topic", moveBaseStatusTopic, "/move_base/status");
+        _n.param<std::string>("clear_costmaps_server", clearCostmapsServer, "/move_base/clear_costmaps");
 
         _n.param<double>("goal_radius", goalRadius, 1.0);
         _n.param<double>("goal_extension", goalExtension, goalRadius);
+        _n.param<double>("map_offset_yaw", mapOffserYaw, 0.0);
         _n.param<double>("destination_extension_x", destinationExtensionX, 0.0);
         _n.param<double>("destination_extension_y", destinationExtensionY, 0.0);
         _n.param<double>("speed_factor_start", speedFactorStart, 1.0);
-        _n.param<double>("punish_bend", punishBend, 1.0);
+        _n.param<double>("punish_bend_little", punishBendLittle, 1.0);
+        _n.param<double>("punish_bend_large", punishBendLarge, 1.0);
+        _n.param<double>("threshold_bend", thresholdBend, 90.0);
         _n.param<double>("punish_backwards", punishBackwards, 1.0);
-        _n.param<double>("punish_firstlarge_bend", punishFirstLargeBend, 1.0);
-        _n.param<double>("first_bend_threshold", firstBendThreshold, 180);
-        dijkstra.punishBent = punishBend;
+        _n.param<double>("punish_first_large_bend", punishFirstLargeBend, 1.0);
+        _n.param<double>("threshold_first_bend", thresholdFirstBend, 180.0);
+
+        dijkstra.punishBendLittle = punishBendLittle;
+        dijkstra.punishBendLarge = punishBendLarge;
         dijkstra.punishBackwards = punishBackwards;
         dijkstra.punishFirstLargeBend = punishFirstLargeBend;
-        checkCondition(firstBendThreshold < 0, "fatal error: param first_bend_threshold must > 0");
-        dijkstra.firstBendThreshold = firstBendThreshold;
+        checkCondition(thresholdBend < 0, "fatal error: param threshold_bend must > 0");
+        dijkstra.thresholdBend = thresholdBend;
+        checkCondition(thresholdFirstBend < 0, "fatal error: param threshold_first_bend must > 0");
+        dijkstra.thresholdFirstBend = thresholdFirstBend;
 
         _n.param<bool>("debug_mode", debugMode, false);
         _n.param<bool>("enable_speed_factor", enableSpeedFactor, false);
@@ -261,15 +272,15 @@ public:
         initMarker();
 
         amclSubscriber = nodeHandle.subscribe(amclPoseTopic, 1, &MultiGoalsNavigation::amclPoseCallBack, this);
-        // globalcostmapSubscriber = nodeHandle.subscribe(globalCostmapTopic, 1, &MultiGoalsNavigation::globalCostmapCallBack, this);
         moveBaseStatusSubscriber = nodeHandle.subscribe(moveBaseStatusTopic, 1, &MultiGoalsNavigation::moveBaseStatusCallBack, this);
         clickedPointSubscriber.shutdown();
         goalPublisher = nodeHandle.advertise<geometry_msgs::PoseStamped>(goalTopic, 10);
         markerPublisher = nodeHandle.advertise<visualization_msgs::Marker>(markerTopic, 10);
         if(enableSpeedFactor) speedFactorPublisher = nodeHandle.advertise<std_msgs::Float32>(speedFactorTopic, 10);
-        normalizeServer = nodeHandle.advertiseService("start_normalize_map", &MultiGoalsNavigation::startNormalizeMapCallBack, this);
         startNavigationServer = nodeHandle.advertiseService("start_navigation", &MultiGoalsNavigation::startNavigationCallBack, this);
         debugShowLocationsServer = nodeHandle.advertiseService("debug_show_locations", &MultiGoalsNavigation::debugShowLocationsCallBack, this);
+        normalizeMapServer = nodeHandle.advertiseService("start_normalize_map", &MultiGoalsNavigation::startNormalizeMapCallBack, this);
+        normalizeLocationsServer = nodeHandle.advertiseService("start_normalize_locations", &MultiGoalsNavigation::startNormalizeLocationsCallBack, this);
         clearCostmapsClient = nodeHandle.serviceClient<std_srvs::Empty>(clearCostmapsServer);
 
         try
@@ -446,8 +457,8 @@ public:
         }
         else // 最后一个点特殊处理
         {
-            xPublished += (cos(anglePublished) * destinationExtensionX + sin(anglePublished) * destinationExtensionY);
-            yPublished += (sin(anglePublished) * destinationExtensionX - cos(anglePublished) * destinationExtensionY);
+            xPublished += (cos(mapOffserYaw) * destinationExtensionX + sin(mapOffserYaw) * destinationExtensionY);
+            yPublished -= (sin(mapOffserYaw) * destinationExtensionX - cos(mapOffserYaw) * destinationExtensionY);
         }
 
         publishedGoal = geometry_msgs::PoseStamped();
@@ -670,44 +681,84 @@ public:
         return result;
     }
 
+    double getMapOffsetYaw(const geometry_msgs::Point * points)
+    {
+        geometry_msgs::Point idealPoints[3];
+        idealPoints[0].x = -8, idealPoints[0].y = 5;
+        idealPoints[1].x = 9,  idealPoints[1].y = 5;
+        idealPoints[2].x = 9,  idealPoints[2].y = -5.5;
+
+        double idealYaw[2], clickedYaw[2];
+        idealYaw[0] = atan2(idealPoints[1].y - idealPoints[0].y, idealPoints[1].x - idealPoints[0].x);
+        clickedYaw[0] = atan2(clickedPoints[1].y - clickedPoints[0].y, clickedPoints[1].x - clickedPoints[0].x);
+        idealYaw[1] = atan2(idealPoints[2].y - idealPoints[1].y, idealPoints[2].x - idealPoints[1].x);
+        clickedYaw[1] = atan2(clickedPoints[2].y - clickedPoints[1].y, clickedPoints[2].x - clickedPoints[1].x);
+
+        double yawDiff[2], yawSum = 0.0;
+        for(int index = 0; index < 2; ++index)
+        {
+            yawDiff[index] = idealYaw[index] - clickedYaw[index];
+            if(yawDiff[index] > PI) yawDiff[index] -= (2 * PI);
+            if(yawDiff[index] < -PI) yawDiff[index] += (2 * PI);
+            ROS_INFO("nomalized info yaw_diff, index: %d, yaw: %lf", index, yawDiff[index]);
+            yawSum += yawDiff[index];
+        }
+        double normalizedYaw = yawSum / 2.0;
+        ROS_INFO("nomalized info: yaw: %lf", normalizedYaw);
+
+        return normalizedYaw;
+    }
+
     void clickedPointCallBack(const geometry_msgs::PointStamped::ConstPtr& point)
     {
-        if(!normalizeStarted) return;
+        if(!normalizeLocationStarted && ! normalizeMapStarted) return;
 
         clickedPoints[clickedPointsNumber] = point->point;
         ROS_INFO("clicked info: points, index: %d, x: %lf, y: %lf", clickedPointsNumber, point->point.x, point->point.y);
         ++clickedPointsNumber;
-        int clickedPointsNeed = 0;
 
-        if(normalizedIndex == 0 || normalizedIndex == 3 ||  normalizedIndex == 5 || normalizedIndex == 8)
+        if(normalizeLocationStarted)
         {
-            clickedPointsNeed = 2;
-            normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithTowPoints;
-        }
-        else if(normalizedIndex == 1 || normalizedIndex == 2 ||normalizedIndex == 4 || normalizedIndex == 6 || normalizedIndex == 7 || normalizedIndex == 10 || normalizedIndex == 11)
-        {
-            clickedPointsNeed = 3;
-            normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithThreePoints;
-        }
-        else if(normalizedIndex == 9)
-        {
-            clickedPointsNeed = 4;
-            normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithFourPoints;
-        }
-        ROS_INFO("clickedPointsNeed: %d, clickedPointsNumber: %d", clickedPointsNeed, clickedPointsNumber);
-
-        if(clickedPointsNumber == clickedPointsNeed)
-        {
-            clickedPointsNumber = 0;
-            locationVector[normalizedIndex] = (this->*normalizedFunction)(clickedPoints);
-            ROS_INFO("normalization info: index = %d, x: %lf, %lf", normalizedIndex + 1, locationVector[normalizedIndex].x, locationVector[normalizedIndex].y);
-            std_srvs::Trigger trigger;
-            debugShowLocationsCallBack(trigger.request, trigger.response);
-            ++normalizedIndex;
-            if(normalizedIndex == locationVector.size())
+            int clickedPointsNeed = 0;
+            if(normalizedIndex == 0 || normalizedIndex == 3 ||  normalizedIndex == 5 || normalizedIndex == 8)
             {
+                clickedPointsNeed = 2;
+                normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithTowPoints;
+            }
+            else if(normalizedIndex == 1 || normalizedIndex == 2 ||normalizedIndex == 4 || normalizedIndex == 6 || normalizedIndex == 7 || normalizedIndex == 10 || normalizedIndex == 11)
+            {
+                clickedPointsNeed = 3;
+                normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithThreePoints;
+            }
+            else if(normalizedIndex == 9)
+            {
+                clickedPointsNeed = 4;
+                normalizedFunction = &MultiGoalsNavigation::normalizedLocationWithFourPoints;
+            }
+            ROS_INFO("clickedPointsNeed: %d, clickedPointsNumber: %d", clickedPointsNeed, clickedPointsNumber);
+
+            if(clickedPointsNumber == clickedPointsNeed)
+            {
+                clickedPointsNumber = 0;
+                locationVector[normalizedIndex] = (this->*normalizedFunction)(clickedPoints);
+                ROS_INFO("normalization info: index = %d, x: %lf, %lf", normalizedIndex + 1, locationVector[normalizedIndex].x, locationVector[normalizedIndex].y);
+                std_srvs::Trigger trigger;
+                debugShowLocationsCallBack(trigger.request, trigger.response);
+                ++normalizedIndex;
+                if(normalizedIndex == locationVector.size())
+                {
+                    clickedPointSubscriber.shutdown();
+                    normalizeLocationStarted = false;
+                }
+            }
+        }
+        else if(normalizeMapStarted)
+        {
+            if(clickedPointsNumber == 3)
+            {
+                mapOffserYaw = getMapOffsetYaw(clickedPoints);
                 clickedPointSubscriber.shutdown();
-                normalizeStarted = false;
+                normalizeMapStarted = false;
             }
         }
     }
@@ -726,10 +777,38 @@ public:
 
     bool startNormalizeMapCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
     {
-        if(!normalizeStarted)
+        if(!normalizeLocationStarted && !normalizeMapStarted)
         {
             clickedPointSubscriber = nodeHandle.subscribe(clickedPointTopic, NORMALIZED_POINTS_NUMBER, &MultiGoalsNavigation::clickedPointCallBack, this);
-            ROS_INFO("start normalization");
+            ROS_INFO("start map normalization");
+            for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
+            {
+                clickedPoints[index] = geometry_msgs::Point();
+            }
+            std_srvs::Trigger trigger;
+            normalizedIndex = 0;
+            clickedPointsNumber = 0;
+            normalizeMapStarted = true;
+            ROS_INFO("use rviz to publish /clicked_point, and click the right front point, right rear point, left rear point of the map respectively");
+
+            res.success = true;
+            res.message = "success"; 
+            return true;
+        }
+        else
+        {
+            res.success = false;
+            res.message = "fail"; 
+            return false;
+        }
+    }
+
+    bool startNormalizeLocationsCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    {
+        if(!normalizeLocationStarted && !normalizeMapStarted)
+        {
+            clickedPointSubscriber = nodeHandle.subscribe(clickedPointTopic, NORMALIZED_POINTS_NUMBER, &MultiGoalsNavigation::clickedPointCallBack, this);
+            ROS_INFO("start locations normalization");
             for(int index = 0; index < NORMALIZED_POINTS_NUMBER; ++index)
             {
                 clickedPoints[index] = geometry_msgs::Point();
@@ -738,7 +817,7 @@ public:
             debugShowLocationsCallBack(trigger.request, trigger.response);
             normalizedIndex = 0;
             clickedPointsNumber = 0;
-            normalizeStarted = true;
+            normalizeLocationStarted = true;
 
             res.success = true;
             res.message = "success"; 
@@ -842,13 +921,6 @@ public:
             speedFactorPublisher.publish(speedFactor);
         }
     }
-
-    // void globalCostmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& data)
-    // {
-    //     globalCostmap = data;
-    //     ROS_INFO("get the global costmap, origin_x: %lf, origin_y: %lf, width: %ld, height: %ld, resolution: %lf", 
-    //         globalCostmap->info.origin.position.x, globalCostmap->info.origin.position.y, (long)globalCostmap->info.width, (long)globalCostmap->info.height, globalCostmap->info.resolution);
-    // }
 
     void moveBaseStatusCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
     {
