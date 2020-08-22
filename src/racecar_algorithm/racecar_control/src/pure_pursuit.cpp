@@ -414,6 +414,7 @@ public:
         {
             result = Vcmd_stop;
             stopTime = currentTime;
+            ROS_ERROR("stop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         else
         {
