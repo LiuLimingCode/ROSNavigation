@@ -408,8 +408,9 @@ public:
         double result;
         ros::Time currentTime = ros::Time::now();
         ros::Duration interval = currentTime - stopTime;
+        double costTime = interval.sec + (double)interval.nsec / (double)1e9;
 
-        if(distance < slowdown_dist_stop && interval < ros::Duration(stop_interval, 0))
+        if(distance < slowdown_dist_stop && costTime < stop_interval)
         {
             result = Vcmd_stop;
             stopTime = currentTime;
@@ -418,7 +419,7 @@ public:
         {
             if(distance >= slowdown_dist_max) result = Vcmd_max;
             else if(distance <= slowdown_dist_min) result = Vcmd_min;
-            else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);                                                                                                                                                                                                                                                                                                                  
+            else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);
         }
         return result * speed_factor;
     }
