@@ -148,8 +148,8 @@ struct Dijkstra
                     if(relationAngle < -(PI + 0.000001)) relationAngle += (PI * 2);
                     relationAngle = fabs(relationAngle);
 
-                    if(fabs(relationAngle) > PI * 0.8) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于144,那么认为是倒退,因为赛道上没有这么大的弯
-                    else if(fabs(relationAngle) >= thresholdFirstBend / 180.0 * PI && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
+                    if(relationAngle > PI * 0.8) relationCostBackwards = relationAngle * punishBackwards; // 如果第一个点的转弯角度大于144,那么认为是倒退,因为赛道上没有这么大的弯
+                    else if(relationAngle >= thresholdFirstBend / 180.0 * PI && isFirstBend) relationCostFirLargeBend = relationAngle * punishFirstLargeBend; // 如果第一个弯转向过大,同样施加惩罚
                 }
 
                 if(relationAngle >= thresholdBend / 180.0 * PI) relationCostBend = relationAngle * punishBendLarge;
