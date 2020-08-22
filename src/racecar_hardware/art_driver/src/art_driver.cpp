@@ -46,22 +46,33 @@ void AckermannCallback(const ackermann_msgs::AckermannDriveStamped::ConstPtr& Ac
     double angle_ctrl_out = 0;
     double speed_set=Ackermann_set->drive.speed;
 
-    static double angle_set_last = 0;
+    static uint16_t Timer_Stop = 0 , Timer_Wait = 0;
     static uint8_t flag = 0;
-    if((flag == 0) && (fabs(angle_set - angle_set_last) >= 0.3))
+    if((flag == 0) && (fabs(angle_set) > 0.5))
     {
         flag = 1;
     }
-    if(flag == 1 && (fabs(angle_set) > 0.2))
+    if(flag == 1)
     {
-        speed_set = 1;
+        Timer_Stop++;
+        if(speed_set > 0) speed_set = 0.5;
+        else if(speed_set < 0) speed_set = -0.5;
+        else if(speed_set == 0) speed_set = 0;
     }
-    else
+    if((flag == 1) && (Timer_Stop >= 3) )
     {
-        flag == 0;
+        flag = 2;
+        Timer_Stop = 0;
     }
-    
-    angle_set_last = angle_set;
+    if(flag == 2)
+    {
+        Timer_Wait++;
+    }
+    if((flag == 2) && (Timer_Wait >= 6))
+    {
+        flag = 0;
+        Timer_Wait = 0;
+    }
 
     //车模保护停止
      if(Car_Stop_Flag == 1)
@@ -72,6 +83,7 @@ void AckermannCallback(const ackermann_msgs::AckermannDriveStamped::ConstPtr& Ac
      //舵机限幅 , 判断浮点数大小应判断差值小于一个很小的数
     if((angle_ctrl_out - angle_max_rad) > 0.0000001) angle_ctrl_out = angle_max_rad;
     if((angle_ctrl_out + angle_max_rad) < 0.0000001) angle_ctrl_out =-angle_max_rad;
+
     //根据公式->{（angle-pwm_min）/（pwm_max+pwm_min）}*(2*angle_max_rad)-angle_max_rad=Ackermann.drive.steering_angle得出，将转向的角度值转换为高电平时间（us）
     angle_out = (0.5-angle_ctrl_out*(1/(2*angle_max_rad)))*(angle_pwm_max_us-angle_pwm_min_us)+angle_pwm_min_us;
 
