@@ -48,7 +48,7 @@ class PurePursuit
 private:
     ros::NodeHandle n_;
     ros::Subscriber odom_sub, path_sub, goal_sub, amcl_sub, costmap_sub, speed_factor_sub;
-    ros::Publisher ackermann_pub, cmdvel_pub, marker_pub, pursuit_path_pub;
+    ros::Publisher ackermann_pub, cmdvel_pub, marker_pub, pursuit_path_pub, distance_pub;
     ros::ServiceServer stop_robot_srv;
     ros::Timer timer1, timer2;
     tf::TransformListener tf_listener;
@@ -61,7 +61,7 @@ private:
     nav_msgs::Path map_path, odom_path;
     boost::shared_ptr<const nav_msgs::OccupancyGrid> costmap;
 
-    double L, Lfw, Vcmd_max, Vcmd_min, Vcmd_stop, steering_max, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_stop, slowdown_dist_min, slowdown_dist_max, stop_interval, speed_factor = 1.0;
+    double L, Lfw, Vcmd_max, Vcmd_min, Vcmd_stop, steering_max, lfw, steering, velocity, deviation_y, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_stop, slowdown_dist_min, slowdown_dist_max, stop_interval, speed_factor = 1.0;
     double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
     int controller_freq;
     bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot, enbale_safe_distance;
@@ -96,7 +96,7 @@ public:
         pn.param("smooth_accel", smooth_accel, true); // smooth the acceleration of car 限制加速度
         pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
         pn.param("stop_robot", stop_robot, false);
-        pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
+        pn.param("deviation_y", deviation_y, 0.25);
         pn.param("slowdown_dist_stop", slowdown_dist_stop, 0.2);
         pn.param("slowdown_dist_min", slowdown_dist_min, 0.3);
         pn.param("slowdown_dist_max", slowdown_dist_max, 1.0);
@@ -113,6 +113,7 @@ public:
         costmap_sub = n_.subscribe("/move_base/local_costmap/costmap", 1, &PurePursuit::costmapCB, this);
         speed_factor_sub = n_.subscribe("/multi_goals_navigation_node/speed_factor", 1, &PurePursuit::speedFactorCB, this);
         marker_pub = n_.advertise<visualization_msgs::Marker>("/pure_pursuit/path_marker", 10);
+        distance_pub = n_.advertise<std_msgs::Float32>("distance", 1);
         ackermann_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/pure_pursuit/ackermann_cmd", 1);
         if(cmd_vel_mode) cmdvel_pub = n_.advertise<geometry_msgs::Twist>("/pure_pursuit/cmd_vel", 1);
         pursuit_path_pub = n_.advertise<nav_msgs::Path>("pursuit_path", 1);
@@ -372,28 +373,22 @@ public:
     {
         double distance = 0;
         points.points.clear();
-        double cost = 0, x_diff, y_diff, yaw, yaw_last;
+        double carPoseYaw = getYawFromPose(carPose);
 
         if(!goal_reached)
         {
-            for(int index = 2; index < odom_path.poses.size(); index++)
+            for(int index = 0; index < odom_path.poses.size(); index++)
             {
                 geometry_msgs::PoseStamped odom_path_pose = odom_path.poses[index];
                 geometry_msgs::Point odom_path_wayPt = odom_path_pose.pose.position;
 
                 if(isForwardWayPt(odom_path_wayPt, carPose))
                 {
-                    yaw_last = atan2(odom_path.poses[index -1].pose.position.y - odom_path.poses[index - 2].pose.position.y, odom_path.poses[index - 1].pose.position.x - odom_path.poses[index - 2].pose.position.x);
-                    x_diff = odom_path.poses[index].pose.position.x - odom_path.poses[index - 1].pose.position.x;
-                    y_diff = odom_path.poses[index].pose.position.y - odom_path.poses[index - 1].pose.position.y;
-                    yaw = atan2(y_diff, x_diff);
-
-                    if(fabs(yaw + 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw + 2 * PI - yaw_last));
-                    else if(fabs(yaw - 2 * PI - yaw_last) < fabs(yaw - yaw_last)) cost += (fabs(yaw -  2 * PI - yaw_last));
-                    else cost += fabs(yaw - yaw_last);
+                    double x_sum = fabs(cos(carPoseYaw)*(odom_path_wayPt.x - carPose.position.x) + sin(carPoseYaw)*(odom_path_wayPt.y - carPose.position.y));
+                    double y_sum = fabs(-sin(carPoseYaw)*(odom_path_wayPt.x - carPose.position.x) + cos(carPoseYaw)*(odom_path_wayPt.y - carPose.position.y));
                     distance = getDistanceBetweenPoints(odom_path_wayPt, carPose.position);
 
-                    if(cost < cost_max) points.points.push_back(odom_path_wayPt);
+                    if(y_sum < deviation_y) points.points.push_back(odom_path_wayPt);
                     else break;
                 }
             }
@@ -409,12 +404,12 @@ public:
         ros::Time currentTime = ros::Time::now();
         ros::Duration interval = currentTime - stopTime;
         double costTime = interval.sec + (double)interval.nsec / (double)1e9;
-
-        if(distance < slowdown_dist_stop && costTime < stop_interval)
+        //ROS_INFO("distance: %lf, costTime: %lf, stop_interval: %lf", distance, costTime, stop_interval);
+        if(distance < slowdown_dist_stop && costTime > stop_interval)
         {
             result = Vcmd_stop;
             stopTime = currentTime;
-            ROS_ERROR("stop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            //ROS_ERROR("stop");
         }
         else
         {
@@ -578,6 +573,9 @@ public:
 
 
             double bendDistance = findDistanceToBend(carPose);
+            std_msgs::Float32 distancePublished;
+            distancePublished.data = bendDistance;
+            distance_pub.publish(distancePublished);
             speed_expected = getExpectedSpeed(bendDistance);
 
             /*Estimate Steering Angle*/
