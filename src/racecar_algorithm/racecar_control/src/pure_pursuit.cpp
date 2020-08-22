@@ -61,11 +61,12 @@ private:
     nav_msgs::Path map_path, odom_path;
     boost::shared_ptr<const nav_msgs::OccupancyGrid> costmap;
 
-    double L, Lfw, Vcmd_max, Vcmd_min, steering_max, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_min, slowdown_dist_max, speed_factor = 1.0;
+    double L, Lfw, Vcmd_max, Vcmd_min, Vcmd_stop, steering_max, lfw, steering, velocity, cost_max, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_stop, slowdown_dist_min, slowdown_dist_max, stop_interval, speed_factor = 1.0;
     double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
     int controller_freq;
     bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot, enbale_safe_distance;
     bool foundForwardPt, foundPredictedCarPt, goal_received, goal_reached, transform_path_data;
+    ros::Time stopTime;
 
 
 public:
@@ -79,6 +80,7 @@ public:
         pn.param("L", L, 0.26); // length of car
         pn.param("Vcmd_max", Vcmd_max, 1.0);// reference speed (m/s)
         pn.param("Vcmd_min", Vcmd_min, 1.0);// reference speed (m/s)
+        pn.param("Vcmd_stop", Vcmd_stop, 0.0);
         pn.param("steering_max", steering_max, 1.0);
         pn.param("Lfw", Lfw, 3.0); // forward look ahead distance (m)
         pn.param("predicted_dist", predicted_dist, 0.1);
@@ -95,8 +97,10 @@ public:
         pn.param("speed_incremental", speed_incremental, 0.5); // speed incremental value (discrete acceleraton), unit: m/s 机器人加速度,该值乘上 controller_freq 才代表每秒的最大加速度
         pn.param("stop_robot", stop_robot, false);
         pn.param("cost_max", cost_max, 0.25); // distance between front the center of car
+        pn.param("slowdown_dist_stop", slowdown_dist_stop, 0.2);
         pn.param("slowdown_dist_min", slowdown_dist_min, 0.3);
         pn.param("slowdown_dist_max", slowdown_dist_max, 1.0);
+        pn.param("stop_interval", stop_interval, 0.1);
         pn.param("enable_safe_distance", enbale_safe_distance, true);
         pn.param("safe_distance_x", safe_distance_x, 0.1);
         pn.param("safe_distance_y", safe_distance_y, 0.1);
@@ -402,11 +406,21 @@ public:
     double getExpectedSpeed(double distance)
     {
         double result;
+        ros::Time currentTime = ros::Time::now();
+        ros::Duration interval = currentTime - stopTime;
 
-        if(distance >= slowdown_dist_max) result = Vcmd_max;
-        else if(distance <= slowdown_dist_min) result = Vcmd_min;
-        else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);                                                                                                                                                                                                                                                                                                                  
-        return result * speed_factor;
+        if(distance < slowdown_dist_stop && interval < ros::Duration(stop_interval, 0))
+        {
+            result = Vcmd_stop;
+            stopTime = currentTime;
+        }
+        else
+        {
+            if(distance >= slowdown_dist_max) result = Vcmd_max;
+            else if(distance <= slowdown_dist_min) result = Vcmd_min;
+            else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);                                                                                                                                                                                                                                                                                                                  
+            return result * speed_factor;
+        }
     }
 
     geometry_msgs::Point findForwardPoint(const geometry_msgs::Pose& carPose)
