@@ -419,8 +419,8 @@ public:
             if(distance >= slowdown_dist_max) result = Vcmd_max;
             else if(distance <= slowdown_dist_min) result = Vcmd_min;
             else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);                                                                                                                                                                                                                                                                                                                  
-            return result * speed_factor;
         }
+        return result * speed_factor;
     }
 
     geometry_msgs::Point findForwardPoint(const geometry_msgs::Pose& carPose)

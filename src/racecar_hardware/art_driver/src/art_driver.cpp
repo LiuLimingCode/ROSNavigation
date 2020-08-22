@@ -48,7 +48,7 @@ void AckermannCallback(const ackermann_msgs::AckermannDriveStamped::ConstPtr& Ac
 
     static uint16_t Timer_Stop = 0 , Timer_Wait = 0;
     static uint8_t flag = 0;
-    if((flag == 0) && (fabs(angle_set) > 0.5))
+    if((flag == 0) && (fabs(angle_set) > 5))
     {
         flag = 1;
     }
