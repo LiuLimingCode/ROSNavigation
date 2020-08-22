@@ -45,7 +45,7 @@ TebLocalPlannerROS:
  acc_lim_theta: 4 
 
  # ********************** Carlike robot parameters ********************
- min_turning_radius: 0.4      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
+ min_turning_radius: 0.7      # 根据(当前转弯半径 = 当前速度 / 当前角速度)，因为速度满足 v = 当前转弯半径 * 当前角速度，当机器人急转弯时，可以得到 急转弯过弯速度 = min_turning_radius * 当前角速度
  wheelbase: 0.335                # 前轮到后轮的距离
  cmd_angle_instead_rotvel: True # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************

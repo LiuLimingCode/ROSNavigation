@@ -46,6 +46,23 @@ void AckermannCallback(const ackermann_msgs::AckermannDriveStamped::ConstPtr& Ac
     double angle_ctrl_out = 0;
     double speed_set=Ackermann_set->drive.speed;
 
+    static double angle_set_last = 0;
+    static uint8_t flag = 0;
+    if((flag == 0) && (fabs(angle_set - angle_set_last) >= 0.3))
+    {
+        flag = 1;
+    }
+    if(flag == 1 && (fabs(angle_set) > 0.2))
+    {
+        speed_set = 1;
+    }
+    else
+    {
+        flag == 0;
+    }
+    
+    angle_set_last = angle_set;
+
     //车模保护停止
      if(Car_Stop_Flag == 1)
          speed_set = 0;
