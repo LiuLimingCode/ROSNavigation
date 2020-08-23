@@ -63,7 +63,7 @@ private:
 
     double L, Lfw, Vcmd_max, Vcmd_min, Vcmd_stop, steering_max, lfw, steering, velocity, deviation_y, predicted_dist, safe_distance_x, safe_distance_y, slowdown_dist_stop, slowdown_dist_min, slowdown_dist_max, stop_interval, speed_factor = 1.0;
     double steering_gain, base_angle, goal_radius, speed_incremental, speed_expected;
-    int controller_freq;
+    int controller_freq, stop_insist, stop_insist_times = 0;
     bool cmd_vel_mode, debug_mode, smooth_accel, stop_robot, enbale_safe_distance;
     bool foundForwardPt, foundPredictedCarPt, goal_received, goal_reached, transform_path_data;
     ros::Time stopTime;
@@ -100,6 +100,7 @@ public:
         pn.param("slowdown_dist_stop", slowdown_dist_stop, 0.2);
         pn.param("slowdown_dist_min", slowdown_dist_min, 0.3);
         pn.param("slowdown_dist_max", slowdown_dist_max, 1.0);
+        pn.param("stop_insist", stop_insist, 1);
         pn.param("stop_interval", stop_interval, 0.1);
         pn.param("enable_safe_distance", enbale_safe_distance, true);
         pn.param("safe_distance_x", safe_distance_x, 0.1);
@@ -401,21 +402,31 @@ public:
     double getExpectedSpeed(double distance)
     {
         double result;
-        ros::Time currentTime = ros::Time::now();
-        ros::Duration interval = currentTime - stopTime;
-        double costTime = interval.sec + (double)interval.nsec / (double)1e9;
-        //ROS_INFO("distance: %lf, costTime: %lf, stop_interval: %lf", distance, costTime, stop_interval);
-        if(distance < slowdown_dist_stop && costTime > stop_interval)
+
+        if(stop_insist_times > 0)
         {
             result = Vcmd_stop;
-            stopTime = currentTime;
-            //ROS_ERROR("stop");
+            stop_insist_times--;
         }
         else
         {
-            if(distance >= slowdown_dist_max) result = Vcmd_max;
-            else if(distance <= slowdown_dist_min) result = Vcmd_min;
-            else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);
+            ros::Time currentTime = ros::Time::now();
+            ros::Duration interval = currentTime - stopTime;
+            double costTime = interval.sec + (double)interval.nsec / (double)1e9;
+            //ROS_INFO("distance: %lf, costTime: %lf, stop_interval: %lf", distance, costTime, stop_interval);
+            if(distance < slowdown_dist_stop && costTime > stop_interval && stop_insist > 0)
+            {
+                result = Vcmd_stop;
+                stopTime = currentTime;
+                stop_insist_times = stop_insist - 1;
+                //ROS_ERROR("stop");
+            }
+            else
+            {
+                if(distance >= slowdown_dist_max) result = Vcmd_max;
+                else if(distance <= slowdown_dist_min) result = Vcmd_min;
+                else result = Vcmd_min + (Vcmd_max - Vcmd_min) / (slowdown_dist_max - slowdown_dist_min) * (distance - slowdown_dist_min);
+            }
         }
         return result * speed_factor;
     }

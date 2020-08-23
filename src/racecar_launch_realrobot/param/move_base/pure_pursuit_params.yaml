@@ -22,6 +22,7 @@ slowdown_dist_min: 0.5 # 当判断到的转弯点距离小于该值时,机器人
 slowdown_dist_max: 3.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
 Vcmd_stop: 0.5
 stop_interval: 0.5
+stop_insist: 2
 slowdown_dist_stop: 0.4
 
 enable_safe_distance: false
