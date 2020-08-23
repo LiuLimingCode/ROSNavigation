@@ -71,8 +71,8 @@ TebLocalPlannerROS:
     
  # Obstacles
     
- min_obstacle_dist: 0.5 # 障碍物到机器人的 footprint 的最小距离
- inflation_dist: 0.0  # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
+ min_obstacle_dist: 0.35 # 障碍物到机器人的 footprint 的最小距离
+ inflation_dist: 0.5  # 障碍物膨胀，起到的作用和 min_obstacle_dist 差不多，不清楚区别
  include_costmap_obstacles: True  
  costmap_obstacles_behind_robot_dist: 3  # 考虑机器人身后障碍物的范围
  obstacle_poses_affected: 10    #障碍造成影响系数，系统性能不佳则减少此参数
