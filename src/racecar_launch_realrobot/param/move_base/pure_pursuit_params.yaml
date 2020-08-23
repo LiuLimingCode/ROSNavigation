@@ -1,10 +1,10 @@
 # Parameters for pure pursuit controller
 L: 0.335 # Length of car (m) 机器人前轮和后轮的距离
 lfw: 0.1675 # distance between the front of the vehicle and its center of gravity
-Vcmd_max: 1.5 # reference speed (m/s)
-Vcmd_min: 1.5 # reference speed (m/s)
+Vcmd_max: 2.0 # reference speed (m/s)
+Vcmd_min: 2.0 # reference speed (m/s)
 steering_max: 1.0 # 最大舵机转角
-Lfw: 0.5  # forwar  d look ahead distance (m)
+Lfw: 0.6  # forwar  d look ahead distance (m)
 goal_radius: 0.5 # unit: m
 controller_freq: 20 # unit: Hz
 steering_gain: 1.0
@@ -17,12 +17,12 @@ stop_robot: false # 仅仅计算,不输出运动控制指令,用于调试
 predicted_dist: 0.0
 
 # 减速参数
-deviation_y: 0.10 # 以机器人坐标系为准,当规划出来的曲线的y轴偏移大于该值时,判断为转弯点
+deviation_y: 0.15 # 以机器人坐标系为准,当规划出来的曲线的y轴偏移大于该值时,判断为转弯点
 slowdown_dist_min: 5 # 当判断到的转弯点距离小于该值时,机器人降到最低速度
 slowdown_dist_max: 3.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
-Vcmd_stop: 1.5
+Vcmd_stop: 0.1
 stop_interval: 1.0
-slowdown_dist_stop: 10
+slowdown_dist_stop: 0.5
 
 enable_safe_distance: false
 safe_distance_x: 0.2
