@@ -11,7 +11,7 @@
 # clear_costmaps_server: /move_base/clear_costmaps
 
 goal_radius: 1.5              # 当机器人位置与坐标点距离小于该值时,判定机器人已经到达目标点
-goal_extension: 2.0           # 每一次所设置的坐标点都会在当前目标位置延伸至下一个目标位置多少距离,延伸方向为当前目标点指向下一次目标点
+goal_extension: 1.5           # 每一次所设置的坐标点都会在当前目标位置延伸至下一个目标位置多少距离,延伸方向为当前目标点指向下一次目标点
 map_offset_yaw: 1.579949      # 地图在z轴方向上的旋转,通过rosserive call /multinavigation/start_normalize_map 得到
 destination_extension_x: 0.0  # 多点导航的最后一个目标点设定位置在x轴上的延伸,延伸方向会通过 map_offset_yaw 进行归一化,以方便临场判断
 destination_extension_y: 0.0  # 多点导航的最后一个目标点设定位置在y轴上的延伸,延伸方向会通过 map_offset_yaw 进行归一化,以方便临场判断
@@ -31,8 +31,8 @@ speed_factor_locations: [ 1.0, 1.0, 1.0, 1.0, 1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0
 speed_factor_start: 0.5   # 起始点的速度
 enable_speed_factor: false
              
-goals_id: [ 7, 6, 5, 11, 10 ] # 目标点在 locations 参数上对应的索引
-goals_static: [ true, false, false, false , true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
+goals_id: [ 9, 2, 3, 6 , 9,4,1] # 目标点在 locations 参数上对应的索引
+goals_static: [ true, false, false,false, false , false , true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
 
 locations_relation: [ [1, 2, 1.0], [1, 9, 1.0], # [a, b ,c] a,b表示 locations 参数中的两两点之间是否可达, c表示选择该路径的速度,当路径上障碍物较多时,可以适当减少该参数
                       [2, 10, 1.0], [2, 12, 1.0], 
