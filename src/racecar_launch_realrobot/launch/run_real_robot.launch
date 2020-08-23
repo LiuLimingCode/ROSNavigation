@@ -53,7 +53,7 @@
   <!-- 使用遥控手柄发布ackermann数据 -->
   <node name="joy_node" pkg="joy" type="joy_node"/>
   <node name="racecar_joy" pkg="racecar_control" type="racecar_joy.py">
-    <param name="speed_max" value="2"/>
+    <param name="speed_max" value="2.0"/>
     <param name="max_steering_angle" value="0.6108652382"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>

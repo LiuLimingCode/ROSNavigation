@@ -46,33 +46,33 @@ void AckermannCallback(const ackermann_msgs::AckermannDriveStamped::ConstPtr& Ac
     double angle_ctrl_out = 0;
     double speed_set=Ackermann_set->drive.speed;
 
-    static uint16_t Timer_Stop = 0 , Timer_Wait = 0;
-    static uint8_t flag = 0;
-    if((flag == 0) && (fabs(angle_set) >= 3))
-    {
-        flag = 1;
-    }
-    if(flag == 1)
-    {
-        Timer_Stop++;
-        if(speed_set > 0) speed_set = 0.5;
-        else if(speed_set < 0) speed_set = -0.5;
-        else if(speed_set == 0) speed_set = 0;
-    }
-    if((flag == 1) && (Timer_Stop >= 3) )
-    {
-        flag = 2;
-        Timer_Stop = 0;
-    }
-    if(flag == 2)
-    {
-        Timer_Wait++;
-    }
-    if((flag == 2) && (Timer_Wait >= 6))
-    {
-        flag = 0;
-        Timer_Wait = 0;
-    }
+    // static uint16_t Timer_Stop = 0 , Timer_Wait = 0;
+    // static uint8_t flag = 0;
+    // if((flag == 0) && (fabs(angle_set) >= 3))
+    // {
+    //     flag = 1;
+    // }
+    // if(flag == 1)
+    // {
+    //     Timer_Stop++;
+    //     if(speed_set > 0) speed_set = 0.5;
+    //     else if(speed_set < 0) speed_set = -0.5;
+    //     else if(speed_set == 0) speed_set = 0;
+    // }
+    // if((flag == 1) && (Timer_Stop >= 3) )
+    // {
+    //     flag = 2;
+    //     Timer_Stop = 0;
+    // }
+    // if(flag == 2)
+    // {
+    //     Timer_Wait++;
+    // }
+    // if((flag == 2) && (Timer_Wait >= 6))
+    // {
+    //     flag = 0;
+    //     Timer_Wait = 0;
+    // }
 
     //车模保护停止
      if(Car_Stop_Flag == 1)

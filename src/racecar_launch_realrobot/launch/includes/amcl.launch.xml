@@ -65,13 +65,13 @@
 
 
     <!-- Odometry model parameters -->
-    <param name="odom_model_type" value="diff-corrected"/> #Which model to use, either "diff", "omni", "diff-corrected" or "omni-corrected". (default: "diff")
-    <param name="odom_alpha1" value="0.2"/>      #Specifies the expected noise in odometry's rotation estimate from the rotational component of the robot's motion. (default: 0.2)
-    <param name="odom_alpha2" value="0.2"/>      #Specifies the expected noise in odometry's rotation estimate from translational component of the robot's motion. (default: 0.2)
-    <param name="odom_alpha3" value="0.2"/>      #Specifies the expected noise in odometry's translation estimate from the translational component of the robot's motion. (default: 0.2)
-    <param name="odom_alpha4" value="0.2"/>      #Specifies the expected noise in odometry's translation estimate from the rotational component of the robot's motion. (default: 0.2)
-    <param name="odom_alpha5" value="0.2"/>      #Translation-related noise parameter (only used if model is "omni"). (default: 0.2)
-
+ <param name="odom_model_type" value="omni-corrected"/>
+  <param name="odom_alpha1" value="0.005"/>
+  <param name="odom_alpha2" value="0.005"/>
+  <!-- translation variance, m -->
+  <param name="odom_alpha3" value="0.010"/>
+  <param name="odom_alpha4" value="0.005"/>
+  <param name="odom_alpha5" value="0.003"/>
   </node>
 
 </launch>
