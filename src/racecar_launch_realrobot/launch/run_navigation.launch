@@ -105,6 +105,10 @@
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->
 
+  <!--node name="publish_teb_obstacles_node" pkg="racecar_control" type="publish_teb_obstacles" output="screen">
+    <rosparam file="$(find racecar_launch_simulator)/param/move_base/publish_teb_obstacles_params.yaml" command="load"/>
+  </node-->
+
   <!-- 计时节点,计算导航所用时间 -->
   <!--node name="race_timer_node" pkg="gazebo_tools" type="race_timer_node" output="screen">
     <param name="goal_topic" value="/move_base_simple/goal"/>

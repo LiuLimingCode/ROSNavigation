@@ -11,7 +11,16 @@ ros::Publisher obstaclesPublisher, markerPublisher;
 ros::Subscriber clickedPointSubscriber;
 ros::ServiceServer subscribeClickedPoint;
 
+visualization_msgs::Marker obstaclesMarker;
+
 int currentIndex = 0;
+double obstaclesRadius;
+
+void publishObstacleMarker(const geometry_msgs::Point point)
+{
+    obstaclesMarker.points.push_back(point);
+    markerPublisher.publish(obstaclesMarker);
+}
 
 void publishObstacle(const geometry_msgs::Point point)
 {
@@ -25,8 +34,9 @@ void publishObstacle(const geometry_msgs::Point point)
     msg.obstacles[0].polygon.points[0].x = point.x;
     msg.obstacles[0].polygon.points[0].y = point.y;
     msg.obstacles[0].polygon.points[0].z = point.z;
-    msg.obstacles[0].radius = 0.2;
+    msg.obstacles[0].radius = obstaclesRadius;
 
+    publishObstacleMarker(point);
     ROS_INFO("publish teb obstacles, x: %lf, y: %lf", point.x, point.y);
 
     obstaclesPublisher.publish(msg);
@@ -71,7 +81,7 @@ void publishObstacleWithYaml(XmlRpc::XmlRpcValue& xmlrpc)
         double number[2];
         for(int index = 0; index < 2; ++index)
         {
-            number[index] = getNumberFromXMLRPC<double>(segment);
+            number[index] = getNumberFromXMLRPC<double>(segment[ index ]);
         }
         point.x = number[0];
         point.y = number[1];
@@ -102,15 +112,38 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "publish_teb_obstacles_node");
     node = new ros::NodeHandle("~");
-    ros::service::waitForService("/move_base/TebLocalPlannerROS/set_parameters");
-
-    obstaclesPublisher = node->advertise<costmap_converter::ObstacleArrayMsg>("/move_base/TebLocalPlannerROS/obstacles", 10);
-    markerPublisher = node->advertise<visualization_msgs::Marker>("/publish_teb_obstacles/marker", 10);
-    subscribeClickedPoint = node->advertiseService("subscribe_clicked_point", subscribeClickedPointCallBack);
 
     XmlRpc::XmlRpcValue obstaclesXmlRpc;
     node->getParam("obstacles", obstaclesXmlRpc);
-    publishObstacleWithYaml(obstaclesXmlRpc);
+    node->param<double>("obstacles_radius", obstaclesRadius, 0.1);
+
+    obstaclesPublisher = node->advertise<costmap_converter::ObstacleArrayMsg>("/move_base/TebLocalPlannerROS/obstacles", 10, true);
+    markerPublisher = node->advertise<visualization_msgs::Marker>("/publish_teb_obstacles/marker", 10, true);
+    subscribeClickedPoint = node->advertiseService("subscribe_clicked_point", subscribeClickedPointCallBack);
+
+    obstaclesMarker.header.frame_id = "map";
+    obstaclesMarker.ns = "publish_teb_obstacles";
+    obstaclesMarker.action = visualization_msgs::Marker::ADD;
+    obstaclesMarker.pose.orientation.w = 1;
+
+    obstaclesMarker.id = 0;
+    obstaclesMarker.type = visualization_msgs::Marker::SPHERE_LIST;
+    obstaclesMarker.scale.x = obstaclesRadius;
+    obstaclesMarker.scale.y = obstaclesRadius;
+    obstaclesMarker.scale.z = 0.1;
+    obstaclesMarker.color.r = 0.2;
+    obstaclesMarker.color.g = 0.2;
+    obstaclesMarker.color.b = 0.2;
+    obstaclesMarker.color.a = 0.5;
+
+    try
+    {
+        publishObstacleWithYaml(obstaclesXmlRpc);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM(e.what());
+    }
 
     ros::spin();
 

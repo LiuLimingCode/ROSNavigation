@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
       Splitter Ratio: 0.602305472
     Tree Height: 295
   - Class: rviz/Selection
@@ -27,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -426,7 +425,7 @@ Visualization Manager:
       Marker Topic: /pure_pursuit/path_marker
       Name: PursuitMarker
       Namespaces:
-        Markers: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -463,7 +462,15 @@ Visualization Manager:
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /multi_goals_navigation_node/visualization_marker
-      Name: Marker
+      Name: MultiNavMarker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /publish_teb_obstacles/marker
+      Name: TebObstaclesMarker
       Namespaces:
         {}
       Queue Size: 100
