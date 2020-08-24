@@ -15,7 +15,7 @@ goal_extension: 2.0           # 每一次所设置的坐标点都会在当前目
 map_offset_yaw: 0.0           # 地图在z轴方向上的旋转,通过rosserive call /multinavigation/start_normalize_map 得到
 destination_extension_x: 0.0 # 多点导航的最后一个目标点设定位置在x轴上的延伸,延伸方向会通过 map_offset_yaw 进行归一化,以方便临场判断
 destination_extension_y: 0.0 # 多点导航的最后一个目标点设定位置在y轴上的延伸,延伸方向会通过 map_offset_yaw 进行归一化,以方便临场判断
-debug_mode: true
+debug_mode: false
 
 # 坐标数据,通过rosserive call /multinavigation/start_normalize_locations 得到
 #            1           2           3         4          5           6           7           8              9            10            11          *12

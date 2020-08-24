@@ -924,13 +924,28 @@ public:
 
     void moveBaseStatusCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
     {
+        if(!navigationStarted) return;
+        static int failedTimes = 0;
         for(int index = 0; index < data->status_list.size(); ++index)
         {
             if(data->status_list[index].status == actionlib_msgs::GoalStatus::ABORTED
             || data->status_list[index].status == actionlib_msgs::GoalStatus::REJECTED)
             {
-                ROS_ERROR("multi navigation failed! id: %d", (int)data->status_list[index].status);
+                failedTimes++;
+                ROS_ERROR("multi navigation failed! id: %d, failed times: %d", (int)data->status_list[index].status, failedTimes);
+
+                if(failedTimes > 6 && currentGoalIndex < optimalGoalsIndexVector.size() - 1)
+                {
+                    publishGoal(currentGoalIndex + 1); // 如果多次失败,尝试发送下一个目标点
+                    ROS_ERROR("try to set next goal");
+                }
+                else
+                {
+                    publishGoal(currentGoalIndex); // 如果失败次数少或者已经是终点,将目标点再发一次
+                    ROS_ERROR("set current goal again");
+                }
             }
+            else failedTimes = 0;
         }
     }
 

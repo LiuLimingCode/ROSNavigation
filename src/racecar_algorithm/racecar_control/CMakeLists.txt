@@ -178,6 +178,9 @@ target_link_libraries(pure_pursuit ${catkin_LIBRARIES})
 add_executable(multi_goals_navigation src/multi_goals_navigation.cpp)
 target_link_libraries(multi_goals_navigation ${catkin_LIBRARIES})
 
+add_executable(publish_teb_obstacles src/publish_teb_obstacles.cpp)
+target_link_libraries(publish_teb_obstacles ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

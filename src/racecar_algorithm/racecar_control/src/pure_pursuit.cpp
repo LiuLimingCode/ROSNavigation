@@ -68,7 +68,6 @@ private:
     bool foundForwardPt, foundPredictedCarPt, goal_received, goal_reached, transform_path_data;
     ros::Time stopTime;
 
-
 public:
 
     PurePursuit(void)
@@ -114,7 +113,7 @@ public:
         costmap_sub = n_.subscribe("/move_base/local_costmap/costmap", 1, &PurePursuit::costmapCB, this);
         speed_factor_sub = n_.subscribe("/multi_goals_navigation_node/speed_factor", 1, &PurePursuit::speedFactorCB, this);
         marker_pub = n_.advertise<visualization_msgs::Marker>("/pure_pursuit/path_marker", 10);
-        distance_pub = n_.advertise<std_msgs::Float32>("distance", 1);
+        distance_pub = n_.advertise<std_msgs::Float32>("/pure_pursuit/distance", 1);
         ackermann_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/pure_pursuit/ackermann_cmd", 1);
         if(cmd_vel_mode) cmdvel_pub = n_.advertise<geometry_msgs::Twist>("/pure_pursuit/cmd_vel", 1);
         pursuit_path_pub = n_.advertise<nav_msgs::Path>("pursuit_path", 1);
