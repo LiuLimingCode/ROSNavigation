@@ -82,8 +82,8 @@ struct Dijkstra
             locationsRelation.push_back(lr[index]);
             reachableIndexs[lr[index].from].push_back(locationsRelation.size() - 1);
 
-            locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint, lr[index].speedFactor));
-            reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
+            //locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint, lr[index].speedFactor));
+            //reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
         }
     }
 
@@ -388,7 +388,7 @@ public:
         goalsMarker.type = visualization_msgs::Marker::SPHERE_LIST;
         goalsMarker.scale.x = goalRadius;
         goalsMarker.scale.y = goalRadius;
-        goalsMarker.scale.y = 0.01;
+        goalsMarker.scale.z = 0.1;
         goalsMarker.color.r = 1.0;
         goalsMarker.color.g = 1.0;
         goalsMarker.color.b = 0.0;
@@ -925,27 +925,17 @@ public:
     void moveBaseStatusCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
     {
         if(!navigationStarted) return;
-        static int failedTimes = 0;
+
         for(int index = 0; index < data->status_list.size(); ++index)
         {
             if(data->status_list[index].status == actionlib_msgs::GoalStatus::ABORTED
             || data->status_list[index].status == actionlib_msgs::GoalStatus::REJECTED)
             {
-                failedTimes++;
-                ROS_ERROR("multi navigation failed! id: %d, failed times: %d", (int)data->status_list[index].status, failedTimes);
+                ROS_ERROR("multi navigation failed! id: %d", (int)data->status_list[index].status);
 
-                if(failedTimes > 6 && currentGoalIndex < optimalGoalsIndexVector.size() - 1)
-                {
-                    publishGoal(currentGoalIndex + 1); // 如果多次失败,尝试发送下一个目标点
-                    ROS_ERROR("try to set next goal");
-                }
-                else
-                {
-                    publishGoal(currentGoalIndex); // 如果失败次数少或者已经是终点,将目标点再发一次
-                    ROS_ERROR("set current goal again");
-                }
+                publishGoal(currentGoalIndex); // 将目标点再发一次
+                ROS_ERROR("set current goal again");
             }
-            else failedTimes = 0;
         }
     }
 
