@@ -60,8 +60,8 @@
 
   <!-- 下位机控制节点 -->
   <node pkg="art_driver" name="art_driver" type="art_driver_node">
-    <param name="Angle_P" value="1.8"/>
-    <param name="Angle_D" value="10.0"/>
+    <param name="Angle_P" value="1.5"/>
+    <param name="Angle_D" value="3.0"/>
     <param name="ackermann_cmd_topic" value="$(arg ackermann_topic)"/>
   </node>
 

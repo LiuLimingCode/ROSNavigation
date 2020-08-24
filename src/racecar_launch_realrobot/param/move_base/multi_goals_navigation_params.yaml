@@ -31,7 +31,7 @@ speed_factor_locations: [ 1.0, 1.0, 1.0, 1.0, 1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0
 speed_factor_start: 0.5   # 起始点的速度
 enable_speed_factor: false
              
-goals_id: [ 4, 3, 11, 10 ,9,1] # 目标点在 locations 参数上对应的索引
+goals_id: [ 4, 5, 11, 10 ,7,6] # 目标点在 locations 参数上对应的索引
 goals_static: [ true, false,false, false , false , true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
 
 locations_relation: [ [1, 2, 1.0], [1, 9, 1.0],  # [a, b ,c] a,b表示 locations 参数中的两两点之间是否可达, c表示选择该路径的速度,当路径上障碍物较多时,可以适当减少该参数
