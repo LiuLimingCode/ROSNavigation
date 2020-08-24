@@ -120,6 +120,7 @@ int main(int argc, char **argv)
     obstaclesPublisher = node->advertise<costmap_converter::ObstacleArrayMsg>("/move_base/TebLocalPlannerROS/obstacles", 10, true);
     markerPublisher = node->advertise<visualization_msgs::Marker>("/publish_teb_obstacles/marker", 10, true);
     subscribeClickedPoint = node->advertiseService("subscribe_clicked_point", subscribeClickedPointCallBack);
+    clickedPointSubscriber = node->subscribe("/clicked_point", 1, clickedPointCallBack);
 
     obstaclesMarker.header.frame_id = "map";
     obstaclesMarker.ns = "publish_teb_obstacles";
