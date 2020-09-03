@@ -30,7 +30,7 @@ struct Dijkstra
         int to; // to 坐标的序号
         const geometry_msgs::Point * fromPoint; // from 坐标的数据
         const geometry_msgs::Point * toPoint; // to 坐标的数据
-        double speedFactor = 1.0;
+        double speedFactor = 1.0; // 设定从 from 到 to 的区域加减速
 
         LocationsRelation (int fromIndex = 0, int toIndex = 0, const geometry_msgs::Point * pFromPoint = nullptr, const geometry_msgs::Point * pToPoint = nullptr, double factor = 1.0) :
         from(fromIndex), to(toIndex), fromPoint(pFromPoint), toPoint(pToPoint), speedFactor(factor) {}
@@ -43,30 +43,38 @@ struct Dijkstra
         double angle(void) const { return atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x); }
     };
 
-    // Dijkstra算法用到的优先队列的节点
-    struct HeapNode
-    {
-        double cost; // 从起点到当前点的 cost
-        double dist;
-        double angle;
-        int index; // 当前点的序号
-        const LocationsRelation* relation; // 当前的的 LocationsRelation
-        std::vector<int> path; // 记录从起点到当前点的路径
-        HeapNode(int i, double c, double d, double a, const LocationsRelation* r = nullptr, std::vector<int> p = std::vector<int>()) :
-        index(i), cost(c), dist(d), angle(a), relation(r), path(p) {}
-        bool operator < (const HeapNode &rhs) const
-        {
-            return cost > rhs.cost;
-        }
-    };
-
+    // 用于显示Dijkstra算法结果的类
     struct Result
     {
         std::vector<int> bestPath;
         double cost = 0;
         double distance = 0;
         double angle = 0;
+
+        Result(double _cost = 0, double _dist = 0, double _angle = 0, const std::vector<int> _path = std::vector<int>()) :
+        cost(_cost), distance(_dist), _angle(_angle), bestPath(_path) {}
     };
+
+    // Dijkstra算法用到的优先队列的节点
+    struct HeapNode
+    {
+        Result result;
+        int index; // 当前点的序号
+        const LocationsRelation* relation; // 当前的的 LocationsRelation
+        HeapNode(int _index, double _cost, double _dist, double _angle, const LocationsRelation* _relation = nullptr, const std::vector<int> _path = std::vector<int>()) :
+        index(_index), relation(r)
+        {
+            result.cost = _cost;
+            result.distance = _dist;
+            result.angle = _angle;
+            result.bestPath = _path;
+        }
+        bool operator < (const HeapNode &rhs) const
+        {
+            return cost > rhs.cost;
+        }
+    };
+
 
     // 初始化
     void init(int maxLocations, const std::vector<LocationsRelation>& lr)
@@ -82,8 +90,9 @@ struct Dijkstra
             locationsRelation.push_back(lr[index]);
             reachableIndexs[lr[index].from].push_back(locationsRelation.size() - 1);
 
-            //locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint, lr[index].speedFactor));
-            //reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
+            // 如果在 locations_relation 参数中没有考虑往返,可以在增加以下程序
+            // locationsRelation.push_back(LocationsRelation(lr[index].to, lr[index].from, lr[index].toPoint, lr[index].fromPoint, lr[index].speedFactor));
+            // reachableIndexs[lr[index].to].push_back(locationsRelation.size() - 1);
         }
     }
 
@@ -201,34 +210,36 @@ private:
     XmlRpc::XmlRpcValue locationsXmlRpc, locationsRelationXmlRpc, goalsIndexXmlRpc, goalsStaticXmlRpc, speedFactorXmlRpc;
 
     std::vector<geometry_msgs::Point> locationVector; // 记录各个坐标点的坐标数据,从param中读取
-    std::vector<double> speedFactorLocationsVector;
+    std::vector<double> speedFactorLocationsVector; // 记录各个坐标点的区域加减速数据,从param中读取
     std::vector<Dijkstra::LocationsRelation> locationRelationVector; // 记录两两坐标点之间的关系,从param中读取
     std::vector<int> goalsIndexVector; // 记录目标在 locationVector 中的序号,从param中读取
     std::vector<bool> goalsStaticVector; // 根据该设置对目标点进行排序,从param中读取
     std::vector<int> optimalGoalsIndexVector; // 优化后得到的目标店序列
 
-    geometry_msgs::Pose robotPose;
+    geometry_msgs::Pose robotPose; // 记录机器人的位置
     int currentGoalIndex = 0; // 当前目标的序号
     const geometry_msgs::Point* currentGoal; // 当前坐标的数据
     geometry_msgs::PoseStamped publishedGoal; // currentGoal 经过归一化操作(平移、旋转)后,真正发布的坐标信息
 
     #define NORMALIZED_POINTS_NUMBER 4
     geometry_msgs::Point clickedPoints[NORMALIZED_POINTS_NUMBER]; // 进行归一化操作时,用于保存标定点数据
-    int clickedPointsNumber = 0;
+    int clickedPointsNumber = 0; 
     int normalizedIndex = 0; // 记录当前归一化的区域
-    bool normalizeMapStarted = false;
-    bool normalizeLocationStarted = false;
+    bool normalizeMapStarted = false; // 是否开始归一化地图
+    bool normalizeLocationStarted = false; // 是否开始归一化点
     geometry_msgs::Point (MultiGoalsNavigation::*normalizedFunction)(const geometry_msgs::Point *);
 
     Dijkstra dijkstra;
 
 public:
     ~MultiGoalsNavigation() = default;
+    // 多点导航类的构造函数,里面包括参数的初始化
     MultiGoalsNavigation(ros::NodeHandle node)
     {
         nodeHandle = node;
         ros::NodeHandle _n("~");
 
+        // 读取 yaml 文件参数
         _n.param<std::string>("map_frame", mapFrame, "map");
         _n.param<std::string>("amcl_pose_topic", amclPoseTopic, "/amcl_pose");
         _n.param<std::string>("goal_topic", goalTopic, "/move_base_simple/goal");
@@ -269,8 +280,10 @@ public:
         _n.getParam("goals_id", goalsIndexXmlRpc);
         _n.getParam("goals_static", goalsStaticXmlRpc);
 
+        // 初始化可视化Marker
         initMarker();
 
+        // 各个话题、服务的订阅、发布
         amclSubscriber = nodeHandle.subscribe(amclPoseTopic, 1, &MultiGoalsNavigation::amclPoseCallBack, this);
         moveBaseStatusSubscriber = nodeHandle.subscribe(moveBaseStatusTopic, 1, &MultiGoalsNavigation::moveBaseStatusCallBack, this);
         clickedPointSubscriber.shutdown();
@@ -283,6 +296,7 @@ public:
         normalizeLocationsServer = nodeHandle.advertiseService("start_normalize_locations", &MultiGoalsNavigation::startNormalizeLocationsCallBack, this);
         clearCostmapsClient = nodeHandle.serviceClient<std_srvs::Empty>(clearCostmapsServer);
 
+        // 解读 xml 数据内容
         try
         {
             locationVector = getPointVectorFromXMLRPC(locationsXmlRpc, "locations");
@@ -296,6 +310,7 @@ public:
             checkCondition(true, ex.what());
         }
 
+        // 检查各个参数是否合法
         checkCondition(goalsIndexVector.size() != goalsStaticVector.size(), "fatal error: the size of goals_id array param is not equal to the size of goals_static array param");
         if(enableSpeedFactor) checkCondition(locationVector.size() != speedFactorLocationsVector.size(), "fatal error: the size of locations array param is not equal to the size of speed_factor_locations array param");
         checkCondition(goalsIndexVector.size() == 0, "fatal error: the size of goals_id array param is 0");
@@ -323,8 +338,10 @@ public:
                 locationVector[goalsIndexVector[index]].x, locationVector[goalsIndexVector[index]].y);
         }
 
+        // Dijkstra算法初始化
         dijkstra.init(locationVector.size(), locationRelationVector);
  
+        // 计算所有目标点之中,任意两两点之间的最短路径,仅用于测试
         if(debugMode)
         {
             ROS_INFO("dijkstra results:");
@@ -355,13 +372,14 @@ public:
             }
         }
 
+        // 根据当前的 goals_id 参数计算并熟记机器人不同朝向下的最短路径,仅用于测试
         ROS_INFO("print optimal goals with all possible oriantations");
         for(int index = 0; index < dijkstra.reachableIndexs[goalsIndexVector[0]].size(); ++index)
         {
             const Dijkstra::LocationsRelation * relation = &dijkstra.locationsRelation[dijkstra.reachableIndexs[goalsIndexVector[0]][index]];
             double yaw = atan2(relation->toPoint->y - relation->fromPoint->y, relation->toPoint->x - relation->fromPoint->x);
 
-            auto testOptimalResult = getOptimalGoalsIndex(yaw, goalsIndexVector);
+            auto testOptimalResult = getOptimalGoalsIndex(yaw);
 
             ROS_INFO("start point index: %d, start oriantation: %d -> %d, yaw: %lf", goalsIndexVector[0] + 1, relation->from + 1, relation->to + 1, yaw);
             std::string str = std::string(" distance: ") + std::to_string(testOptimalResult.distance) + 
@@ -377,50 +395,7 @@ public:
         }
     }
 
-    void initMarker(void)
-    {
-        goalsMarker.header.frame_id = roadMarker.header.frame_id = mapFrame;
-        goalsMarker.ns = roadMarker.ns = "multi_goals_navigation";
-        goalsMarker.action = roadMarker.action = visualization_msgs::Marker::ADD;
-        goalsMarker.pose.orientation.w = roadMarker.pose.orientation.w = 1;
-
-        goalsMarker.id = 0;
-        goalsMarker.type = visualization_msgs::Marker::SPHERE_LIST;
-        goalsMarker.scale.x = goalRadius;
-        goalsMarker.scale.y = goalRadius;
-        goalsMarker.scale.z = 0.1;
-        goalsMarker.color.r = 1.0;
-        goalsMarker.color.g = 1.0;
-        goalsMarker.color.b = 0.0;
-        goalsMarker.color.a = 0.5;
-
-        roadMarker.id = 1;
-        roadMarker.type = visualization_msgs::Marker::LINE_STRIP;
-        roadMarker.scale.x = 0.05;
-        roadMarker.color.g = 1.0;
-        roadMarker.color.a = 0.3;
-    }
-
-    void publishGoalMarker(const std::vector<int> & goalsIndex)
-    {
-        goalsMarker.points.clear();
-        for(auto index = 0; index < goalsIndex.size(); ++index)
-        {
-            goalsMarker.points.push_back(locationVector[goalsIndex[index]]);
-        }
-        markerPublisher.publish(goalsMarker);
-    }
-
-    void publishRoadMarker(const std::vector<int> & optimalGoalsIndex)
-    {
-        roadMarker.points.clear();
-        for(auto index = 0; index < optimalGoalsIndex.size(); ++index)
-        {
-            roadMarker.points.push_back(locationVector[optimalGoalsIndex[index]]);
-        }
-        markerPublisher.publish(roadMarker);
-    }
-
+    // 参数检测函数,如果 condition 为 True, 输出错误信息,并且关闭节点
     void checkCondition(bool condition, std::string errorStr)
     {
         if(condition)
@@ -430,6 +405,7 @@ public:
         }
     }
 
+    // 从 geometry_msgs::Pose 数据中得到 yaw 数据
     double getYawFromPose(const geometry_msgs::Pose& pose)
     {
         tf::Pose p;
@@ -439,6 +415,7 @@ public:
         return psi;
     }
 
+    // 发布坐标点
     void publishGoal(int currentGoalIndex)
     {
         currentGoal = &locationVector[optimalGoalsIndexVector[currentGoalIndex]];
@@ -455,7 +432,7 @@ public:
             xPublished += (cos(anglePublished) * goalExtension);
             yPublished += (sin(anglePublished) * goalExtension);
         }
-        else // 最后一个点特殊处理
+        else // 最后一个点特殊处理,将发布坐标延伸 destinationExtensionX, destinationExtensionY(方向经过归一化)
         {
             xPublished += (cos(mapOffserYaw) * destinationExtensionX + sin(mapOffserYaw) * destinationExtensionY);
             yPublished -= (sin(mapOffserYaw) * destinationExtensionX - cos(mapOffserYaw) * destinationExtensionY);
@@ -478,6 +455,7 @@ public:
         goalPublisher.publish(publishedGoal);
     }
 
+    // 排列组合函数, 将 numberVector 中的数据经过排列组合后得到 resultVector
     void numberPermutation(std::vector<int> numberVector, int begin, int end, std::vector<std::vector<int> > * resultVector) const
     {
         if(begin == end) resultVector->push_back(numberVector);
@@ -496,7 +474,8 @@ public:
         }
     }
 
-    Dijkstra::Result chooceBestPath(int startIndex, double startYaw, int stopIndex, const std::vector<int>& goalsIndex) const
+    // 根据起点序号、终点序号、途经点序号和起始朝向解算最短路径
+    Dijkstra::Result chooceBestPath(int startIndex, int stopIndex, double startYaw, const std::vector<int>& goalsIndex) const
     {
         std::vector<std::vector<int> > goalsPermutation;
         std::vector<int> tempGoalsIndex = goalsIndex;
@@ -555,12 +534,13 @@ public:
         return result;
     }
 
-    Dijkstra::Result getOptimalGoalsIndex(const double startYaw, const std::vector<int>& goalsIndex) const
+    // 根据机器人朝向,goals_id 参数以及 goals_static 参数解算最短路径
+    Dijkstra::Result getOptimalGoalsIndex(const double startYaw) const
     {
         std::vector<int> goalsNeedOptimize;
         Dijkstra::Result result;
 
-        result.bestPath.push_back(goalsIndex[0]); // 第一个点一定是固定的起点
+        result.bestPath.push_back(goalsIndexVector[0]); // 第一个点一定是固定的起点
         for(int index = 1; index < goalsIndexVector.size(); ++index)
         {
             if(!goalsStaticVector[index])
@@ -578,7 +558,7 @@ public:
                     const geometry_msgs::Point * toPoint = &locationVector[result.bestPath[result.bestPath.size() - 1]];
                     oriantation = atan2(toPoint->y - fromPoint->y, toPoint->x - fromPoint->x);
                 }
-                auto resultSegment = chooceBestPath(startIndex, oriantation, endIndex, goalsNeedOptimize);
+                auto resultSegment = chooceBestPath(startIndex, endIndex, oriantation, goalsNeedOptimize);
 
                 result.cost += resultSegment.cost;
                 result.angle += resultSegment.angle;
@@ -592,6 +572,139 @@ public:
         return result;
     }
 
+    /* * * * * * * * * * * * * * * * * * * * * * * * 重要回调函数部分 * * * * * * * * * * * * * * * * * * * * * * */
+
+    // start_navigation 函数回调函数
+    bool startNavigationCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    {
+        double initYaw = getYawFromPose(robotPose); // 得到机器人的朝向
+        ROS_INFO("received init pose msg, started multi navigation");
+        if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", robotPose.position.x, robotPose.position.y, initYaw);
+
+        // 发布起点区域加减速
+        if(enableSpeedFactor)
+        {
+            std_msgs::Float32 speedFactor;
+            speedFactor.data = speedFactorStart;
+            speedFactorPublisher.publish(speedFactor);
+        }
+
+        // 申请清除 costmap
+        std_srvs::Empty trigger;
+        if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
+        ros::Duration waitDuration(1.0);
+        waitDuration.sleep();
+        
+        // 计算最短路径并发布可视化
+        auto OptimalResult = getOptimalGoalsIndex(initYaw);
+        optimalGoalsIndexVector = OptimalResult.bestPath;
+        publishGoalMarker(goalsIndexVector);
+        publishRoadMarker(optimalGoalsIndexVector);
+
+        std::string str;
+        str += std::string("multi goals navigation started, choose path: ");
+        for(int index = 0; index < optimalGoalsIndexVector.size(); ++index)
+        {
+            str = str + std::to_string(optimalGoalsIndexVector[index] + 1) + std::string(" -> ");
+        }
+        str += std::string("end");
+        ROS_INFO_STREAM(str);
+
+        // 发布坐标数据,多点导航开始
+        navigationStarted = true;
+        currentGoalIndex = 1;
+        publishGoal(currentGoalIndex);
+        res.success = true;
+        res.message = "success";
+        return true;
+    }
+
+    // amcl_pose 话题数据回调函数
+    void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
+    {
+        robotPose = amclMsg->pose.pose;
+        if(!navigationStarted) return;
+
+        std_msgs::Float32 speedFactor;
+        const int lastPublishedGoalIndex = optimalGoalsIndexVector[currentGoalIndex - 1];
+        const int currentPublishedGoalIndex = optimalGoalsIndexVector[currentGoalIndex];
+        double dx = amclMsg->pose.pose.position.x - locationVector[currentPublishedGoalIndex].x;
+        double dy = amclMsg->pose.pose.position.y - locationVector[currentPublishedGoalIndex].y;
+        double goalDistance = sqrt(dx * dx + dy * dy);
+        dx = amclMsg->pose.pose.position.x - locationVector[lastPublishedGoalIndex].x;
+        dy = amclMsg->pose.pose.position.y - locationVector[lastPublishedGoalIndex].y;
+        double goalDistanceLast = sqrt(dx * dx + dy * dy);
+
+        if(goalDistance < goalRadius)
+        {
+            // 判定当前区域并发布区域加减速话题
+            if(enableSpeedFactor && isRobotInJunction)
+            {
+                isRobotInJunction = false;
+                speedFactor.data = speedFactorLocationsVector[currentPublishedGoalIndex];
+                ROS_INFO("robot in location %d, speed factor is %lf", currentPublishedGoalIndex + 1, speedFactor.data);
+                speedFactorPublisher.publish(speedFactor);
+            }
+
+            // 判定是否已经到底目标区域内,若到达,发布下一个目标的坐标
+            if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
+            {
+                currentGoalIndex++;
+                publishGoal(currentGoalIndex);
+            }
+            else
+            {
+                ROS_INFO("all goals reached, multi navigation finished.");
+                navigationStarted = false;
+            }
+        }
+        else if(enableSpeedFactor && goalDistanceLast > goalRadius && !isRobotInJunction) // 判定当前区域并发布区域加减速话题
+        {
+            isRobotInJunction = true;
+            speedFactor.data = 1.0;
+            for(int index = 0; index < dijkstra.reachableIndexs[lastPublishedGoalIndex].size(); ++index)
+            {
+                if(dijkstra.locationsRelation[dijkstra.reachableIndexs[lastPublishedGoalIndex][index]].to == currentPublishedGoalIndex)
+                    speedFactor.data = dijkstra.locationsRelation[dijkstra.reachableIndexs[lastPublishedGoalIndex][index]].speedFactor;
+            }
+            ROS_INFO("robot in junction %d -> %d, speed factor is %lf", lastPublishedGoalIndex + 1, currentPublishedGoalIndex + 1, speedFactor.data);
+            speedFactorPublisher.publish(speedFactor);
+        }
+    }
+
+    // move_base/status 话题数据回调函数
+    void moveBaseStatusCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
+    {
+        if(!navigationStarted) return;
+
+        for(int index = 0; index < data->status_list.size(); ++index)
+        {
+            // 如果当前坐标点的状态判定为失败,那么将坐标点再发一次
+            if(data->status_list[index].status == actionlib_msgs::GoalStatus::ABORTED
+            || data->status_list[index].status == actionlib_msgs::GoalStatus::REJECTED)
+            {
+                ROS_ERROR("multi navigation failed! id: %d", (int)data->status_list[index].status);
+
+                publishGoal(currentGoalIndex); // 将目标点再发一次
+                ROS_ERROR("set current goal again");
+            }
+        }
+    }
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * 地图归一化功能部分 * * * * * * * * * * * * * * * * * * * * * * */
+    // 区域归一化:由于建图位置不同会导致同一区域的坐标点不同，因此，通过归一化算法来适应地图
+    // 使用 start_normalize_locations 服务来开始区域归一化，然后使用Rviz的 publish point 功能单击各个区域，各个区域的归一化见normalizedLocation函数介绍
+    // 地图归一化:比赛时，考虑到可能终点区域存在障碍物，因此，通过延伸终点坐标来规避，为了在比赛现场能快速反应，将终点坐标按归一化后的方向延伸
+    // 使用 start_normalize_map 服务来开始区域归一化，然后使用Rviz的 publish point 功能单击地图的右上角(1号区域)、右下角、左下角
+
+    /*
+     * 两点归一化函数
+     * @param   points
+     *          归一化数据
+     * @note    地图上的 1/4/6/9 区域可以通过两端点完成归一化
+     *                ②◣
+     *          ◥①
+     */
     geometry_msgs::Point normalizedLocationWithTowPoints(const geometry_msgs::Point * points)
     {
         geometry_msgs::Point result;
@@ -601,6 +714,15 @@ public:
         return result;
     }
 
+    /*
+     * 三个点归一化函数
+     * @param   points
+     *          归一化数据
+     * @note    地图上的 2/3/5/7/8/11/12 区域可以通过三个端点完成归一化
+     *          ◢①     |
+     *                 ③|
+     *          ◥②     |
+     */
     geometry_msgs::Point normalizedLocationWithThreePoints(const geometry_msgs::Point * points)
     {
         geometry_msgs::Point result;
@@ -635,6 +757,15 @@ public:
         return result;
     }
 
+    /*
+     * 四个点归一化函数
+     * @param   points
+     *          归一化数据
+     * @note    地图上的 10 区域可以通过四个端点完成归一化
+     *          ◢①    ④◣
+     *                 
+     *          ◥③    ②◤
+     */
     geometry_msgs::Point normalizedLocationWithFourPoints(const geometry_msgs::Point * points)
     {
         geometry_msgs::Point result;
@@ -681,6 +812,11 @@ public:
         return result;
     }
 
+    /*
+     * 使用地图的右上、右下、左下点坐标计算地图的yaw，以此来使发布的终点坐标能朝着特定方向延伸
+     * @param   points
+     *          归一化数据
+     */
     double getMapOffsetYaw(const geometry_msgs::Point * points)
     {
         geometry_msgs::Point idealPoints[3];
@@ -709,6 +845,7 @@ public:
         return normalizedYaw;
     }
 
+    // 接收 clicked_point 话题数据
     void clickedPointCallBack(const geometry_msgs::PointStamped::ConstPtr& point)
     {
         if(!normalizeLocationStarted && ! normalizeMapStarted) return;
@@ -763,18 +900,7 @@ public:
         }
     }
 
-    bool debugShowLocationsCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
-    {
-        std::vector<int> allGoalsIndex;
-        for(int index = 0; index < locationVector.size(); ++index)
-        {
-            allGoalsIndex.push_back(index);
-        }
-        publishGoalMarker(allGoalsIndex);
-        res.success = true;
-        return true;
-    }
-
+    // start_normalize_map 服务回调函数
     bool startNormalizeMapCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
     {
         if(!normalizeLocationStarted && !normalizeMapStarted)
@@ -803,6 +929,7 @@ public:
         }
     }
 
+    // start_normalize_locations 服务回调函数
     bool startNormalizeLocationsCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
     {
         if(!normalizeLocationStarted && !normalizeMapStarted)
@@ -831,113 +958,69 @@ public:
         }
     }
 
-    bool startNavigationCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    /* * * * * * * * * * * * * * * * * * * * * * * * 数据可视化函数 * * * * * * * * * * * * * * * * * * * * * * */
+
+    // 初始化可视化Marker
+    void initMarker(void)
     {
-        double initYaw = getYawFromPose(robotPose);
-        ROS_INFO("received init pose msg, started multi navigation");
-        if(debugMode) ROS_INFO("init pose x: %lf, y: %lf, yaw: %lf", robotPose.position.x, robotPose.position.y, initYaw);
+        goalsMarker.header.frame_id = roadMarker.header.frame_id = mapFrame;
+        goalsMarker.ns = roadMarker.ns = "multi_goals_navigation";
+        goalsMarker.action = roadMarker.action = visualization_msgs::Marker::ADD;
+        goalsMarker.pose.orientation.w = roadMarker.pose.orientation.w = 1;
 
-        if(enableSpeedFactor)
+        goalsMarker.id = 0;
+        goalsMarker.type = visualization_msgs::Marker::SPHERE_LIST;
+        goalsMarker.scale.x = goalRadius;
+        goalsMarker.scale.y = goalRadius;
+        goalsMarker.scale.z = 0.1;
+        goalsMarker.color.r = 1.0;
+        goalsMarker.color.g = 1.0;
+        goalsMarker.color.b = 0.0;
+        goalsMarker.color.a = 0.5;
+
+        roadMarker.id = 1;
+        roadMarker.type = visualization_msgs::Marker::LINE_STRIP;
+        roadMarker.scale.x = 0.05;
+        roadMarker.color.g = 1.0;
+        roadMarker.color.a = 0.3;
+    }
+
+    // 发布目标可视化Marker
+    void publishGoalMarker(const std::vector<int> & goalsIndex)
+    {
+        goalsMarker.points.clear();
+        for(auto index = 0; index < goalsIndex.size(); ++index)
         {
-            std_msgs::Float32 speedFactor;
-            speedFactor.data = speedFactorStart;
-            speedFactorPublisher.publish(speedFactor);
+            goalsMarker.points.push_back(locationVector[goalsIndex[index]]);
         }
+        markerPublisher.publish(goalsMarker);
+    }
 
-        std_srvs::Empty trigger;
-        if(clearCostmapsClient.exists()) clearCostmapsClient.call(trigger);
-        ros::Duration waitDuration(1.0);
-        waitDuration.sleep();
-        
-        auto OptimalResult = getOptimalGoalsIndex(initYaw, goalsIndexVector);
-        optimalGoalsIndexVector = OptimalResult.bestPath;
-        publishGoalMarker(goalsIndexVector);
-        publishRoadMarker(optimalGoalsIndexVector);
-
-        std::string str;
-        str += std::string("multi goals navigation started, choose path: ");
-        for(int index = 0; index < optimalGoalsIndexVector.size(); ++index)
+    // 发布路径可视化Marker
+    void publishRoadMarker(const std::vector<int> & optimalGoalsIndex)
+    {
+        roadMarker.points.clear();
+        for(auto index = 0; index < optimalGoalsIndex.size(); ++index)
         {
-            str = str + std::to_string(optimalGoalsIndexVector[index] + 1) + std::string(" -> ");
+            roadMarker.points.push_back(locationVector[optimalGoalsIndex[index]]);
         }
-        str += std::string("end");
-        ROS_INFO_STREAM(str);
+        markerPublisher.publish(roadMarker);
+    }
 
-        navigationStarted = true;
-
-        currentGoalIndex = 1;
-        publishGoal(currentGoalIndex);
+    // debug_show_locations 服务的回调函数,将所有的 locations 可视化
+    bool debugShowLocationsCallBack(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+    {
+        std::vector<int> allGoalsIndex;
+        for(int index = 0; index < locationVector.size(); ++index)
+        {
+            allGoalsIndex.push_back(index);
+        }
+        publishGoalMarker(allGoalsIndex);
         res.success = true;
-        res.message = "success";
         return true;
     }
 
-    void amclPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& amclMsg)
-    {
-        robotPose = amclMsg->pose.pose;
-        if(!navigationStarted) return;
-
-        std_msgs::Float32 speedFactor;
-        const int lastPublishedGoalIndex = optimalGoalsIndexVector[currentGoalIndex - 1];
-        const int currentPublishedGoalIndex = optimalGoalsIndexVector[currentGoalIndex];
-        double dx = amclMsg->pose.pose.position.x - locationVector[currentPublishedGoalIndex].x;
-        double dy = amclMsg->pose.pose.position.y - locationVector[currentPublishedGoalIndex].y;
-        double goalDistance = sqrt(dx * dx + dy * dy);
-        dx = amclMsg->pose.pose.position.x - locationVector[lastPublishedGoalIndex].x;
-        dy = amclMsg->pose.pose.position.y - locationVector[lastPublishedGoalIndex].y;
-        double goalDistanceLast = sqrt(dx * dx + dy * dy);
-
-        if(goalDistance < goalRadius)
-        {
-            if(enableSpeedFactor && isRobotInJunction)
-            {
-                isRobotInJunction = false;
-                speedFactor.data = speedFactorLocationsVector[currentPublishedGoalIndex];
-                ROS_INFO("robot in location %d, speed factor is %lf", currentPublishedGoalIndex + 1, speedFactor.data);
-                speedFactorPublisher.publish(speedFactor);
-            }
-
-            if(currentGoalIndex < optimalGoalsIndexVector.size() - 1)
-            {
-                currentGoalIndex++;
-                publishGoal(currentGoalIndex);
-            }
-            else
-            {
-                ROS_INFO("all goals reached, multi navigation finished.");
-                navigationStarted = false;
-            }
-        }
-        else if(enableSpeedFactor && goalDistanceLast > goalRadius && !isRobotInJunction)
-        {
-            isRobotInJunction = true;
-            speedFactor.data = 1.0;
-            for(int index = 0; index < dijkstra.reachableIndexs[lastPublishedGoalIndex].size(); ++index)
-            {
-                if(dijkstra.locationsRelation[dijkstra.reachableIndexs[lastPublishedGoalIndex][index]].to == currentPublishedGoalIndex)
-                    speedFactor.data = dijkstra.locationsRelation[dijkstra.reachableIndexs[lastPublishedGoalIndex][index]].speedFactor;
-            }
-            ROS_INFO("robot in junction %d -> %d, speed factor is %lf", lastPublishedGoalIndex + 1, currentPublishedGoalIndex + 1, speedFactor.data);
-            speedFactorPublisher.publish(speedFactor);
-        }
-    }
-
-    void moveBaseStatusCallBack(const actionlib_msgs::GoalStatusArray::ConstPtr& data)
-    {
-        if(!navigationStarted) return;
-
-        for(int index = 0; index < data->status_list.size(); ++index)
-        {
-            if(data->status_list[index].status == actionlib_msgs::GoalStatus::ABORTED
-            || data->status_list[index].status == actionlib_msgs::GoalStatus::REJECTED)
-            {
-                ROS_ERROR("multi navigation failed! id: %d", (int)data->status_list[index].status);
-
-                publishGoal(currentGoalIndex); // 将目标点再发一次
-                ROS_ERROR("set current goal again");
-            }
-        }
-    }
+    /* * * * * * * * * * * * * * * * * * * * * * * * yaml文件数据解算部分 * * * * * * * * * * * * * * * * * * * * * * */
 
     template<typename T>
     T getNumberFromXMLRPC(XmlRpc::XmlRpcValue& xmlrpc, const std::string& full_param_name)
@@ -1067,6 +1150,7 @@ public:
     }
 };
 
+// 主函数
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "multi_goals_navgation_node");

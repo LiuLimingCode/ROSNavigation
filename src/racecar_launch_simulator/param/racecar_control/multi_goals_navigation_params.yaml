@@ -1,0 +1,51 @@
+# map_frame: map
+
+# amcl_pose_topic: /amcl_pose
+# init_pose_topic: /initialpose
+# clicked_point_topic: /clicked_point
+# move_base_status_topic: /move_base/status
+
+# goal_topic: /move_base_simple/goal
+# marker_topic: visualization_marker
+
+# clear_costmaps_server: /move_base/clear_costmaps
+
+goal_radius: 1.5              # 当机器人位置与坐标点距离小于该值时,判定机器人已经到达目标点
+goal_extension: 2.0           # 每一次所设置的坐标点都会在当前目标位置延伸至下一个目标位置多少距离,延伸方向为当前目标点指向下一次目标点
+map_offset_yaw: 0.0           # 地图在z轴方向上的旋转,通过rosserive call /multinavigation/start_normalize_map 得到
+destination_extension_x: 0.0 # 多点导航的最后一个目标点设定位置在x轴上的延伸,延伸方向会通过 map_offset_yaw 进行归一化,以方便临场判断
+destination_extension_y: 0.0 # 多点导航的最后一个目标点设定位置在y轴上的延伸,延伸方向会通过 map_offset_yaw 进行归一化,以方便临场判断
+debug_mode: false
+
+# 坐标数据,通过rosserive call /multinavigation/start_normalize_locations 得到
+#            1           2           3         4          5           6           7           8              9            10            11          *12
+locations: [ [-7, 4.25], [-2, 4.25], [2.5, 3], [8, 4.25], [8, -0.85], [8, -4.75], [1, -4.75], [-3.5, -4.75], [-7, -4.75], [-0.5, -0.5], [1.6, 1.7], [3, 4.25] ]
+
+# 控制机器人在不同 locations 上的速度,当区域内障碍物较多时,可以适当降低该参数
+#                         1    2    3    4    5    6    7    8    9    10   11   12
+speed_factor_locations: [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
+speed_factor_start: 0.5   # 起始点的速度
+enable_speed_factor: false
+
+goals_id: [ 10, 11 ] # 目标点在 locations 参数上对应的索引
+goals_static: [ true, true] # 如果为true表示 goals_id 参数上对应的点为必经点,否则为可以更改顺序的途经点,首相和末项必须是true表示起点和终点
+
+locations_relation: [ [1, 2, 1.0], [1, 9, 1.0],  # [a, b ,c] a,b表示 locations 参数中的两两点之间是否可达, c表示选择该路径的速度,当路径上障碍物较多时,可以适当减少该参数
+                      [2, 1, 1.0], [2, 10, 1.0], [2, 12, 1.0], 
+                      [3, 11, 1.0], [3, 12, 1.0], 
+                      [4, 5, 1.0], [4, 12, 1.0], 
+                      [5, 4, 1.0], [5, 6, 1.0], [5, 11, 1.0],
+                      [6, 5, 1.0], [6, 7, 1.0], 
+                      [7, 6, 1.0], [7, 8, 1.0], [7, 10, 1.0], 
+                      [8, 7, 1.0], [8, 9, 1.0], [8, 10, 1.0], 
+                      [9, 1, 1.0], [9, 8, 1.0], 
+                      [10, 2, 1.0], [10, 7, 1.0], [10, 8, 1.0], [10, 11, 1.0],
+                      [11, 3, 1.0], [11, 5, 1.0], [11, 10, 1.0], 
+                      [12, 2, 1.0], [12, 3, 1.0], [12, 4, 1.0] ]
+
+punish_bend_little: 0.0 # 小弯惩罚
+punish_bend_large: 1.0  # 大弯惩罚
+threshold_bend: 120     # 当转弯角度超过该值时,施加大弯惩罚,否则施加小弯惩罚,单位:度.赛道上最大的锐角弯为125度,其次为110度,再其次为100度,最后为90度,考虑到误差,设置该值留一点余量
+punish_backwards: 100.0 # 倒退惩罚
+punish_first_large_bend: 10.0 # 如果起点的转弯大于 first_bend_threshold ,则施加惩罚
+threshold_first_bend: 90.0  # 当起点的转角大于该值时,判定转角过大,施加惩罚,单位:度

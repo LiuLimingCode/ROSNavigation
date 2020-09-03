@@ -166,10 +166,6 @@ link_directories(/usr/lib)
 #   ${catkin_LIBRARIES}
 # )
 
-# MPC_Node
-ADD_EXECUTABLE( MPC_Node src/MPC.cpp src/MPC_Node.cpp )
-TARGET_LINK_LIBRARIES(MPC_Node ipopt ${catkin_LIBRARIES} )
-
 # Pure Pursuit Node
 add_executable(pure_pursuit src/pure_pursuit.cpp)
 target_link_libraries(pure_pursuit ${catkin_LIBRARIES})

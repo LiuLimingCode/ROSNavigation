@@ -44,13 +44,6 @@ cd install
 bash update_gazebo.sh
 ```
 
-#### 5.安装ipopt
-输入指令：
-```
-cd install/ipopt
-bash install.sh
-```
-
 ## 使用
 
 - 1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
