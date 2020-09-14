@@ -1,20 +1,10 @@
 /*
-# Copyright 2018 HyphaROS Workshop.
-# Latest Modifier: HaoChih, LIN (hypha.ros@gmail.com)
-# Original Author: ChanYuan KUO & YoRu LU
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-*/
+ * 纯路径跟踪算法
+ * @author  刘力铭
+ * @Date    2020.9.14
+ * @note    改进于 HyphaRos-MiniCar
+ *          基本思路：订阅TEB规划出来的导航路径来进行路径追踪，输出运动控制结果
+ */
 
 #include <iostream>
 #include "ros/ros.h"
@@ -218,6 +208,18 @@ public:
         }
     }
 
+    // 得到 local_costmap 的数据，以此进行机器人碰撞判断
+    void costmapCB(const nav_msgs::OccupancyGrid::ConstPtr& data)
+    {
+        costmap = data;
+    }
+
+    // 得到区域加减速数据
+    void speedFactorCB(const std_msgs::Float32::ConstPtr& data)
+    {
+        speed_factor = data->data;
+    }
+
     double getYawFromPose(const geometry_msgs::Pose& carPose)
     {
         tf::Pose pose;
@@ -243,6 +245,7 @@ public:
             return false;
     }
 
+    // 计算两点之间的距离
     double getDistanceBetweenPoints(const geometry_msgs::Point& toPoint, const geometry_msgs::Point& fromPoint)
     {
         double dx = toPoint.x - fromPoint.x;
@@ -300,30 +303,14 @@ public:
         }
     }
 
-    double getCurvature(geometry_msgs::Point p1, geometry_msgs::Point p2, geometry_msgs::Point p3)
-    {
-        double curvature = 0;
-        if((p1.x == p2.x && p2.x == p3.x) || (fabs((p2.y - p1.y) / (p2.x - p1.x) - (p3.y - p2.y) / (p3.x - p2.x))) < 0.000001)
-        {
-            curvature = 0; 
-        }
-        else
-        {
-            double radius;//曲率半径
-            double dis, dis1, dis2, dis3;//距离
-            double cosA;//ab确定的边所对应的角A的cos值
-            dis1 = getDistanceBetweenPoints(p1, p2);
-            dis2 = getDistanceBetweenPoints(p1, p3);
-            dis3 = getDistanceBetweenPoints(p2, p3);
-            dis = dis2 * dis2 + dis3 * dis3 - dis1 * dis1;
-            cosA = dis / ( 2 * dis2 * dis3);//余弦定理
-            radius = 0.5 * dis1 / cosA;
-            curvature = 1 / radius;
-        }
-        return curvature;
-    }
-
-    bool findPredictedCarPose(const geometry_msgs::Pose& carPose, geometry_msgs::Pose & carPosePredicted, geometry_msgs::Pose & distance)
+    /* *重要算法*
+     * 由于机器人转弯控制存在一定的滞后性，因此可以将机器人的位置再前移一定距离后再计算控制打角
+     * @param   carPose
+     *          当前机器人位置
+     * @param   carPosePredicted
+     *          位置提前后机器人的位置
+     */
+    bool findPredictedCarPose(const geometry_msgs::Pose& carPose, geometry_msgs::Pose & carPosePredicted)
     {
         foundPredictedCarPt = false;
         geometry_msgs::Point carPose_pos = carPose.position;
@@ -344,22 +331,12 @@ public:
                     {
                         foundCarInWay = true;
                         carPoseInWay = odom_path.poses[i].pose;
-                        // ROS_ERROR("carPoseInWay: x = %lf, y = %lf, yaw = %lf", carPoseInWay.position.x, carPoseInWay.position.y, getYawFromPose(carPoseInWay));
                     }
                     double dist = getDistanceBetweenPoints(odom_path_wayPt, carPose_pos);
                     if(dist > predicted_dist)
                     {
                         foundPredictedCarPt = true;
                         carPosePredicted = odom_path.poses[i].pose;
-                        // ROS_ERROR("carPosePredicted: x = %lf, y = %lf, yaw = %lf", carPosePredicted.position.x, carPosePredicted.position.y, getYawFromPose(carPosePredicted));
-                        distance.position.x = carPosePredicted.position.x - carPoseInWay.position.x;
-                        distance.position.y = carPosePredicted.position.y - carPoseInWay.position.y;
-                        double yaw = getYawFromPose(carPosePredicted) - getYawFromPose(carPoseInWay);
-                        tf::Quaternion quaternion = tf::createQuaternionFromYaw(yaw);
-                        distance.orientation.w = quaternion.w();
-                        distance.orientation.x = quaternion.x();
-                        distance.orientation.y = quaternion.y();
-                        distance.orientation.z = quaternion.z();
                         break;
                     }
                 }
@@ -368,7 +345,11 @@ public:
         return foundPredictedCarPt;
     }
 
-    // 找到规划出来的路径中转角与机器人的距离
+    /* *重要算法*
+     * 找到规划出来的路径中转角与机器人的距离，以此来控制加减速
+     * @param   carPose
+     *          当前机器人位置
+     */
     double findDistanceToBend(const geometry_msgs::Pose& carPose)
     {
         double distance = 0;
@@ -398,6 +379,11 @@ public:
         return distance;
     }
 
+    /* *重要算法*
+     * 计算期望速度
+     * @param   distance
+     *          当前机器人距离弯道的距离
+     */
     double getExpectedSpeed(double distance)
     {
         double result;
@@ -430,6 +416,11 @@ public:
         return result * speed_factor;
     }
 
+    /* *重要算法*
+     * 根据纯路径跟踪算法，需要找到距离机器人当前位置一定距离的路径点，以该点为目标进行追踪
+     * @param   carPose
+     *          当前机器人位置
+     */
     geometry_msgs::Point findForwardPoint(const geometry_msgs::Pose& carPose)
     {
         geometry_msgs::Point carPose_pos = carPose.position;
@@ -479,6 +470,11 @@ public:
         return forwardPt; // 返回 forwardPt 与 carPose_pos 的距离并转换到机器人的坐标系下
     }
 
+    /* *重要算法*
+     * 根据纯路径跟踪算法，计算机器人打角
+     * @param   eta
+     *          机器人当前位置与追踪点之间的角度差值
+     */
     double getSteering(double eta)
     {
         return atan2((this->L*sin(eta)),(this->Lfw/2 + this->lfw*cos(eta)));
@@ -509,16 +505,11 @@ public:
         }
     }
 
-    void costmapCB(const nav_msgs::OccupancyGrid::ConstPtr& data)
-    {
-        costmap = data;
-    }
-
-    void speedFactorCB(const std_msgs::Float32::ConstPtr& data)
-    {
-        speed_factor = data->data;
-    }
-
+    /* *重要算法*
+     * 根据local_costmap上的障碍物数据以及机器人的位置判断机器人是否碰撞障碍物，容易误判
+     * @param   carPointMap
+     *          机器人位置
+     */
     bool isRobotCollided(geometry_msgs::Point carPointMap)
     {
         bool result = false;
@@ -550,7 +541,9 @@ public:
         return result;
     }
 
-    // 控制周期
+    /* *重要算法*
+     * 控制周期
+     */
     void controlLoopCB(const ros::TimerEvent&)
     {
         if(!goal_received) return;
@@ -565,22 +558,17 @@ public:
             PURE_PURSUIT_INFO("current car pose: x: %lf, y: %lf, vx: %lf, vyaw: %lf", carPose.position.x, carPose.position.y, carVel.linear.x, carVel.angular.z);
             transformPathData();
 
-            geometry_msgs::Pose carPosePredicted, predictedDistance;
-            if(findPredictedCarPose(carPose, carPosePredicted, predictedDistance))
+            geometry_msgs::Pose carPosePredicted;
+            if(findPredictedCarPose(carPose, carPosePredicted))
             {
                 PURE_PURSUIT_INFO("found the predicted car pose, x: %lf, y: %lf", carPosePredicted.position.x, carPosePredicted.position.y);
                 carPosePredicted.orientation = carPose.orientation;
-                // carPoseCorrected = carPose;
-                // carPoseCorrected.position.x += (cos(carPoseYaw) * predictedDistance.position.x + sin(carPoseYaw) * predictedDistance.position.y);
-                // carPoseCorrected.position.y += (-sin(carPoseYaw) * predictedDistance.position.x + cos(carPoseYaw) * predictedDistance.position.y);
             }
             else 
             {
                 PURE_PURSUIT_INFO("didn't find the predicted car pose!!!!!!!!!!!");
                 carPosePredicted = carPose;
-                // carPoseCorrected = carPose;
             }
-
 
             double bendDistance = findDistanceToBend(carPose);
             std_msgs::Float32 distancePublished;
@@ -652,6 +640,7 @@ public:
         }
     }
 
+    // 停车服务回调函数，调用该函数进行停车
     bool stopRobotCB(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
     {
         if(!stop_robot && req.data)

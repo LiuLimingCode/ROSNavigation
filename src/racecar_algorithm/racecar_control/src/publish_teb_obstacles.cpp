@@ -1,3 +1,12 @@
+/*
+ * 发布 teb_local_planner 的 Obstacles
+ * @author  刘力铭
+ * @Date    2020.9.14
+ * @note    基本思路：当障碍物出现在路径中间时，TEB的规划结果会出现左右犹豫的问题，为了解决这个问题
+ *          利用 /move_base/TebLocalPlannerROS/obstacles 为TEB规划器发布辅助的障碍物数据，以此来
+ *          规避左右为难的问题，但是简单测试后发现效果不是太好。
+ */
+
 #include "ros/ros.h"
 #include "std_srvs/SetBool.h"
 #include "geometry_msgs/PointStamped.h"

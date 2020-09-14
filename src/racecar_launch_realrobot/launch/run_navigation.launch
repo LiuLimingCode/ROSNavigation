@@ -68,17 +68,6 @@
     <remap from="/pure_pursuit/ackermann_cmd" to="$(arg ackermann_topic)"/>
   </node>
 
-  <!-- 多点导航节点 -->
-  <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
-    <rosparam file="$(find racecar_launch_realrobot)/param/racecar_control/multi_goals_navigation_params.yaml" command="load"/>
-    <param name="map_frame" value="$(arg map_frame)"/>
-    <param name="amcl_pose_topic" value="/amcl_pose"/>
-    <param name="goal_topic" value="/move_base_simple/goal"/>
-    <param name="clicked_point_topic" value="/clicked_point"/>
-    <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
-    <param name="global_costmap_topic" value="/move_base/global_costmap/costmap"/>
-  </node>
-
   <!-- 方案2： -->
   <!-- 使用一个节点对move_base的/cmd_vel数据进行转换，完成导航，具体转换方式见cmd_to_ackermann.py -->
   <!-- 评价：不同的转换方式都存在一定的局限性，速度不快 -->
@@ -91,6 +80,17 @@
   <!--node name="visualize_velocity_profile_node" pkg="racecar_control" type="visualize_velocity_profile.py">
     <param name="teb_feedback_topic" value="/move_base/TebLocalPlannerROS/teb_feedback"/>
   </node-->
+
+  <!-- 多点导航节点 -->
+  <node name="multi_goals_navigation_node" pkg="racecar_control" type="multi_goals_navigation" output="screen">
+    <rosparam file="$(find racecar_launch_realrobot)/param/racecar_control/multi_goals_navigation_params.yaml" command="load"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="amcl_pose_topic" value="/amcl_pose"/>
+    <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="clicked_point_topic" value="/clicked_point"/>
+    <param name="clear_costmaps_server" value="/move_base/clear_costmaps"/>
+    <param name="global_costmap_topic" value="/move_base/global_costmap/costmap"/>
+  </node>
 
   <node name="publish_teb_obstacles_node" pkg="racecar_control" type="publish_teb_obstacles" output="screen">
     <rosparam file="$(find racecar_launch_realrobot)/param/racecar_control/publish_teb_obstacles_params.yaml" command="load"/>

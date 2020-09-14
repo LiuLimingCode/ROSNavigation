@@ -1,3 +1,12 @@
+/*
+ * 多点导航算法
+ * @author  刘力铭
+ * @Date    2020.9.14
+ * @note    基本思路：规则规定起点、终点固定，需要途径多个途经点。先使用排列组合排列出所有的经过顺序；
+ *          然后使用dijkstra算法计算出两两点之间的最短可达路径，那么排列组合出来的所有可能性的距离都
+ *          能计算出来；找出总距离最小的组合作为计算结果。该算法计算结果应该不是最优的，但实验效果不错。
+ */
+
 #include <iostream>
 #include <string>
 #include <queue>
@@ -96,7 +105,15 @@ struct Dijkstra
         }
     }
 
-    // 运行 Dijkstra 算法
+    /* *重要算法*
+     * 运行 Dijkstra 算法
+     * @param   startIndex
+     *          起点坐标序号
+     * @param   startAngle
+     *          起点朝向
+     * @param   isFirstBend
+     *          是否是第一个弯，如果是的话需要施加 punish_first_large_bend
+     */
     std::vector<Result> run(int startIndex, double startAngle, bool isFirstBend) const
     {
         std::vector<Result> result;
@@ -139,7 +156,7 @@ struct Dijkstra
                 double relationCostBackwards = 0;
                 double relationCostFirLargeBend = 0;
                 
-                if(lastRelation != nullptr)
+                if(lastRelation != nullptr) // 计算出打角值
                 {
                     if(lastRelation->from == relation->to) relationAngle = PI * punishBackwards; // 如果是往返,直接等于PI 
                     else // 否则不会大于PI
@@ -164,7 +181,7 @@ struct Dijkstra
                 if(relationAngle >= thresholdBend / 180.0 * PI) relationCostBend = relationAngle * punishBendLarge;
                 else relationCostBend = relationAngle * punishBendLittle;
                 
-                double relationCost = relation->dist() + relationCostBend + relationCostBackwards + relationCostFirLargeBend;
+                double relationCost = relation->dist() + relationCostBend + relationCostBackwards + relationCostFirLargeBend; // Dijkstra算法核心
                 if(result[relation->to].cost > result[relation->from].cost + relationCost)
                 {
                     result[relation->to].cost = result[relation->from].cost + relationCost;
@@ -192,6 +209,7 @@ struct Dijkstra
     double thresholdFirstBend = 180.0;
 };
 
+// 用于实现多点导航算法的类
 class MultiGoalsNavigation
 {
 private:
@@ -455,7 +473,15 @@ public:
         goalPublisher.publish(publishedGoal);
     }
 
-    // 排列组合函数, 将 numberVector 中的数据经过排列组合后得到 resultVector
+    /* *重要算法*
+     * 排列组合函数, 将 numberVector 中的数据经过排列组合后得到 resultVector
+     * @param   numberVector
+     *          归一化数据
+     * @param   begin end
+     *          设定排列组合的范围
+     * @param   resultVector
+     *          排列组合后的结果
+     */
     void numberPermutation(std::vector<int> numberVector, int begin, int end, std::vector<std::vector<int> > * resultVector) const
     {
         if(begin == end) resultVector->push_back(numberVector);
@@ -474,7 +500,17 @@ public:
         }
     }
 
-    // 根据起点序号、终点序号、途经点序号和起始朝向解算最短路径
+    /* *重要算法*
+     * 根据起点序号、终点序号、途经点序号和起始朝向解算最短路径
+     * @param   startIndex
+     *          起点坐标序号
+     * @param   stopIndex
+     *          终点坐标序号
+     * @param   startYaw
+     *          起点朝向
+     * @param   goalsIndex
+     *          途经点序号
+     */
     Dijkstra::Result chooceBestPath(int startIndex, int stopIndex, double startYaw, const std::vector<int>& goalsIndex) const
     {
         std::vector<std::vector<int> > goalsPermutation;
@@ -534,7 +570,11 @@ public:
         return result;
     }
 
-    // 根据机器人朝向,goals_id 参数以及 goals_static 参数解算最短路径
+    /* *重要算法*
+     * 根据机器人朝向,goals_id 参数以及 goals_static 参数解算最短路径
+     * @param   startYaw
+     *          起点朝向
+     */
     Dijkstra::Result getOptimalGoalsIndex(const double startYaw) const
     {
         std::vector<int> goalsNeedOptimize;

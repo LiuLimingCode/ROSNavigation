@@ -1,13 +1,13 @@
 # Parameters for pure pursuit controller
 L: 0.335 # Length of car (m) 机器人前轮和后轮的距离
 lfw: 0.1675 # distance between the front of the vehicle and its center of gravity 一般设定为 L 参数的一半
-Vcmd_max: 3.0 # reference speed (m/s) 最大速度
-Vcmd_min: 3.0 # reference speed (m/s) 最小速度
-steering_max: 0.785398163 # 最大舵机转角
-Lfw: 0.7  # forwar  d look ahead distance (m) 前瞻距离
+Vcmd_max: 2.0 # reference speed (m/s) 最大速度
+Vcmd_min: 2.0 # reference speed (m/s) 最小速度
+steering_max: 1.0 # 最大舵机转角
+Lfw: 0.5  # forwar  d look ahead distance (m) 前瞻距离
 goal_radius: 0.5 # unit: m 当机器人位置与目标点距离小于该值时停车
 controller_freq: 20 # unit: Hz 控制频率
-steering_gain: 1.1 # 计算出来的打角再乘上该值
+steering_gain: 1.0 # 计算出来的打角再乘上该值
 base_angle: 0.0 # neutral point of servo (rad) 打角中值 
 cmd_vel_mode: false # whether or not publishing cmd_vel 是否发布 cmd_vel 话题
 smooth_accel: true # whether or not smoothing the acceleration of car 对速度增加进行限制
@@ -21,10 +21,10 @@ deviation_y: 0.15 # 以机器人坐标系为准,当规划出来的曲线的y轴�
 slowdown_dist_min: 0.5 # 当判断到的转弯点距离小于该值时,机器人降到最低速度
 slowdown_dist_max: 3.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
 Vcmd_stop: 0.5 # 点刹速度
-stop_interval: 0.5 # 点刹间隔
-stop_insist: 2 # 点刹维持次数
-slowdown_dist_stop: 0.4 # 当判断到的转弯点距离小于该值时,机器人点刹以过弯
+stop_interval: 1.0 # 点刹间隔
+stop_insist: 3 # 点刹维持次数
+slowdown_dist_stop: 0.5 # 当判断到的转弯点距离小于该值时,机器人点刹以过弯
 
-enable_safe_distance: true # 开启碰撞检测
+enable_safe_distance: false # 开启碰撞检测
 safe_distance_x: 0.2 # 碰撞检测 x 轴检测范围
 safe_distance_y: 0.1 # 碰撞检测 y 轴检测范围
