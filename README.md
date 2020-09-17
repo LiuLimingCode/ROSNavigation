@@ -159,6 +159,31 @@ rosservice call /multi_goals_navigation_node/start_navigation "{}"
 
 ![本工程使用的机器人](doc/robot.jpg)
 
+#### 指令
+实体机器人指令与仿真指令相似，程序上有很多重复
+
+6.1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
+
+6.2 打开传感器
+
+```
+roslaunch racecar_launch_realrobot run_all.launch realrobot:=true
+```
+
+6.3 执行定位、导航功能包
+
+```
+roslaunch racecar_launch_realrobot run_all.launch navigation:=true world_name:=warehouse rviz_full:=true
+```
+
+6.4 在Rviz软件的上方工具栏中找到"2D Pose Estimate"，选择该工具，然后在Rviz的地图上指定机器人大致的起始位置(与实际环境的机器人位置相同)，随后算法会自动修正
+
+6.5 发布多点导航服务开始多点导航
+
+```
+rosservice call /multi_goals_navigation_node/start_navigation "{}"
+```
+
 #### 车模参数
 
 轴距 33.5cm
@@ -200,26 +225,3 @@ base_link （-18，0，-5) 单位cm
 油门中立点区域宽度:6%(窄)
 
 进角:0.00度
-
-#### 指令
-实体机器人指令与仿真指令相似，程序上有很多重复
-
-1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
-
-2 打开传感器
-
-```
-roslaunch racecar_launch_realrobot run_all.launch realrobot:=true
-```
-
-3 执行定位、导航功能包
-
-```
-roslaunch racecar_launch_realrobot run_all.launch navigation:=true world_name:=warehouse rviz_full:=true
-```
-
-4 发布多点导航服务开始多点导航
-
-```
-rosservice call /multi_goals_navigation_node/start_navigation "{}"
-```
