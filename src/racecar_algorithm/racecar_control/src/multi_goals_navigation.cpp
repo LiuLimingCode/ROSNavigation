@@ -488,15 +488,9 @@ public:
 
         for(int index = begin; index < end; ++index)
         {
-            int temp = numberVector[begin];
-            numberVector[begin] = numberVector[index];
-            numberVector[index] = temp;
-
+            std::swap(numberVector[begin], numberVector[index]);
             numberPermutation(numberVector, begin + 1, end, resultVector);
-
-            temp = numberVector[begin];
-            numberVector[begin] = numberVector[index];
-            numberVector[index] = temp;
+            std::swap(numberVector[begin], numberVector[index]);
         }
     }
 
