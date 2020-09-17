@@ -22,7 +22,7 @@ slowdown_dist_min: 0.5 # 当判断到的转弯点距离小于该值时,机器人
 slowdown_dist_max: 3.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
 Vcmd_stop: 0.5 # 点刹速度
 stop_interval: 1.0 # 点刹间隔
-stop_insist: 3 # 点刹维持次数
+stop_insist: 3 # 点刹维持次数,将该值设置为0来关闭点刹功能
 slowdown_dist_stop: 0.5 # 当判断到的转弯点距离小于该值时,机器人点刹以过弯
 
 enable_safe_distance: false # 开启碰撞检测

@@ -13,7 +13,6 @@
 
   <arg name="origin_x" default="0.0"/>
   <arg name="origin_y" default="0.0"/>
-  <arg name="speed" default="2"/>
 
   <!-- <arg name="use_real_param" default="true"/> -->
   <arg name="param_folder" value="reality"/>
@@ -63,7 +62,6 @@
       <!-- <rosparam file="$(find racecar_launch_realrobot)/param/move_base/teb_local_planner_params.yaml" command="load" /> -->
       <rosparam file="$(find racecar_launch_realrobot)/param/move_base/teb_local_planner_params_pure.yaml" command="load" />
       <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
-      <param name="TebLocalPlannerROS/max_vel_x" value="$(arg speed)"/>
     </node>
 
 

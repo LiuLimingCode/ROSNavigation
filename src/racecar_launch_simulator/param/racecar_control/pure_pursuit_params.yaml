@@ -19,12 +19,12 @@ predicted_dist: 0.0 # 为解决机器人打角滞后的问题，将机器人位�
 # 减速参数
 deviation_y: 0.15 # 以机器人坐标系为准,当规划出来的曲线的y轴偏移大于该值时,判断为转弯点
 slowdown_dist_min: 0.5 # 当判断到的转弯点距离小于该值时,机器人降到最低速度
-slowdown_dist_max: 3.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
-Vcmd_stop: 0.5 # 点刹速度
+slowdown_dist_max: 2.0 # 当判断到的转弯点距离大于该值时,机器人升到最高速度
+Vcmd_stop: 3.0 # 点刹速度
 stop_interval: 0.5 # 点刹间隔
-stop_insist: 2 # 点刹维持次数
-slowdown_dist_stop: 0.4 # 当判断到的转弯点距离小于该值时,机器人点刹以过弯
+stop_insist: 0 # 点刹维持次数,将该值设置为0来关闭点刹功能
+slowdown_dist_stop: 0.5 # 当判断到的转弯点距离小于该值时,机器人点刹以过弯
 
-enable_safe_distance: true # 开启碰撞检测
+enable_safe_distance: false # 开启碰撞检测
 safe_distance_x: 0.2 # 碰撞检测 x 轴检测范围
 safe_distance_y: 0.1 # 碰撞检测 y 轴检测范围

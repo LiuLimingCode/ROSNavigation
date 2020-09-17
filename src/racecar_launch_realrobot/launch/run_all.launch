@@ -31,8 +31,6 @@ roslaunch racecar_launch_realrobot run_all.launch navigation:=true rviz_full:=tr
   <arg name="rviz_base" default="false"/>   <!-- 打开Rviz -->
   <arg name="rviz_full" default="false"/>   <!-- 打开Rviz -->
 
-  <arg name="speed" default="0.4"/>
-
   <!-- realrobot -->
   <group if="$(arg realrobot)">
     <include file="$(find racecar_launch_realrobot)/launch/run_real_robot.launch">
@@ -83,7 +81,6 @@ roslaunch racecar_launch_realrobot run_all.launch navigation:=true rviz_full:=tr
       <arg name="mapfile_name" default="$(arg world_name)"/>
       <arg name="origin_x" default="$(arg origin_x)"/>
       <arg name="origin_y" default="$(arg origin_y)"/>
-      <arg name="speed" default="$(arg speed)"/>
     </include>
   </group>
 

@@ -48,7 +48,7 @@ locations_relation: [ [1, 2, 1.0], [1, 9, 1.0],  # [a, b ,c] a,b表示 locations
                       [12, 2, 1.0], [12, 3, 1.0], [12, 4, 1.0] ]
 
 # 两两目标点的cost计算公式 = 距离 + 小弯惩罚 + 大弯惩罚 + 倒退惩罚
-punish_bend_little: 0.0 # 小弯惩罚
+punish_bend_little: 1.0 # 小弯惩罚
 punish_bend_large: 10.0  # 大弯惩罚
 threshold_bend: 120     # 当转弯角度超过该值时,施加大弯惩罚,否则施加小弯惩罚,单位:度.赛道上最大的锐角弯为125度,其次为110度,再其次为100度,最后为90度,考虑到误差,设置该值留一点余量
 punish_backwards: 100.0 # 倒退惩罚

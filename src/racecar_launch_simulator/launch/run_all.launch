@@ -9,6 +9,7 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true rviz_full:=tr
   <!-- 设定机器人模型的初始坐标点 -->
   <arg name="origin_x" default="0"/>
   <arg name="origin_y" default="0"/>
+  <arg name="origin_yaw" default="0"/>
 
   <!-- topic and frame -->
   <arg name="scan_topic" default="/scan"/>
@@ -31,8 +32,6 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true rviz_full:=tr
   <arg name="rviz_base" default="false"/>   <!-- 打开Rviz -->
   <arg name="rviz_full" default="false"/>   <!-- 打开Rviz -->
 
-  <arg name="speed" default="3.5"/>
-
 
   <!-- simulator -->
   <group if="$(arg simulator)">
@@ -44,6 +43,7 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true rviz_full:=tr
     <include file="$(find racecar_launch_simulator)/launch/run_simulator.launch">
       <arg name="origin_x" default="$(arg origin_x)"/>
       <arg name="origin_y" default="$(arg origin_y)"/>
+      <arg name="origin_yaw" default="$(arg origin_yaw)"/>
 
       <arg name="use_gazebo_odom" default="false"/>
       <arg name="use_rf2o_odom" default="false"/>
@@ -95,7 +95,6 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true rviz_full:=tr
       <arg name="mapfile_name" default="$(arg world_name)"/>
       <arg name="origin_x" default="$(arg origin_x)"/>
       <arg name="origin_y" default="$(arg origin_y)"/>
-      <arg name="speed" default="$(arg speed)"/>
     </include>
   </group>
 

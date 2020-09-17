@@ -4,6 +4,7 @@
 
   <arg name="origin_x" default="0"/>
   <arg name="origin_y" default="0"/>
+  <arg name="origin_yaw" default="0"/>
 
   <!-- 由于本系统的Odometry数据可以由多个节点发布，而机器人运行只需要1个Odometry数据 -->
   <!-- 当use_xxx_odom被选择为true时，只有该节点会发布(arg odom_frame)的tf数据，并且该节点发布的odom数据会被重新命名为(arg odom_topic) -->
@@ -27,6 +28,7 @@
   <include file="$(find racecar_gazebo)/launch/racecar_gazebo.launch">
     <arg name="x_pos" default="$(arg origin_x)"/>
     <arg name="y_pos" default="$(arg origin_y)"/>
+    <arg name="yaw_pos" default="$(arg origin_yaw)"/>
     <arg name="world_name" default="$(arg world_name)"/>
   </include>
 
