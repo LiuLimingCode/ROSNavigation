@@ -55,13 +55,14 @@ struct Dijkstra
     // 用于显示Dijkstra算法结果的类
     struct Result
     {
-        std::vector<int> bestPath;
+        std::vector<int> bestPath = std::vector<int>();
         double cost = 0;
         double distance = 0;
         double angle = 0;
 
-        Result(double _cost = 0, double _dist = 0, double _angle = 0, const std::vector<int> _path = std::vector<int>()) :
-        cost(_cost), distance(_dist), _angle(_angle), bestPath(_path) {}
+        Result() = default;
+        Result(double _cost, double _dist, double _angle, const std::vector<int> _path = std::vector<int>()) :
+        cost(_cost), distance(_dist), angle(_angle), bestPath(_path) {}
     };
 
     // Dijkstra算法用到的优先队列的节点
@@ -70,17 +71,11 @@ struct Dijkstra
         Result result;
         int index; // 当前点的序号
         const LocationsRelation* relation; // 当前的的 LocationsRelation
-        HeapNode(int _index, double _cost, double _dist, double _angle, const LocationsRelation* _relation = nullptr, const std::vector<int> _path = std::vector<int>()) :
-        index(_index), relation(r)
-        {
-            result.cost = _cost;
-            result.distance = _dist;
-            result.angle = _angle;
-            result.bestPath = _path;
-        }
+        HeapNode(int _index, Result & _result, const LocationsRelation* _relation = nullptr) :
+        index(_index), result(_result), relation(_relation) {}
         bool operator < (const HeapNode &rhs) const
         {
-            return cost > rhs.cost;
+            return result.cost > rhs.result.cost;
         }
     };
 
@@ -130,10 +125,10 @@ struct Dijkstra
         result[startIndex].distance = 0;
         result[startIndex].angle = 0;
         result[startIndex].cost = 0;
-        HeapNode startNode(startIndex, 0, 0, 0);
-        startNode.path.clear();
-        startNode.path.push_back(startIndex);
-        result[startIndex].bestPath = startNode.path;
+        result[startIndex].bestPath.clear();
+        result[startIndex].bestPath.push_back(startIndex);
+
+        HeapNode startNode(startIndex, result[startIndex]);
         heapNodeQueue.push(startNode);
 
         while(!heapNodeQueue.empty())
@@ -143,7 +138,7 @@ struct Dijkstra
 
             int currentIndex = currentNode.index;
             const LocationsRelation* lastRelation = currentNode.relation;
-            std::vector<int> currentPath = currentNode.path;
+            std::vector<int> currentPath = currentNode.result.bestPath;
 
             if(reached[currentIndex]) continue;
             reached[currentIndex] = true;
@@ -187,9 +182,10 @@ struct Dijkstra
                     result[relation->to].cost = result[relation->from].cost + relationCost;
                     result[relation->to].distance = result[relation->from].distance + relation->dist();
                     result[relation->to].angle = result[relation->from].angle + relationAngle;
-                    HeapNode nextNode(relation->to, result[relation->to].cost, result[relation->to].distance, result[relation->to].angle, relation, currentPath);
-                    nextNode.path.push_back(relation->to);
-                    result[relation->to].bestPath = nextNode.path;
+                    result[relation->to].bestPath = currentPath;
+                    result[relation->to].bestPath.push_back(relation->to);
+
+                    HeapNode nextNode(relation->to, result[relation->to], relation);
                     heapNodeQueue.push(nextNode);
                 }
             }
