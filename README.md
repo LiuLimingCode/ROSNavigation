@@ -231,4 +231,4 @@ base_link （-18，0，-5) 单位cm
 
 尽管本工程在比赛上取得了很好的成绩，但是还是存在诸多问题，比如：在速度较快的时候（> 2m/s)，机器人定位会出现严重问题，进而影响导航算法的决策
 
-因此，特新建一个项目 https://gitee.com/ZUSTSmartCar/Code_Pilotless_Driving_14_Plus，在本项目的基础上，深入研究，改进算法
+因此，特新建一个项目 https://gitee.com/ZUSTSmartCar/Code_Pilotless_Driving_14_Plus ，在本项目的基础上，深入研究，改进算法
