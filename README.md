@@ -160,6 +160,7 @@ rosservice call /multi_goals_navigation_node/start_navigation "{}"
 ![本工程使用的机器人](doc/robot.jpg)
 
 #### 指令
+
 实体机器人指令与仿真指令相似，程序上有很多重复
 
 6.1 使用`catkin_make`正确编译本工程，并 `source devel/setup.sh`
@@ -225,3 +226,9 @@ base_link （-18，0，-5) 单位cm
 油门中立点区域宽度:6%(窄)
 
 进角:0.00度
+
+# 7. 已知问题和算法改进
+
+尽管本工程在比赛上取得了很好的成绩，但是还是存在诸多问题，比如：在速度较快的时候（> 2m/s)，机器人定位会出现严重问题，进而影响导航算法的决策
+
+因此，特[新建一个项目](https://gitee.com/ZUSTSmartCar/Code_Pilotless_Driving_14_Plus)，在本项目的基础上，深入研究，改进算法
