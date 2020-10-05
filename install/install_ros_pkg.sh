@@ -38,14 +38,6 @@ sudo apt install libnlopt* -y
 
 
 echo "Install the ROS package for art_racecar"
-sudo apt-get install ros-$rosversion-joy -y
-sudo apt-get install ros-$rosversion-move-base -y
-sudo apt-get install ros-$rosversion-mrpt* -y
-sudo apt-get install ros-$rosversion-geographic-msgs -y
-sudo apt-get install ros-$rosversion-map-server -y
-sudo apt-get install ros-$rosversion-gmapping -y
-sudo apt-get install ros-$rosversion-rviz-imu-plugin -y
-
 sudo apt install -y ros-$rosversion-joy
 sudo apt install -y ros-$rosversion-joystick-drivers
 
@@ -74,17 +66,13 @@ sudo apt install -y ros-$rosversion-camera-calibration
 sudo apt install -y ros-$rosversion-image-proc
 sudo apt install -y ros-$rosversion-opencv-apps
 sudo apt install -y ros-$rosversion-ecl-threads
-sudo apt install -y ros-$rosversion-libuvc ros-melodic-libuvc-*
+sudo apt install -y ros-$rosversion-libuvc
+sudo apt install -y ros-$rosversion-libuvc-*
 sudo apt install -y ros-$rosversion-rgbd-launch
 sudo apt install -y ros-$rosversion-libuvc
 sudo apt install -y ros-$rosversion-libuvc-camera
 sudo apt install -y ros-$rosversion-libuvc-ros
 sudo apt install -y ros-$rosversion-openni-launch
-
-# web
-sudo apt install -y ros-$rosversion-roswww
-sudo apt install -y ros-$rosversion-rosbridge-suite 
-sudo apt install -y ros-$rosversion-web-video-server
 
 # nav
 sudo apt install -y ros-$rosversion-robot-localization
@@ -97,6 +85,10 @@ sudo apt install -y ros-$rosversion-teb-local-planner
 sudo apt install -y ros-$rosversion-ackermann-msgs
 sudo apt install -y ros-$rosversion-hector-slam
 sudo apt install -y ros-$rosversion-slam-karto
+sudo apt install -y ros-$rosversion-move-base
+sudo apt install -y ros-$rosversion-mrpt*
+sudo apt install -y ros-$rosversion-geographic-msgs
+sudo apt install -y ros-$rosversion-rviz-imu-plugin
 
 # arm
 sudo apt install -y ros-$rosversion-moveit
