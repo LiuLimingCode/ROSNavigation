@@ -16,7 +16,7 @@
 
 在学习ROS（并非本工程如此刁难）之前，您应该掌握一下技能：
 
-- **熟练使用C++**或者Python（推荐精通C++，能看懂Python）
+- **熟练使用C++或者Python**（推荐精通C++，能看懂Python）
 
 - **CET六级以上英语阅读水平**（或者使用Chrome浏览器内置的网页翻译功能，但机翻基本看不懂，**如果您无法接受英文形式的资料，那么恕我直言，您没有资格学好ROS**）
 
@@ -33,10 +33,15 @@
 **ROS官网**：http://wiki.ros.org/  在官网页面的右上角，可以搜索ROS的相关问题以及ROS功能包（搜索需要翻墙）。
 
 **本工程使用的重要开源算法的官网**
+
 RF2O算法，从激光雷达的数据中得到机器人的线速度、角速度数据：http://wiki.ros.org/rf2o_laser_odometry
+
 扩展卡尔曼滤波算法：http://wiki.ros.org/robot_localization
+
 Gmapping算法：http://wiki.ros.org/gmapping
+
 自适应蒙特卡洛定位(AMCL)算法：http://wiki.ros.org/amcl
+
 导航算法：http://wiki.ros.org/move_base
 
 ### 如何学习Gazebo
@@ -45,7 +50,7 @@ Gmapping算法：http://wiki.ros.org/gmapping
 
 ### 如何学习本工程
 
-先讲讲ROS的基本概念，我认为：ROS本身就是一个通讯机制，一个机器人系统上会运行多个Node，而Node则代表了实现某某算法的节点，ROS Master通过Topic和Service的机制帮助多个Node之间互相通讯，最终多个Nodes协作完成任务。**所以学习ROS的难点不在于ROS本身，而在于Node代表的算法，多Node之间的协作等等问题。**比如，对于ROS的导航项目，难点在于如何得到机器人的定位、如何规划导航路径、如何进行运动控制，而ROS本身并不难。
+先讲讲ROS的基本概念，我认为：ROS本身就是一个通讯机制，一个机器人系统上会运行多个Node，而Node则代表了实现某某算法的节点，ROS Master通过Topic和Service的机制帮助多个Node之间互相通讯，最终多个Nodes协作完成任务。 **所以学习ROS的难点不在于ROS本身，而在于Node代表的算法，多Node之间的协作等等问题。** 比如，对于ROS的导航项目，难点在于如何得到机器人的定位、如何规划导航路径、如何进行运动控制，而ROS本身并不难。
 
 **学习步骤：**
 1. 学习Ubuntu、ROS的基本教程。
