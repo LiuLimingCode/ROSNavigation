@@ -32,17 +32,17 @@
 
 **ROS官网**：http://wiki.ros.org/  在官网页面的右上角，可以搜索ROS的相关问题以及ROS功能包（搜索需要翻墙）。
 
-**本工程使用的重要开源算法的官网**
+**本工程使用的重要开源算法的官网：**
 
-RF2O算法，从激光雷达的数据中得到机器人的线速度、角速度数据：http://wiki.ros.org/rf2o_laser_odometry
+- RF2O算法，从激光雷达的数据中得到机器人的线速度、角速度数据：http://wiki.ros.org/rf2o_laser_odometry
 
-扩展卡尔曼滤波算法：http://wiki.ros.org/robot_localization
+- 扩展卡尔曼滤波算法：http://wiki.ros.org/robot_localization
 
-Gmapping算法：http://wiki.ros.org/gmapping
+- Gmapping算法：http://wiki.ros.org/gmapping
 
-自适应蒙特卡洛定位(AMCL)算法：http://wiki.ros.org/amcl
+- 自适应蒙特卡洛定位(AMCL)算法：http://wiki.ros.org/amcl
 
-导航算法：http://wiki.ros.org/move_base
+- 导航算法：http://wiki.ros.org/move_base
 
 ### 如何学习Gazebo
 
@@ -50,7 +50,7 @@ Gmapping算法：http://wiki.ros.org/gmapping
 
 ### 如何学习本工程
 
-先讲讲ROS的基本概念，我认为：ROS本身就是一个通讯机制，一个机器人系统上会运行多个Node，而Node则代表了实现某某算法的节点，ROS Master通过Topic和Service的机制帮助多个Node之间互相通讯，最终多个Nodes协作完成任务。 **所以学习ROS的难点不在于ROS本身，而在于Node代表的算法，多Node之间的协作等等问题。** 比如，对于ROS的导航项目，难点在于如何得到机器人的定位、如何规划导航路径、如何进行运动控制，而ROS本身并不难。
+先讲讲ROS的基本概念，我认为：ROS本身就是一个通讯机制，一个机器人系统上会运行多个Node，而Node则代表了实现某某算法的节点，ROS Master通过Topic和Service的机制帮助多个Node之间互相通讯，最终多个Nodes协作完成任务。 **所以学习ROS的难点不在于ROS本身，而在于理解Node代表的算法等问题。** 比如，对于ROS的导航项目，难点在于如何得到机器人的定位、如何规划导航路径、如何进行运动控制、如何将这些算法组合使用，而ROS本身并不难。
 
 **学习步骤：**
 1. 学习Ubuntu、ROS的基本教程。
@@ -128,7 +128,7 @@ bash update_gazebo.sh
 
 打开全部 *.yaml 文件，找到第一行属性image，将该参数对应的文件地址修改成你电脑上对应的文件地址
 
-# 5. 开始仿真
+# 6. 开始仿真
 
 **前置:** 在虚拟机上运行的Gazebo运算速度很慢，所以强烈推荐您安装双系统。
 
@@ -198,7 +198,7 @@ rosservice call /multi_goals_navigation_node/start_navigation "{}"
 
 注意:多点导航的参数在src\racecar_launch_simulator\param\racecar_control\multi_goals_navigation_params.yaml中可以找到.如果需要使用自己的地图或者调试参数，请先看懂multi_goals_navigation.cpp
 
-# 6. 使用实体车模
+# 7. 使用实体车模
 
 ![本工程使用的机器人](doc/robot.jpg)
 
@@ -270,7 +270,7 @@ base_link （-18，0，-5) 单位cm
 
 进角:0.00度
 
-# 7. 已知问题和算法改进
+# 8. 已知问题和算法改进
 
 尽管本工程在比赛上取得了很好的成绩，但是还是存在诸多问题，比如：在速度较快的时候（> 2m/s)，机器人定位会出现严重问题，进而影响导航算法的决策
 
