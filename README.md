@@ -18,7 +18,7 @@
 
 - **熟练使用C++或者Python**（推荐精通C++，能看懂Python）
 
-- **CET六级以上英语阅读水平**（或者使用Chrome浏览器内置的网页翻译功能，但机翻基本看不懂，**如果您无法接受英文形式的资料，那么恕我直言，您没有资格学好ROS**）
+- **CET六级以上英语阅读水平**（或者使用Chrome浏览器内置的网页翻译功能，但机翻基本看不懂，**如果您无法接受英文形式的资料，那么恕我直言，我认为您没有资格学好ROS**）
 
 - 帮助您登入外网的**翻墙软件**
 
@@ -152,7 +152,7 @@ roslaunch racecar_launch_simulator run_all.launch simulator:=true world_name:=ra
 
 gazebo软件显示如下图所示(可能视角有所不同):
 
-<img src="doc/gazebo.png" width="958" height="1056">
+<img src="doc/gazebo.png" width="640" height="704">
 
 ### 6.3 建图(可跳过)
 
@@ -178,7 +178,7 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true world_name:=r
 
 在Rviz的上方工具栏中找到"2D Nav Goal"，选择该工具，然后在Rviz的地图上指定导航终点，导航开始，Rviz软件显示如下图所示:
 
-<img src="doc/rviz.png" width="960" height="1056">
+<img src="doc/rviz.png" width="640" height="704">
 
 注意:导航能否完成与您的电脑配置有关，若无法完成导航任务，可以找到src\racecar_launch_simulator\param\racecar_control\pure_pursuit_params.yaml，适当降低Vcmd_max和Vcmd_min和其他参数的值。同时注意Gazebo软件左下角的"Real Time Factor"为0.5代表仿真是以0.5倍速度运行的
 
@@ -210,7 +210,7 @@ rosservice call /multi_goals_navigation_node/start_navigation "{}"
 
 # 7. 使用实体车模
 
-<img src="doc/robot.jpg" width="1008" height="756">
+<img src="doc/robot.jpg" width="672" height="504">
 
 ### 7.1 指令
 
