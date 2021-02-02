@@ -21,11 +21,12 @@ sudo apt-get update
 
 echo "Install the ros from apt" 
 sudo apt-get install ros-$rosversion-desktop-full -y
-sudo rosdep init
-rosdep update
 
 echo "Setup the ROS environment variables"
 echo -e "if [ -f /opt/ros/$rosversion/setup.bash ]; then\n\tsource /opt/ros/$rosversion/setup.bash\nfi" >> ~/.bashrc
 source ~/.bashrc
+
+sudo rosdep init
+rosdep update
 
 echo "--Finish"

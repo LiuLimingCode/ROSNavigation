@@ -10,7 +10,7 @@
 
 本工程包含机器人3D仿真模型、仿真软件设置、ROS功能包设置等，能够使用Gazebo仿真软件或实体机器人完成定位、建图、导航功能。同时，因为本工程具有仿真功能，因此本工程也非常适合学习ROS、导航算法。
 
-![](doc/racecar.jpg)
+<img src="doc/racecar.jpg" width="960" height="528">
 
 # 2. 前置技术（劝退）
 
@@ -87,9 +87,11 @@
 
 ### 5.1 安装ubuntu操作系统 （推荐ubuntu 16.04 操作系统）
 
+经测试：**ubuntu 16.04** 和 **ubuntu 18.04** 都可以运行本工程，但是 ubuntu 20.04 不可以（2021/02/02）
+
 官方教程：http://www.wmcollege.club/front/couinfo/197
 
-在您学会ubuntu和ROS的基本操作后，建议您安装双系统（即ubuntu和ROS），教程：https://www.cnblogs.com/masbay/p/10745170.html
+在您学会ubuntu和ROS的基本操作后，建议您安装双系统（即ubuntu和ROS），双系统安装教程：https://www.cnblogs.com/masbay/p/10745170.html
 
 ### 5.2 在ubuntu上安装ROS
 
@@ -150,7 +152,7 @@ roslaunch racecar_launch_simulator run_all.launch simulator:=true world_name:=ra
 
 gazebo软件显示如下图所示(可能视角有所不同):
 
-![](doc/gazebo.png)
+<img src="doc/gazebo.png" width="958" height="1056">
 
 ### 6.3 建图(可跳过)
 
@@ -176,7 +178,7 @@ roslaunch racecar_launch_simulator run_all.launch navigation:=true world_name:=r
 
 在Rviz的上方工具栏中找到"2D Nav Goal"，选择该工具，然后在Rviz的地图上指定导航终点，导航开始，Rviz软件显示如下图所示:
 
-![](doc/rviz.png)
+<img src="doc/rviz.png" width="960" height="1056">
 
 注意:导航能否完成与您的电脑配置有关，若无法完成导航任务，可以找到src\racecar_launch_simulator\param\racecar_control\pure_pursuit_params.yaml，适当降低Vcmd_max和Vcmd_min和其他参数的值。同时注意Gazebo软件左下角的"Real Time Factor"为0.5代表仿真是以0.5倍速度运行的
 
@@ -208,7 +210,7 @@ rosservice call /multi_goals_navigation_node/start_navigation "{}"
 
 # 7. 使用实体车模
 
-![本工程使用的机器人](doc/robot.jpg)
+<img src="doc/robot.jpg" width="1008" height="756">
 
 ### 7.1 指令
 

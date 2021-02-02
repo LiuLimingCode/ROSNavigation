@@ -23,18 +23,14 @@ sudo apt-get install ntpdate -y
 echo "Install the chrony"
 sudo apt-get install chrony -y
 
-# Install the dependecies for the project 
-echo "Start to config for the project"
-
-#echo "Install the python dependecies"
+echo "Install the python dependecies"
 sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose -y
 
-#echo "Install the eigen3"
+echo "Install the eigen3"
 sudo apt install libeigen3-dev -y
 
-#echo "Install the nlopt"
+echo "Install the nlopt"
 sudo apt install libnlopt* -y
-
 
 
 echo "Install the ROS package for art_racecar"
@@ -86,7 +82,7 @@ sudo apt install -y ros-$rosversion-ackermann-msgs
 sudo apt install -y ros-$rosversion-hector-slam
 sudo apt install -y ros-$rosversion-slam-karto
 sudo apt install -y ros-$rosversion-move-base
-sudo apt install -y ros-$rosversion-mrpt*
+sudo apt install -y ros-$rosversion-mrpt-*
 sudo apt install -y ros-$rosversion-geographic-msgs
 sudo apt install -y ros-$rosversion-rviz-imu-plugin
 
@@ -103,4 +99,5 @@ sudo apt install -y ros-$rosversion-serial
 sudo apt install -y chrony
 sudo apt install -y libarmadillo-dev libarmadillo6
 sudo apt install -y lpc21isp
+
 
