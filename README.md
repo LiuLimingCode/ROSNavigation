@@ -130,7 +130,13 @@ cd install
 bash update_gazebo.sh
 ```
 
-### 5.5 修改地图文件
+### 5.5 下载Gazebo通用模型文件
+
+教程：https://blog.csdn.net/qq_40213457/article/details/81021562
+
+或者自行从[官方模型库](https://github.com/osrf/gazebo_models)下载模型文件，并将文件放到 '~/.gazebo/models/' 文件夹下
+
+### 5.6 修改地图文件
 
 找到 `src\racecar_launch_realrobot\map` 和 `src\racecar_launch_simulator\map` 文件夹
 
@@ -138,7 +144,12 @@ bash update_gazebo.sh
 
 # 6 开始仿真
 
-**前置:** 在虚拟机上运行的Gazebo运算速度很慢，所以强烈推荐您安装双系统。
+**前置:** 
+
+1. 如果使用VMware虚拟机运行Ubuntu，请找到“编辑虚拟机设置”->“显示器”中，取消“加速3D图像”的勾选，否则无法打开Gazebo。
+2. 在虚拟机上运行的Gazebo运算速度很慢，所以强烈推荐您安装双系统（见5.1节）。
+3. 请预先下载Gazebo通用模型文件（见5.5节），否则打开Gazebo后为黑屏。
+4. 如果有兴趣，可以自行搜索安装电脑适配的显卡驱动，可以很大程度地加速Gazebo运行。
 
 ### 6.1 编译
 
