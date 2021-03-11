@@ -2,7 +2,8 @@
  * 纯路径跟踪算法
  * @author  刘力铭
  * @Date    2020.9.14
- * @note    改进于 HyphaRos-MiniCar
+ * @note    改进于 [HyphaRos-MiniCar](https://github.com/Hypha-ROS/hypharos_minicar)
+ *          算法思路：可以参考[HyphaRos的视频](https://v.youku.com/v_show/id_XMzc4OTc2NjI0OA==)，以及中南大学技术报告(见项目doc文件夹)
  *          基本思路：订阅TEB规划出来的导航路径来进行路径追踪，输出运动控制结果
  */
 
