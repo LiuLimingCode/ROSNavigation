@@ -63,7 +63,7 @@
 2. 如果你之前没有接触过ROS的相关项目，那么建议你不要直接使用该项目作为入门项目（因为太复杂了），你可以去网上找一些带详细解释的仿真导航教程（我随便找了一个，https://blog.csdn.net/crp997576280/article/details/102983855 ），按照教程的步骤实现导航。
 3. 确认教程能够实现后，你会发现，教程使用了很多的`roslaunch`指令来实现导航，该指令的意义是：根据某个.launch文件的设置，一次性做很多的事、打开很多的Node。那么，理解roslaunch指令做了的事也就学会了该项目。
 4. 学习roslaunch语法(http://wiki.ros.org/roslaunch/XML)。
-5. 再回到教程，重新依次执行教程中的指令，每执行一个roslaunch指令，就找到其对应的.launch文件，看懂这个文件，同时配合`rosnode info xxx`和`rostopic info xxx`等ubuntu指令观察Node信息，问问自己以下问题：这个launch文件做了什么设置，打开了什么节点？该节点的作用是什么（如果是开源算法则去官网或者github查询，如果不是需要看算法源文件夹下的README文件或者直接看程序）？该节点的输入数据从何而来，有什么意义？该节点的输出数据又有什么意义？最终这个.launch文件起到了什么效果？
+5. 再回到教程，重新依次执行教程中的指令，每执行一个roslaunch指令，就找到其对应的.launch文件，看懂这个文件，同时配合`rosnode info xxx`和`rostopic info xxx`等ubuntu指令观察Node信息，问问自己以下问题：这个launch文件做了什么设置，打开了什么节点？该节点的作用是什么？（如果是开源算法，则去官网或者github查询；如果不开源，需要看算法源文件夹下的README文件或者直接看程序）该节点的输入数据从何而来，有什么意义？该节点的输出数据又有什么意义？最终这个.launch文件起到了什么效果？
 
 **一句话总结就是：当你能够彻底理解一个工程中所有的roslaunch命令，那么你就学会了这个项目。而ROS框架下的导航工程结构都是大同小异的，学会了一个就学会了全部。**
 
@@ -93,11 +93,11 @@
 
 ### 5.1 安装ubuntu操作系统 （推荐ubuntu 16.04 操作系统）
 
-经测试：**ubuntu 16.04** 和 **ubuntu 18.04** 都可以运行本工程，但是 ubuntu 20.04 不可以（2021/02/02）
+经测试：**ubuntu 16.04** 和 **ubuntu 18.04** 都可以运行本工程，但是 ubuntu 20.04 不可以（测试时间：2021/02/02）
 
 官方教程：http://www.wmcollege.club/front/couinfo/197
 
-在您学会ubuntu和ROS的基本操作后，建议您安装双系统（即ubuntu和ROS），双系统安装教程：https://www.cnblogs.com/masbay/p/10745170.html
+在您学会ubuntu和ROS的基本操作后，建议您安装双系统（即ubuntu和Windows共同存在您的电脑上），双系统安装教程：https://www.cnblogs.com/masbay/p/10745170.html
 
 ### 5.2 在ubuntu上安装ROS
 

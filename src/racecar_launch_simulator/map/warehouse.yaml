@@ -1,7 +1,6 @@
-image: /home/llm/ROS/robot_racecar/src/racecar_launch_simulator/map/warehouse.pgm
+image: /home/llm/ROS/robot_racecar_plus/src/racecar_launch_cartographer/map/warehouse.pgm
 resolution: 0.050000
-origin: [-100.000000, -100.000000, 0.000000]
+origin: [-8.929403, -6.543843, 0.0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196
-
