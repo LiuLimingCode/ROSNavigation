@@ -52,6 +52,7 @@
     <arg name="rf2o_odom_topic" default="$(arg odom_rf2o_topic)"/>
     <arg name="laser_scan_topic"  default="$(arg scan_topic)"/>
     <arg name="base_frame_id" default="$(arg base_frame)"/>
+    <arg name="freq" default="10.0"/>
   </include>
 
   <!-- http://docs.ros.org/kinetic/api/robot_localization/html/index.html -->

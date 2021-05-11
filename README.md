@@ -6,7 +6,9 @@
 
 **主要程序设计：刘力铭、严一展、闵文彦；主要硬件设计：周明俊、余婉婷**
 
-**本工程参加第十五届全国大学生智能汽车竞赛室外光电组，并获得全国总决赛一等奖(第三名)**
+**本工程参加第十五届全国大学生智能汽车竞赛室外光电组，并获得全国总决赛一等奖(第三名)** 
+
+**本工程的'比赛程序'分支为参赛时的工程，'master'分支为删去无用文件、增加注释的学习工程**
 
 ![](doc/award.jpg)
 
@@ -93,7 +95,7 @@
 
 ### 5.1 安装ubuntu操作系统 （推荐ubuntu 16.04 操作系统）
 
-经测试：**ubuntu 16.04** 和 **ubuntu 18.04** 都可以运行本工程，但是 ubuntu 20.04 不可以（测试时间：2021/02/02）
+经测试：'**ROS Kinect**' 、 '**ROS Melodic**' 和 '**ROS Noetic**' 都可以运行本工程。（官方的RF2O算法存在移植上的问题且早已暂停更新，官方有两种版本：分别是 [依赖mrpt1.5，无法移植到ros noetic的版本，同时该版本也是比赛使用版本](https://github.com/MAPIRlab/mapir-ros-pkgs) 和 [计算数据有BUG的版本](https://github.com/MAPIRlab/rf2o_laser_odometry)。所以后来改用[非官方版本](https://github.com/tianb03/rf2o_laser_odometry)。）
 
 官方教程：http://www.wmcollege.club/front/couinfo/197
 
