@@ -7,10 +7,15 @@ import atexit
 import os
 import signal
 from threading import Lock
-from Tkinter import Frame, Label, Tk
-
 import rospy
 from ackermann_msgs.msg import AckermannDriveStamped
+import sys
+if sys.version_info[0] == 3:
+    # for Python3
+    from tkinter import Frame, Label, Tk
+else:
+    # for Python2
+    from Tkinter import Frame, Label, Tk
 
 UP = "w"
 LEFT = "a"

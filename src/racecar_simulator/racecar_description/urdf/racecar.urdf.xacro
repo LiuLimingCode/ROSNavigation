@@ -470,13 +470,13 @@ limitations under the License.
   </gazebo>
 
   <!-- layers -->
-  <layer layer="platform" parent="chassis" m="${layer_mass}" x="${layer_x}" y="${layer_y}" z="${layer_z}">
+  <xacro:layer layer="platform" parent="chassis" m="${layer_mass}" x="${layer_x}" y="${layer_y}" z="${layer_z}">
     <origin xyz="0 0 ${layer_height}" rpy="0 0 0" />
-  </layer>
+  </xacro:layer>
 
-  <layer layer="lidar_platform" parent="platform_link" m="${layer_mass}" x="0.12" y="0.10" z="0.01">
+  <xacro:layer layer="lidar_platform" parent="platform_link" m="${layer_mass}" x="0.12" y="0.10" z="0.01">
     <origin xyz="0.08 0 ${layer_height}" rpy="0 0 0" />
-  </layer>
+  </xacro:layer>
 
   <joint name="lidar_joint" type="fixed">
     <origin xyz="0 0 0.03" rpy="0 0 0" />
@@ -484,7 +484,7 @@ limitations under the License.
     <child link="laser_link"/>
   </joint>
 
-  <lidar prefix="laser"/>
+  <xacro:lidar prefix="laser"/>
 
   <joint name="imu_joint" type="fixed">
     <origin xyz="0.16 0 0.015" rpy="0 0 0" />
@@ -492,7 +492,7 @@ limitations under the License.
     <child link="imu_link"/>
   </joint>
 
-  <imu prefix="imu"/>
+  <xacro:imu prefix="imu"/>
 
   <joint name="camera_joint" type="fixed">
     <origin xyz="0.16 0 0.05" rpy="0 0 0" />

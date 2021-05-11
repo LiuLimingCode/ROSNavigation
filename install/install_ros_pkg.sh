@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Varibles
-rosversion="kinetic"
+rosversion="melodic"
 
 if [ `id -u` == 0 ]; then
 	echo "Don't running this use root(sudo)."
@@ -12,25 +12,33 @@ fi
 sudo apt-get upgrade -y
 
 echo "Install the rosinstall"
-sudo apt-get install python-rosinstall -y
+sudo apt-get install -y python-rosinstall
 
 echo "Install the ssh"
-sudo apt-get install ssh -y
+sudo apt-get install -y ssh
 
 echo "Install the ntpdate"
-sudo apt-get install ntpdate -y
+sudo apt-get install -y ntpdate
 
 echo "Install the chrony"
-sudo apt-get install chrony -y
+sudo apt-get install -y chrony
 
 echo "Install the python dependecies"
-sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose -y
+sudo apt-get install -y ipython
+sudo apt-get install -y python-numpy
+sudo apt-get install -y python3-numpy
+sudo apt-get install -y python-scipy
+sudo apt-get install -y python3-scipy
+sudo apt-get install -y python-matplotlib
+sudo apt-get install -y python3-matplotlib
+sudo apt-get install -y python-tk
+sudo apt-get install -y python3-tk
 
 echo "Install the eigen3"
-sudo apt install libeigen3-dev -y
+sudo apt install -y libeigen3-dev
 
 echo "Install the nlopt"
-sudo apt install libnlopt* -y
+sudo apt install -y libnlopt*
 
 
 echo "Install the ROS package for art_racecar"
@@ -54,7 +62,9 @@ sudo apt install -y ros-$rosversion-jsk-visualization
 sudo apt install -y ros-$rosversion-robot-pose-publisher
 
 # camera
-sudo apt install -y glibc-doc manpages-posix manpages-posix-dev
+sudo apt install -y glibc-doc
+sudo apt install -y manpages-posix
+sudo apt install -y manpages-posix-dev
 sudo apt install -y ros-$rosversion-uvc-camera
 sudo apt install -y ros-$rosversion-image-transport
 sudo apt install -y ros-$rosversion-image-transport-plugins
@@ -97,7 +107,7 @@ sudo apt install -y ros-$rosversion-serial
 
 # other (not ROS)
 sudo apt install -y chrony
-sudo apt install -y libarmadillo-dev libarmadillo6
+sudo apt install -y libarmadillo-dev
+sudo apt install -y libarmadillo6
 sudo apt install -y lpc21isp
-
 
