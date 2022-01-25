@@ -4,3 +4,4 @@ devel
 data
 bag
 *.catkin_workspace
+*.catkin-workspace
